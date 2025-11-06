@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jetro Reverte - Cobrança Educacional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#E9EFF3',
+                100: '#D3DEE8',
+                200: '#A7BDD0',
+                300: '#7B9CB9',
+                400: '#4F7BA1',
+                500: '#2A5D8A',
+                600: '#244761',
+                700: '#1E3A4C',
+                800: '#182E3D',
+                900: '#12222E',
+                DEFAULT: '#2A5D8A',
+              },
+              secondary: {
+                50: '#FBF6EB',
+                100: '#F7EDD8',
+                200: '#EDDAB0',
+                300: '#E3C689',
+                400: '#D9B361',
+                500: '#B58E4F',
+                600: '#A07D47',
+                700: '#8B6C3F',
+                800: '#765B37',
+                900: '#614A2F',
+                DEFAULT: '#B58E4F',
+              },
+              neutral: {
+                50: '#FAF9F6',
+                100: '#F5F3EF',
+                200: '#EAE8E1',
+                300: '#DCD9CF',
+                400: '#B7B3A9',
+                500: '#928E83',
+                600: '#767269',
+                700: '#5A574F',
+                800: '#3E3C36',
+                900: '#22211E',
+                DEFAULT: '#928E83',
+              },
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              'lg': '0.75rem',
+              'xl': '1rem',
+              '2xl': '1.5rem',
+              '3xl': '2rem',
+              'full': '9999px',
+            },
+            boxShadow: {
+              'glow-primary': '0 0 15px 0 rgba(42, 93, 138, 0.3), 0 0 30px 0 rgba(42, 93, 138, 0.15)',
+              'glow-green': '0 0 15px 0 rgba(34, 197, 94, 0.3), 0 0 30px 0 rgba(34, 197, 94, 0.15)',
+              'glow-red': '0 0 15px 0 rgba(239, 68, 68, 0.3), 0 0 30px 0 rgba(239, 68, 68, 0.15)',
+              'glow-secondary': '0 0 15px 0 rgba(181, 142, 79, 0.3), 0 0 30px 0 rgba(181, 142, 79, 0.15)',
+              'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+            },
+            keyframes: {
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              'slide-in-up': {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              'shimmer': {
+                '0%': { backgroundPosition: '-1000px 0' },
+                '100%': { backgroundPosition: '1000px 0' },
+              },
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-out forwards',
+              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
+              'shimmer': 'shimmer 2s infinite linear',
+            },
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.umd.js"></script>
+    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+  }
+}
+</script>
+</head>
+  <body class="bg-neutral-100 text-neutral-800 font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
