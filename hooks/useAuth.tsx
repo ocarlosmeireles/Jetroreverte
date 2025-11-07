@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import { User, UserRole } from '../types';
+import { allDemoUsers } from '../services/superAdminDemoData';
 
 interface AuthContextType {
     user: User | null;
@@ -28,6 +29,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Helper to fetch user profile from Firestore
 const getUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> => {
+    // For demo purposes, if the email matches a demo user, return that user's profile
+    // This bypasses the need for Firestore to be populated with these users.
+    const demoUser = allDemoUsers.find(u => u.email === firebaseUser.email);
+    if (demoUser) {
+        // For the guardian, we need to ensure the ID matches the one in demo data ('resp-01')
+        // for relationships to work. For others, we can use the firebase UID for consistency.
+        const id = demoUser.role === UserRole.RESPONSAVEL ? demoUser.id : firebaseUser.uid;
+        
+        // Return a complete User object. The `allDemoUsers` object is nearly complete.
+        return {
+            ...demoUser,
+            id: id,
+            email: firebaseUser.email || demoUser.email,
+        };
+    }
+
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     const userDocSnap = await getDoc(userDocRef);
 
