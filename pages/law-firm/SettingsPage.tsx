@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
-import { CameraIcon, UserCircleIcon, SparklesIcon } from '../../components/common/icons';
+import { CameraIcon, UserCircleIcon, SparklesIcon, GoogleDriveIcon, CheckCircleIcon } from '../../components/common/icons';
 import { User } from '../../types';
 import { db } from '../../services/firebase';
 import { writeBatch, doc } from 'firebase/firestore';
@@ -37,6 +37,8 @@ const SettingsPage = (): React.ReactElement => {
         const saved = localStorage.getItem('commissionPercentage');
         return saved || String(DEFAULT_COMMISSION_PERCENTAGE);
     });
+    
+    const [isDriveConnected, setIsDriveConnected] = useState(localStorage.getItem('driveConnected') === 'true');
 
     const [isProfileSaved, setIsProfileSaved] = useState(false);
     const [isCommissionSaved, setIsCommissionSaved] = useState(false);
@@ -95,6 +97,18 @@ const SettingsPage = (): React.ReactElement => {
         localStorage.setItem('commissionPercentage', commission);
         setIsCommissionSaved(true);
         setTimeout(() => setIsCommissionSaved(false), 3000);
+    };
+
+    const handleDriveConnect = () => {
+        // In a real app, this would trigger the OAuth flow.
+        // For this demo, we'll just simulate the connection.
+        localStorage.setItem('driveConnected', 'true');
+        setIsDriveConnected(true);
+    };
+
+    const handleDriveDisconnect = () => {
+        localStorage.removeItem('driveConnected');
+        setIsDriveConnected(false);
     };
 
     const handleSeedDatabase = async () => {
@@ -267,6 +281,30 @@ const SettingsPage = (): React.ReactElement => {
                 <div className="mt-6 flex items-center gap-4">
                     <Button onClick={handleSaveCommission} disabled={!commission}>Salvar Comissão</Button>
                     {isCommissionSaved && <p className="text-sm text-green-600 animate-fade-in">Configuração salva com sucesso!</p>}
+                </div>
+            </Card>
+
+            <Card>
+                <h2 className="text-xl font-bold text-neutral-800 mb-4">Integrações</h2>
+                <div className="bg-neutral-50 p-4 rounded-lg border flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <GoogleDriveIcon className="w-8 h-8"/>
+                        <div>
+                            <h3 className="font-semibold text-neutral-800">Google Drive</h3>
+                            <p className="text-sm text-neutral-500">Salve cópias de documentos gerados (petições, acordos) automaticamente.</p>
+                        </div>
+                    </div>
+                    {isDriveConnected ? (
+                        <div className="text-right">
+                             <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
+                                <CheckCircleIcon className="w-5 h-5"/>
+                                <span>Conectado</span>
+                            </div>
+                            <button onClick={handleDriveDisconnect} className="text-xs text-red-500 hover:underline mt-1">Desconectar</button>
+                        </div>
+                    ) : (
+                        <Button onClick={handleDriveConnect}>Conectar</Button>
+                    )}
                 </div>
             </Card>
 

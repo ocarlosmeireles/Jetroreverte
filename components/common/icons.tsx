@@ -217,6 +217,14 @@ export const BriefcaseIcon = ({ className = "w-6 h-6" }: IconProps) => (
     </svg>
 );
 
+export const GoogleDriveIcon = ({ className = 'w-6 h-6' }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.33,7.19,13.8,16.51,9,16.51l5.53-9.32Z" />
+        <path d="M8.27,7.19,2.74,16.51h9l-3.47-5.85Z" />
+        <path d="M10.13,5.83,12,2.5,21.26,18.31H14.9L10.13,9.83Z" />
+    </svg>
+);
+
 
 // --- NEW ICONS FOR LANDING PAGE ---
 

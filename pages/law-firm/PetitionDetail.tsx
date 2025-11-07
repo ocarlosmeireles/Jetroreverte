@@ -19,6 +19,8 @@ const PetitionDetail = ({ petitionId, onBack }: PetitionDetailProps): React.Reac
     const [petition, setPetition] = useState<Petition | null>(petitionData || null);
     const [content, setContent] = useState(petitionData?.content || '');
     const [isSaved, setIsSaved] = useState(false);
+    const [driveSaveMessage, setDriveSaveMessage] = useState('');
+
 
     useEffect(() => {
         const foundPetition = demoPetitions.find(p => p.id === petitionId);
@@ -47,6 +49,12 @@ const PetitionDetail = ({ petitionId, onBack }: PetitionDetailProps): React.Reac
             // Create a temporary petition object with the latest content
             const petitionToExport: Petition = { ...petition, content };
             generatePetitionPdf(petitionToExport, user);
+
+            if (localStorage.getItem('driveConnected') === 'true') {
+                setDriveSaveMessage('Cópia salva no Google Drive!');
+                setTimeout(() => setDriveSaveMessage(''), 4000);
+            }
+
         } else {
             alert("Não foi possível exportar: dados do usuário não encontrados.");
         }
@@ -75,6 +83,7 @@ const PetitionDetail = ({ petitionId, onBack }: PetitionDetailProps): React.Reac
 
             <footer className="mt-6 flex items-center justify-end gap-3">
                 {isSaved && <p className="text-sm text-green-600 animate-fade-in">Alterações salvas!</p>}
+                 {driveSaveMessage && <p className="text-sm text-green-600 animate-fade-in">{driveSaveMessage}</p>}
                 <Button variant="secondary" onClick={handleSave}>Salvar Alterações</Button>
                 <Button onClick={handleExport} icon={<DocumentReportIcon className="w-5 h-5" />}>
                     Exportar PDF

@@ -37,6 +37,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isAgreementModalOpen, setIsAgreementModalOpen] = useState(false);
+    const [driveSaveMessage, setDriveSaveMessage] = useState('');
     
     const initialInvoice = demoInvoices.find(i => i.id === invoiceId);
     const [currentInvoice, setCurrentInvoice] = useState<Invoice | undefined>(initialInvoice);
@@ -99,6 +100,10 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
     const handleGenerateAgreementPdf = () => {
         if(currentInvoice.agreement) {
             generateAgreementPdf(currentInvoice, student, guardian, school, user);
+             if (localStorage.getItem('driveConnected') === 'true') {
+                setDriveSaveMessage('Cópia do acordo salva no Google Drive!');
+                setTimeout(() => setDriveSaveMessage(''), 4000);
+            }
         }
     };
     
@@ -234,6 +239,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                                      ) : (
                                         <div className="pt-3 mt-3 border-t">
                                             <Button onClick={handleGenerateAgreementPdf} size="sm" variant="secondary" icon={<DocumentReportIcon />} className="w-full">Gerar Termo de Acordo (PDF)</Button>
+                                             {driveSaveMessage && <p className="text-xs text-green-600 text-center mt-2 animate-fade-in">{driveSaveMessage}</p>}
                                         </div>
                                      )}
                                 </div>
