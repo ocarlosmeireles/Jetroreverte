@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians } from '../../services/demoData';
 import { Invoice, InvoiceStatus, CollectionStage } from '../../types';
@@ -6,10 +5,9 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, ClipboardIcon, PencilIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import AiCommunicationModal from '../../components/school/AiCommunicationModal';
-import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
 import ContactHistoryModal from '../../components/common/ContactHistoryModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import Modal from '../../components/common/Modal';
 
 interface InvoiceDetailProps {
     invoiceId: string;
@@ -24,8 +22,7 @@ const collectionStageLabels: Record<CollectionStage, string> = {
 };
 
 const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactElement => {
-    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [isActionRestrictedModalOpen, setIsActionRestrictedModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     
     const initialInvoice = demoInvoices.find(i => i.id === invoiceId);
@@ -150,12 +147,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                         </div>
                         <div className="mt-4 sm:mt-0 text-right">
                             <p className="text-3xl font-extrabold text-neutral-900">{formatCurrency(displayValue)}</p>
-                            {currentInvoice.status === InvoiceStatus.VENCIDO && (
-                                <p className="text-sm text-neutral-500 mt-1">
-                                    (Original: {formatCurrency(currentInvoice.value)} + {formatCurrency(fine)} multa + {formatCurrency(interest)} juros)
-                                </p>
-                            )}
-                            {getStatusChip(currentInvoice.status)}
+                            <div className="mt-1">{getStatusChip(currentInvoice.status)}</div>
                         </div>
                     </div>
                     
@@ -178,6 +170,30 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                             </div>
                         </div>
                     </div>
+
+                    {currentInvoice.status === InvoiceStatus.VENCIDO && (
+                        <div className="mt-6 pt-6 border-t border-neutral-200">
+                            <h3 className="text-lg font-semibold text-neutral-700 mb-3">Composição do Valor Atualizado</h3>
+                            <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-500">Valor Original:</span>
+                                    <span className="font-medium text-neutral-800">{formatCurrency(currentInvoice.value)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-500">Multa por atraso (2%):</span>
+                                    <span className="font-medium text-neutral-800">{formatCurrency(fine)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-500">Juros moratórios (1%/mês):</span>
+                                    <span className="font-medium text-neutral-800">{formatCurrency(interest)}</span>
+                                </div>
+                                <div className="flex justify-between pt-2 border-t mt-2">
+                                    <span className="font-bold text-neutral-800">Total Atualizado:</span>
+                                    <span className="font-bold text-red-600">{formatCurrency(updatedValue)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="mt-6 pt-6 border-t border-neutral-200">
                         <h3 className="text-lg font-semibold text-neutral-700 mb-3">Link de Pagamento</h3>
@@ -222,42 +238,39 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                         {currentInvoice.status === InvoiceStatus.PAGO && <Button variant="secondary" onClick={handleViewReceipt}>Ver Recibo</Button>}
                         {currentInvoice.status !== InvoiceStatus.PAGO && (
                             <>
-                                <Button variant="secondary" onClick={() => setIsEmailModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
                                     Enviar Email
                                 </Button>
-                                <Button variant="secondary" onClick={() => setIsAiModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
                                     Gerar Mensagem WhatsApp
                                 </Button>
-                                {currentInvoice.status === InvoiceStatus.VENCIDO && <Button variant="danger" onClick={() => alert('Lembrete de atraso enviado com sucesso! (Simulação)')}>Enviar Lembrete de Atraso</Button>}
+                                {currentInvoice.status === InvoiceStatus.VENCIDO && <Button variant="danger" onClick={() => setIsActionRestrictedModalOpen(true)}>Enviar Lembrete de Atraso</Button>}
                             </>
                         )}
                         <Button variant="secondary" onClick={() => setIsHistoryModalOpen(true)}>Ver Histórico de Contato</Button>
                     </div>
                 </Card>
             </div>
-            {isEmailModalOpen && (
-                <EmailCommunicationModal
-                    isOpen={isEmailModalOpen}
-                    onClose={() => setIsEmailModalOpen(false)}
-                    invoice={{...currentInvoice, value: displayValue}}
-                    student={student}
-                    guardian={guardian}
-                />
-            )}
-            {isAiModalOpen && (
-                <AiCommunicationModal
-                    isOpen={isAiModalOpen}
-                    onClose={() => setIsAiModalOpen(false)}
-                    invoice={{...currentInvoice, value: displayValue}}
-                    student={student}
-                    guardian={guardian}
-                />
-            )}
             <ContactHistoryModal
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}
                 invoiceId={currentInvoice.id}
             />
+            <Modal
+                isOpen={isActionRestrictedModalOpen}
+                onClose={() => setIsActionRestrictedModalOpen(false)}
+                title="Ação do Escritório"
+                size="sm"
+            >
+                <div className="p-6 text-center">
+                    <p className="text-neutral-600">
+                        O envio de comunicações e lembretes é uma ação estratégica gerenciada pelo escritório de advocacia para garantir a eficácia da cobrança.
+                    </p>
+                </div>
+                <footer className="p-4 bg-neutral-50 flex justify-end rounded-b-2xl">
+                    <Button onClick={() => setIsActionRestrictedModalOpen(false)}>Entendi</Button>
+                </footer>
+            </Modal>
         </>
     );
 };

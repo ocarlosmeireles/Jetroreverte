@@ -5,13 +5,14 @@ import { InvoiceStatus, NegotiationAttemptType, NegotiationChannel, School, Guar
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { PlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon, SparklesIcon } from '../../components/common/icons';
+import { PlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon, SparklesIcon, DollarIcon, CheckCircleIcon } from '../../components/common/icons';
 import { useAuth } from '../../hooks/useAuth';
 import AddNegotiationAttemptModal from '../../components/law-firm/AddNegotiationAttemptModal';
 import PetitionGeneratorModal from '../../components/admin/PetitionGeneratorModal';
 import Switch from '../../components/common/Switch';
 import { DEMO_USERS } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import StatCard from '../../components/common/StatCard';
 
 interface NegotiationCase {
     invoice: Invoice;
@@ -107,6 +108,23 @@ const NegotiationsDashboard = (): React.ReactElement => {
     }, [filteredCases]);
 
 
+    const { totalInNegotiation, totalFromAgreements } = useMemo(() => {
+        const stats = {
+            totalInNegotiation: 0,
+            totalFromAgreements: 0,
+        };
+
+        negotiationCases.forEach(c => {
+            if (c.invoice.agreement) {
+                stats.totalFromAgreements += c.invoice.agreement.installments * c.invoice.agreement.installmentValue;
+            } else if (c.invoice.collectionStage === 'EM_NEGOCIACAO') {
+                stats.totalInNegotiation += c.invoice.updatedValue || c.invoice.value;
+            }
+        });
+
+        return stats;
+    }, [negotiationCases]);
+
     const handleSaveAttempt = (invoiceId: string, data: { channel: NegotiationChannel, notes: string }) => {
         const newAttempt: NegotiationAttempt = {
             id: `neg-${Date.now()}`,
@@ -133,6 +151,20 @@ const NegotiationsDashboard = (): React.ReactElement => {
 
     return (
         <>
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <StatCard
+                    title="Potencial em Negociação Ativa"
+                    value={formatCurrency(totalInNegotiation)}
+                    icon={<DollarIcon />}
+                    color="secondary"
+                />
+                <StatCard
+                    title="Valor Total em Acordos Fechados"
+                    value={formatCurrency(totalFromAgreements)}
+                    icon={<CheckCircleIcon />}
+                    color="green"
+                />
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                     <input

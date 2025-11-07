@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -6,6 +5,7 @@ import { demoInvoices, demoNegotiationAttempts, demoStudents } from '../../servi
 import { InvoiceStatus, NegotiationAttempt } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import Card from '../../components/common/Card';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -37,8 +37,11 @@ const SchoolNegotiations = (): React.ReactElement => {
             const attempts = demoNegotiationAttempts
                 .filter(a => a.invoiceId === invoice.id)
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            
+            const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+
             return {
-                invoice,
+                invoice: { ...invoice, updatedValue },
                 student: demoStudents.find(s => s.id === invoice.studentId),
                 lastAttempt: attempts[0]
             };
@@ -79,12 +82,13 @@ const SchoolNegotiations = (): React.ReactElement => {
                         <tbody className="bg-white divide-y divide-neutral-200">
                             {negotiationCases.map(({ invoice, student, lastAttempt }) => {
                                 const status = getStatusInfo(invoice);
+                                const displayValue = invoice.updatedValue || invoice.value;
                                 return (
                                 <tr key={invoice.id} className="hover:bg-neutral-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-neutral-900">{student?.name || 'N/A'}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(invoice.value)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(displayValue)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
                                             {status.text}
@@ -102,12 +106,13 @@ const SchoolNegotiations = (): React.ReactElement => {
                     <div className="md:hidden divide-y divide-neutral-200">
                         {negotiationCases.map(({ invoice, student, lastAttempt }) => {
                              const status = getStatusInfo(invoice);
+                             const displayValue = invoice.updatedValue || invoice.value;
                              return (
                                 <div key={invoice.id} className="p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="font-semibold text-neutral-800">{student?.name}</p>
-                                            <p className="text-sm text-neutral-500">{formatCurrency(invoice.value)}</p>
+                                            <p className="text-sm text-neutral-500">{formatCurrency(displayValue)}</p>
                                         </div>
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
                                             {status.text}
