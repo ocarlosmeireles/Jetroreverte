@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { MenuIcon } from './icons';
 
@@ -10,10 +9,10 @@ interface HeaderProps {
 
 const Header = ({ pageTitle, onMenuClick }: HeaderProps): React.ReactElement => {
     return (
-        <header className="lg:hidden sticky top-0 bg-white/80 backdrop-blur-lg z-20 p-4 border-b border-neutral-200 flex items-center justify-between">
+        <header className="lg:hidden sticky top-0 bg-neutral-50/70 backdrop-blur-xl z-20 p-4 border-b border-neutral-200/80 flex items-center justify-between">
             <button
                 onClick={onMenuClick}
-                className="p-2 -ml-2 rounded-full text-neutral-500 hover:bg-neutral-100"
+                className="p-2 -ml-2 rounded-full text-neutral-500 hover:bg-neutral-200/60"
                 aria-label="Open menu"
             >
                 <MenuIcon className="w-6 h-6" />

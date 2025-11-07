@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -32,7 +33,7 @@ const SuperAdminDashboard = (): React.ReactElement => {
             setActivePage={setActivePage}
             pageTitle={pageTitle}
         >
-             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+             <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={activePage}

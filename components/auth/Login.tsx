@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,7 +21,7 @@ import { DEMO_USERS } from '../../constants';
 // and type definitions for components that accept them should reflect this by making 'children' optional.
 const ModalBackdrop = ({ children, onClose }: { children?: React.ReactNode, onClose: () => void }) => (
     <motion.div
-        className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -100,7 +99,7 @@ const LoginModal = ({ onClose, onSwitchToReset, onSwitchToRegister }: { onClose:
                             <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-5 py-3 border border-neutral-300 bg-neutral-100/50 rounded-full shadow-sm focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition" required />
                         </div>
                         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading} className="w-full bg-primary-600 text-white font-semibold py-3 px-4 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all shadow-lg shadow-primary-500/30 disabled:bg-primary-400/50">
+                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading} className="w-full bg-primary-600 text-white font-semibold py-3 px-4 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all shadow-md shadow-primary-500/20 disabled:bg-primary-400/50">
                             {loading ? 'Entrando...' : 'Entrar'}
                         </motion.button>
                     </form>
@@ -183,7 +182,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }: { onClose: () => void; onSw
                         
                         {error && <p className="text-red-500 text-sm text-center pt-2">{error}</p>}
 
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading} className="w-full bg-primary-600 text-white font-semibold py-3 px-4 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all shadow-lg shadow-primary-500/30 disabled:bg-primary-400/50 mt-2">
+                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading} className="w-full bg-primary-600 text-white font-semibold py-3 px-4 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all shadow-md shadow-primary-500/20 disabled:bg-primary-400/50 mt-2">
                             {loading ? 'Criando...' : 'Criar Conta'}
                         </motion.button>
                     </form>
@@ -216,7 +215,7 @@ const Header = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () =
     };
     
     return (
-    <header className="sticky top-0 bg-white/80 backdrop-blur-lg z-40 shadow-soft">
+    <header className="sticky top-0 bg-white/70 backdrop-blur-xl z-40 border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
                 <span className="font-bold text-xl text-neutral-800">Jetro Reverte</span>
@@ -239,9 +238,9 @@ const Header = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () =
 )};
 
 const Hero = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void; }) => (
-    <section className="relative py-20 sm:py-28 lg:py-32 bg-white overflow-hidden">
-        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-50 rounded-full blur-3xl opacity-60"></div>
-        <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-secondary-50 rounded-full blur-3xl opacity-60"></div>
+    <section className="relative py-20 sm:py-28 lg:py-32 bg-gradient-to-b from-white to-primary-50/60 overflow-hidden">
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-100/50 rounded-full blur-3xl opacity-40"></div>
+        <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-secondary-100/50 rounded-full blur-3xl opacity-40"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
             <motion.h1 
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
@@ -259,7 +258,7 @@ const Hero = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => 
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
                 className="mt-10 flex justify-center items-center gap-4"
             >
-                <motion.button onClick={onRegister} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} className="px-8 py-3 font-semibold text-white bg-primary-600 rounded-full hover:bg-primary-700 shadow-lg shadow-primary-500/30">
+                <motion.button onClick={onRegister} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} className="px-8 py-3 font-semibold text-white bg-primary-600 rounded-full hover:bg-primary-700 shadow-md shadow-primary-500/20">
                     Comece Agora
                 </motion.button>
                  <motion.button onClick={onLogin} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} className="px-8 py-3 font-semibold text-primary-600 bg-white/50 rounded-full hover:bg-white border border-transparent hover:border-primary-200">
@@ -273,7 +272,7 @@ const Hero = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => 
 const Solutions = () => (
     <>
         {/* For Schools */}
-        <section id="escolas" className="py-20 sm:py-28 bg-neutral-50/70">
+        <section id="escolas" className="py-20 sm:py-28 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
                 <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }}>
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary-100 text-secondary-800">
@@ -288,35 +287,19 @@ const Solutions = () => (
                     </ul>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }} className="relative h-full min-h-[300px]">
-                    {/* Mockup */}
-                    <div className="absolute w-full max-w-lg right-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-2xl shadow-2xl border border-neutral-200/80 transform md:rotate-3">
-                        <div className="h-6 bg-neutral-100 rounded-t-lg flex items-center px-2"><div className="flex space-x-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div><div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div><div className="w-2.5 h-2.5 rounded-full bg-green-400"></div></div></div>
-                        <div className="p-4 bg-neutral-50 rounded-b-lg">
-                            <div className="h-5 bg-neutral-200 rounded w-1/3 mb-4"></div>
-                            <div className="grid grid-cols-2 gap-2 mb-3">
-                                <div className="h-16 bg-blue-100 rounded-lg"></div>
-                                <div className="h-16 bg-green-100 rounded-lg"></div>
-                            </div>
-                            <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
-                            <div className="space-y-1.5"><div className="h-8 bg-white rounded-md"></div><div className="h-8 bg-white rounded-md"></div></div>
-                        </div>
+                     <div className="p-2 bg-white rounded-2xl shadow-soft border border-neutral-200/80">
+                        <img src="https://images.unsplash.com/photo-1588075592446-265fd1e6e76f?q=80&w=2072&auto=format&fit=crop" alt="Dashboard" className="rounded-xl aspect-[16/10] object-cover" />
                     </div>
                 </motion.div>
             </div>
         </section>
 
         {/* For Law Firms */}
-        <section id="escritorios" className="py-20 sm:py-28 bg-white">
+        <section id="escritorios" className="py-20 sm:py-28 bg-neutral-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }} className="relative h-full min-h-[300px] order-last md:order-first">
-                    <div className="absolute w-full max-w-lg left-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-2xl shadow-2xl border border-neutral-200/80 transform md:-rotate-3">
-                        <div className="h-6 bg-neutral-100 rounded-t-lg flex items-center px-2"><div className="flex space-x-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400"></div><div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div><div className="w-2.5 h-2.5 rounded-full bg-green-400"></div></div></div>
-                        <div className="p-4 bg-neutral-50 rounded-b-lg">
-                            <div className="h-5 bg-neutral-200 rounded w-1/2 mb-4"></div>
-                             <div className="h-28 bg-blue-100 rounded-lg mb-3"></div>
-                            <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
-                            <div className="space-y-1.5"><div className="h-8 bg-white rounded-md"></div><div className="h-8 bg-white rounded-md"></div></div>
-                        </div>
+                     <div className="p-2 bg-white rounded-2xl shadow-soft border border-neutral-200/80">
+                        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" alt="Dashboard" className="rounded-xl aspect-[16/10] object-cover" />
                     </div>
                 </motion.div>
                  <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }}>
@@ -344,7 +327,7 @@ const Features = () => {
         { icon: <DocumentChartBarIcon />, title: "Relatórios Completos", description: "Acompanhe a evolução da inadimplência, valores recuperados e comissões em tempo real." },
     ];
     return (
-        <section id="funcionalidades" className="py-20 sm:py-28 bg-neutral-50/70">
+        <section id="funcionalidades" className="py-20 sm:py-28 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">Uma Plataforma, Múltiplas Soluções</h2>
@@ -352,10 +335,10 @@ const Features = () => {
                 </div>
                 <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {features.map((feature, i) => (
-                        <motion.div key={feature.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: i * 0.1 }} className="bg-white p-6 rounded-2xl shadow-soft border border-neutral-200/60">
+                        <motion.div key={feature.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: i * 0.1 }} >
                             <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 text-primary-600">{React.cloneElement(feature.icon, { className: 'w-6 h-6' })}</div>
                             <h3 className="mt-5 text-lg font-semibold text-neutral-900">{feature.title}</h3>
-                            <p className="mt-2 text-sm text-neutral-600">{feature.description}</p>
+                            <p className="mt-2 text-base text-neutral-600">{feature.description}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -370,15 +353,15 @@ const Testimonials = () => {
         { quote: "Como escritório, precisávamos de uma ferramenta que centralizasse as informações das escolas. A automação e a geração de petições com IA nos deram uma eficiência que não tínhamos antes.", name: "Dr. Ricardo Borges", title: "Sócio, Jetro Reverte Advocacia" }
     ];
     return (
-        <section className="py-20 sm:py-28 bg-white">
+        <section className="py-20 sm:py-28 bg-neutral-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                  <div className="text-center">
                     <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">O que nossos parceiros dizem</h2>
                 </div>
                 <div className="mt-16 grid lg:grid-cols-2 gap-8">
                     {testimonials.map(t => (
-                        <motion.figure key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }} className="p-8 bg-neutral-50 rounded-2xl border border-neutral-200/80">
-                            <blockquote className="text-neutral-700">
+                        <motion.figure key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.6 }} className="p-8 bg-white rounded-2xl shadow-soft border border-neutral-200/60">
+                            <blockquote className="text-neutral-700 text-lg">
                                 <p>“{t.quote}”</p>
                             </blockquote>
                             <figcaption className="mt-6 flex items-center gap-4">

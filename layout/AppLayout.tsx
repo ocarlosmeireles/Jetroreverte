@@ -1,5 +1,4 @@
 
-
 import React, { useState, ReactNode, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Sidebar from '../common/Sidebar';
@@ -60,7 +59,7 @@ const AppLayout = ({ children, navItems, activePage, setActivePage, pageTitle }:
     };
 
     return (
-        <div className="min-h-screen font-sans flex w-full h-screen overflow-hidden bg-neutral-100">
+        <div className="min-h-screen font-sans flex w-full h-screen overflow-hidden bg-neutral-50">
             <Sidebar
                 navItems={navItems}
                 activePage={activePage}

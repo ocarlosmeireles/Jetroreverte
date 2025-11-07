@@ -1,5 +1,4 @@
 
-
 import React, { ReactNode } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -30,11 +29,10 @@ const Card = ({ children, className = '', noPadding = false, delay = 0 }: CardPr
 
     return (
         <motion.div
-            className={`bg-white rounded-2xl border border-neutral-200/80 shadow-soft transition-all duration-300 hover:shadow-glow-primary ${!noPadding && 'p-6'} ${className}`}
+            className={`bg-white rounded-xl shadow-soft border border-neutral-200/60 transition-shadow duration-300 hover:shadow-soft-hover ${!noPadding && 'p-6'} ${className}`}
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
         >
             {children}
         </motion.div>

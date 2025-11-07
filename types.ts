@@ -19,6 +19,7 @@ export interface User {
     oabNumber?: string;
     officeLogoUrl?: string;
     profilePictureUrl?: string;
+    modulePermissions?: string[];
 }
 
 export interface School {

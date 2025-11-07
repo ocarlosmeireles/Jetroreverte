@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -85,11 +86,11 @@ const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = fal
                     e.preventDefault();
                     handleNavigation(item.path);
                 }}
-                className={`flex items-center w-full px-4 py-3 rounded-lg transition-colors duration-200 ease-in-out ${
-                    isActive ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800'
+                className={`flex items-center w-full px-3 py-2.5 rounded-lg transition-colors duration-200 ease-in-out ${
+                    isActive ? 'bg-primary-50 text-primary-600 font-semibold' : 'text-neutral-600 hover:bg-neutral-100/70 hover:text-neutral-800'
                 }`}
             >
-                <span className="flex-shrink-0">
+                <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-primary-500' : 'text-neutral-400'}`}>
                     {React.cloneElement(iconMap[item.name] as React.ReactElement<any>, { className: 'w-6 h-6' })}
                 </span>
                 <span className="text-sm ml-4">{item.name}</span>
@@ -102,44 +103,53 @@ const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = fal
 const SidebarContent = ({ navItems, activePage, setActivePage, notificationCount, onNotificationClick, closeSidebar, isMobile=false }: Omit<SidebarProps, 'isOpen'> & { isMobile?: boolean }) => {
     const { user, logout } = useAuth();
 
+    const filteredNavItems = useMemo(() => {
+        if (user?.modulePermissions) {
+            const permissionSet = new Set(user.modulePermissions);
+            return navItems.filter(item => permissionSet.has(item.path));
+        }
+        return navItems;
+    }, [user, navItems]);
+
+
     return (
-        <div className="bg-white text-neutral-800 flex flex-col h-full border-r border-neutral-200">
-            <div className="p-4 border-b border-neutral-200 flex items-center justify-between lg:justify-start h-20">
+        <div className="bg-white text-neutral-800 flex flex-col h-full border-r border-neutral-200/80">
+            <div className="p-4 border-b border-neutral-200/80 flex items-center justify-between lg:justify-start h-20">
                 <span className="text-xl font-extrabold tracking-tight text-neutral-800">Jetro Reverte</span>
                  <button onClick={closeSidebar} className="p-1 text-neutral-500 hover:text-neutral-900 lg:hidden">
                     <XIcon className="w-6 h-6" />
                 </button>
             </div>
             <nav className="flex-grow p-3">
-                <ul className="space-y-2">
-                    {navItems.map((item) => (
+                <ul className="space-y-1.5">
+                    {filteredNavItems.map((item) => (
                         <NavLink key={item.path} item={item} activePage={activePage} setActivePage={setActivePage} closeSidebar={closeSidebar} isMobile={isMobile} />
                     ))}
                 </ul>
             </nav>
-            <div className="p-3 border-t border-neutral-200">
-                 <div className="flex items-center">
+            <div className="p-3 border-t border-neutral-200/80">
+                 <div className="flex items-center p-2 rounded-lg">
                     {user?.profilePictureUrl ? (
                         <img src={user.profilePictureUrl} alt="Foto do perfil" className="w-10 h-10 rounded-full object-cover" />
                     ) : (
                         <UserCircleIcon className="w-10 h-10 text-neutral-400 flex-shrink-0" />
                     )}
-                    <div className="ml-3 min-w-0">
+                    <div className="ml-3 min-w-0 flex-1">
                         <p className="font-semibold text-sm text-neutral-800 truncate">{user?.name}</p>
                         <p className="text-xs text-neutral-500 capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
                     </div>
+                     <div className="flex items-center">
+                        <button onClick={onNotificationClick} title="Notificações" className="relative p-2 rounded-full text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 transition-colors">
+                            <BellIcon className="w-5 h-5" />
+                            {notificationCount > 0 && (
+                                <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white"></span>
+                            )}
+                        </button>
+                        <button onClick={logout} title="Sair" className="p-2 rounded-full text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-900 transition-colors">
+                            <LogoutIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                  </div>
-                 <div className="mt-2 flex items-center justify-end gap-1">
-                     <button onClick={onNotificationClick} title="Notificações" className="relative p-2 rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
-                        <BellIcon className="w-5 h-5" />
-                        {notificationCount > 0 && (
-                            <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white"></span>
-                        )}
-                    </button>
-                     <button onClick={logout} title="Sair" className="p-2 rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors">
-                        <LogoutIcon className="w-5 h-5" />
-                    </button>
-                </div>
             </div>
         </div>
     );

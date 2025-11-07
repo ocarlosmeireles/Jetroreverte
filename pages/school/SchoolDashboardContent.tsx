@@ -5,7 +5,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import StatCard from '../../components/common/StatCard';
 import Chart from '../../components/common/Chart';
-import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { UsersIcon, DollarIcon } from '../../components/common/icons';
 import { InvoiceStatus, Student, Guardian, Invoice, CollectionStage } from '../../types';
@@ -29,10 +28,10 @@ const ShimmerPlaceholder = (props: {style?: React.CSSProperties}) => (
 const DashboardLoadingSkeleton = () => (
     <div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <ShimmerPlaceholder style={{ height: '116px' }} />
-            <ShimmerPlaceholder style={{ height: '116px' }} />
-            <ShimmerPlaceholder style={{ height: '116px' }} />
-            <ShimmerPlaceholder style={{ height: '116px' }} />
+            <ShimmerPlaceholder style={{ height: '92px' }} />
+            <ShimmerPlaceholder style={{ height: '92px' }} />
+            <ShimmerPlaceholder style={{ height: '92px' }} />
+            <ShimmerPlaceholder style={{ height: '92px' }} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-3">
@@ -212,49 +211,47 @@ const SchoolDashboardContent = ({ onSelectStudent }: SchoolDashboardContentProps
     }
 
     return (
-        <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total de Alunos" value={String(stats.totalAlunos)} icon={<UsersIcon />} color="primary" delay={0.1} />
                 <StatCard title="Pago (este mês)" value={formatCurrency(stats.paidThisMonth)} icon={<DollarIcon />} color="green" delay={0.2} />
                 <StatCard title="Pendente" value={formatCurrency(stats.pending)} icon={<DollarIcon />} color="secondary" delay={0.3} />
                 <StatCard title="Vencido" value={formatCurrency(stats.overdue)} icon={<DollarIcon />} color="red" delay={0.4} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                 <div className="lg:col-span-3">
-                     <Chart data={revenueData} title="Arrecadação Mensal" barKey="Arrecadado" xAxisKey="month" delay={0.5} />
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                 <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-card">
+                     <Chart data={revenueData} title="Arrecadação Mensal" barKey="Arrecadado" xAxisKey="month" />
                 </div>
-                <div className="lg:col-span-2">
-                    <Card delay={0.6}>
-                        <h3 className="text-lg font-semibold text-neutral-800 mb-4">Ações Rápidas</h3>
-                        <div className="space-y-3">
-                            <Button variant="primary" className="w-full" onClick={() => setAddInvoiceModalOpen(true)}>Gerar Nova Cobrança</Button>
-                            <Button variant="secondary" className="w-full" onClick={() => setAddStudentModalOpen(true)}>Cadastrar Aluno Inadimplente</Button>
-                            <Button variant="secondary" className="w-full" disabled title="Funcionalidade em desenvolvimento">Exportar Relatório Mensal</Button>
-                        </div>
-                    </Card>
+                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-card">
+                    <h3 className="text-lg font-semibold text-neutral-800 mb-4">Ações Rápidas</h3>
+                    <div className="space-y-3">
+                        <Button variant="primary" className="w-full" onClick={() => setAddInvoiceModalOpen(true)}>Gerar Nova Cobrança</Button>
+                        <Button variant="secondary" className="w-full" onClick={() => setAddStudentModalOpen(true)}>Cadastrar Aluno Inadimplente</Button>
+                        <Button variant="secondary" className="w-full" disabled title="Funcionalidade em desenvolvimento">Exportar Relatório Mensal</Button>
+                    </div>
                 </div>
             </div>
             
-            <div className="mt-6">
-                <Card delay={0.7}>
-                    <h3 className="text-lg font-semibold text-neutral-800 mb-4">Alunos com Débitos Vencidos</h3>
-                    {overdueStudents.length > 0 ? (
-                        <ul className="divide-y divide-neutral-200">
-                            {overdueStudents.map(invoice => (
-                                <li key={invoice.id} className="py-3 flex justify-between items-center">
-                                    <div>
-                                        <p className="font-medium text-neutral-800">{invoice.studentName}</p>
-                                        <p className="text-sm text-red-600">{formatCurrency(invoice.value)} - Vencido em {formatDate(invoice.dueDate)}</p>
-                                    </div>
-                                    <Button size="sm" variant="secondary" onClick={() => onSelectStudent(invoice.studentId)}>Ver Aluno</Button>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-center text-neutral-500 py-4">Nenhum aluno com débito vencido no momento. Bom trabalho!</p>
-                    )}
-                </Card>
+            <div className="bg-white rounded-xl shadow-card">
+                 <div className="p-6">
+                    <h3 className="text-lg font-semibold text-neutral-800">Alunos com Débitos Vencidos</h3>
+                 </div>
+                {overdueStudents.length > 0 ? (
+                    <ul className="divide-y divide-neutral-200">
+                        {overdueStudents.map(invoice => (
+                            <li key={invoice.id} className="px-6 py-3 flex justify-between items-center hover:bg-neutral-50/70">
+                                <div>
+                                    <p className="font-medium text-neutral-800">{invoice.studentName}</p>
+                                    <p className="text-sm text-red-600">{formatCurrency(invoice.value)} - Vencido em {formatDate(invoice.dueDate)}</p>
+                                </div>
+                                <Button size="sm" variant="secondary" onClick={() => onSelectStudent(invoice.studentId)}>Ver Aluno</Button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-center text-neutral-500 py-4 px-6">Nenhum aluno com débito vencido no momento. Bom trabalho!</p>
+                )}
             </div>
 
             <AddStudentModal

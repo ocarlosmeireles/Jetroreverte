@@ -13,15 +13,15 @@
           extend: {
             colors: {
               primary: {
-                50: '#E9EFF3',
-                100: '#D3DEE8',
-                200: '#A7BDD0',
-                300: '#7B9CB9',
-                400: '#4F7BA1',
-                500: '#2A5D8A',
-                600: '#244761',
-                700: '#1E3A4C',
-                800: '#182E3D',
+                50: '#F0F5FA',
+                100: '#E0EAF4',
+                200: '#C2D5E9',
+                300: '#A3BFDE',
+                400: '#85A9D3',
+                500: '#6793C8',
+                600: '#2A5D8A',
+                700: '#244761',
+                800: '#1E3A4C',
                 900: '#12222E',
                 DEFAULT: '#2A5D8A',
               },
@@ -51,6 +51,7 @@
                 900: '#22211E',
                 DEFAULT: '#928E83',
               },
+              background: '#F9FAFB',
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
@@ -58,16 +59,16 @@
             borderRadius: {
               'lg': '0.75rem',
               'xl': '1rem',
-              '2xl': '1.5rem',
-              '3xl': '2rem',
+              '2xl': '1.25rem',
+              '3xl': '1.5rem',
               'full': '9999px',
             },
             boxShadow: {
-              'glow-primary': '0 0 15px 0 rgba(42, 93, 138, 0.3), 0 0 30px 0 rgba(42, 93, 138, 0.15)',
-              'glow-green': '0 0 15px 0 rgba(34, 197, 94, 0.3), 0 0 30px 0 rgba(34, 197, 94, 0.15)',
-              'glow-red': '0 0 15px 0 rgba(239, 68, 68, 0.3), 0 0 30px 0 rgba(239, 68, 68, 0.15)',
-              'glow-secondary': '0 0 15px 0 rgba(181, 142, 79, 0.3), 0 0 30px 0 rgba(181, 142, 79, 0.15)',
-              'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              'soft': '0 2px 4px rgba(0,0,0,0.02), 0 5px 15px rgba(0,0,0,0.06)',
+              'soft-hover': '0 3px 6px rgba(0,0,0,0.03), 0 7px 22px rgba(0,0,0,0.08)',
+              'card': 'var(--shadow-soft)',
+              'card-hover': 'var(--shadow-soft-hover)',
+              'glow-primary': '0 0 15px 0 rgba(42, 93, 138, 0.2), 0 0 5px 0 rgba(42, 93, 138, 0.1)',
             },
             keyframes: {
               'fade-in': {
@@ -75,7 +76,7 @@
                 '100%': { opacity: '1' },
               },
               'slide-in-up': {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '0%': { transform: 'translateY(16px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' },
               },
               'shimmer': {
@@ -85,7 +86,7 @@
             },
             animation: {
               'fade-in': 'fade-in 0.5s ease-out forwards',
-              'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
+              'slide-in-up': 'slide-in-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
               'shimmer': 'shimmer 2s infinite linear',
             },
           }
@@ -114,8 +115,14 @@
   }
 }
 </script>
+<style>
+  :root {
+    --shadow-soft: 0 2px 4px rgba(0,0,0,0.02), 0 5px 15px rgba(0,0,0,0.06);
+    --shadow-soft-hover: 0 3px 6px rgba(0,0,0,0.03), 0 7px 22px rgba(0,0,0,0.08);
+  }
+</style>
 </head>
-  <body class="bg-neutral-100 text-neutral-800 font-sans antialiased">
+  <body class="bg-neutral-50 text-neutral-700 font-sans antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

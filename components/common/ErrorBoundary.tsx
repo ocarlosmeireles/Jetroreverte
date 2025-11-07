@@ -14,6 +14,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
   // that are initialized in the constructor must also be declared at the class level.
   state: State;
 
+  // FIX: To resolve "Property 'props' does not exist", 'props' is also explicitly declared,
+  // following the same pattern as 'state' above for this component's specific configuration.
+  props: ErrorBoundaryProps;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };

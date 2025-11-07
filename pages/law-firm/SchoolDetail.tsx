@@ -1,7 +1,6 @@
 import React from 'react';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
 import { InvoiceStatus } from '../../types';
-import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import StatCard from '../../components/common/StatCard';
 import { XIcon, DollarIcon, UsersIcon, BillingIcon } from '../../components/common/icons';
@@ -19,10 +18,10 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
     if (!school) {
         return (
             <div className="p-6">
-                <Card>
+                <div className="bg-white p-6 rounded-xl shadow-card">
                     <p>Escola não encontrada.</p>
                     <Button onClick={onBack} className="mt-4">Fechar</Button>
-                </Card>
+                </div>
             </div>
         );
     }
@@ -52,25 +51,25 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
     };
 
     return (
-        <div className="p-4 sm:p-6 h-full flex flex-col bg-neutral-100">
+        <div className="p-4 sm:p-6 h-full flex flex-col bg-white">
             <header className="flex justify-between items-start mb-6">
                  <div>
                     <h2 className="text-xl font-bold text-neutral-800">{school.name}</h2>
                     <p className="text-sm text-neutral-500">{school.cnpj}</p>
                 </div>
-                <button onClick={onBack} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-200">
+                <button onClick={onBack} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-100">
                     <XIcon className="w-6 h-6" />
                 </button>
             </header>
 
-            <div className="space-y-6 mb-6">
+            <div className="space-y-4 mb-6">
                 <StatCard title="Total Recuperado" value={formatCurrency(totalRecovered)} icon={<BillingIcon />} color="green" />
                 <StatCard title="Comissão Gerada" value={formatCurrency(totalCommission)} icon={<DollarIcon />} color="primary" />
                 <StatCard title="Alunos Inadimplentes" value={String(defaulterStudents)} icon={<UsersIcon />} color="red" />
             </div>
 
-            <Card noPadding className="flex-1 flex flex-col overflow-hidden">
-                <div className="p-4 sm:p-6">
+            <div className="flex-1 flex flex-col overflow-hidden border border-neutral-200/80 rounded-xl">
+                <div className="p-4 sm:p-6 border-b border-neutral-200/80">
                     <h3 className="text-lg font-semibold text-neutral-800">Histórico de Cobranças</h3>
                 </div>
                 <div className="flex-1 overflow-y-auto">
@@ -122,7 +121,7 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
                         </div>
                     )}
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };

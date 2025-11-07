@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -60,7 +58,7 @@ const Main = (): React.ReactElement => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="w-16 h-16 border-4 border-primary-300 border-t-primary-600 rounded-full animate-spin"
+                    className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"
                 />
                 <motion.p
                     initial={{ opacity: 0 }}

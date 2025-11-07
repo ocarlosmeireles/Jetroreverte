@@ -24,15 +24,17 @@ export const allDemoUsers: (User & { status: 'Ativo' | 'Inativo' })[] = [
     ...demoSchools.map((school, index) => ({
         id: `user-escola-${index + 1}`,
         name: `Admin ${school.name}`,
-        email: `admin@${school.name.toLowerCase().replace(/\s/g, '')}.com`,
+        email: index === 0 ? DEMO_USERS.ESCOLA.email : `admin@${school.name.toLowerCase().replace(/\s/g, '')}.com`,
         role: UserRole.ESCOLA,
         schoolId: school.id,
         officeName: school.name,
         status: 'Ativo' as 'Ativo' | 'Inativo',
+        // Add specific permissions only to the first school user for demo
+        ...(index === 0 && { modulePermissions: ['dashboard', 'alunos', 'responsaveis'] }),
     })),
     // Guardians
     ...demoGuardians.map((guardian, index) => ({
-        id: `user-guardian-${index + 1}`,
+        id: guardian.id,
         name: guardian.name,
         email: guardian.email,
         role: UserRole.RESPONSAVEL,

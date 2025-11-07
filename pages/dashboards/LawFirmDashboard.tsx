@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -103,7 +104,7 @@ const LawFirmDashboard = (): React.ReactElement => {
             pageTitle={pageTitle}
         >
              <motion.div layout className="flex-1 flex overflow-hidden">
-                <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${detailView.id ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'}`}>
+                <div className={`flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 ${detailView.id ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'}`}>
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activePage}
@@ -111,6 +112,7 @@ const LawFirmDashboard = (): React.ReactElement => {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="w-full"
                         >
                             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
                             {renderContent()}
@@ -125,7 +127,7 @@ const LawFirmDashboard = (): React.ReactElement => {
                         animate={{ x: '0%' }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="w-full lg:w-2/5 xl:w-1/3 flex-shrink-0 bg-white lg:bg-neutral-50/80 lg:backdrop-blur-xl border-l border-neutral-200 overflow-y-auto"
+                        className="w-full lg:w-2/5 xl:w-1/3 flex-shrink-0 bg-white border-l border-neutral-200/80 overflow-y-auto"
                     >
                          {renderDetailContent()}
                     </motion.div>
