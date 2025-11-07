@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -65,7 +66,8 @@ const SchoolNegotiations = (): React.ReactElement => {
             </div>
             {negotiationCases.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-neutral-200">
+                    {/* Desktop Table */}
+                    <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
                         <thead className="bg-neutral-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
@@ -96,6 +98,28 @@ const SchoolNegotiations = (): React.ReactElement => {
                             })}
                         </tbody>
                     </table>
+                     {/* Mobile Cards */}
+                    <div className="md:hidden divide-y divide-neutral-200">
+                        {negotiationCases.map(({ invoice, student, lastAttempt }) => {
+                             const status = getStatusInfo(invoice);
+                             return (
+                                <div key={invoice.id} className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-semibold text-neutral-800">{student?.name}</p>
+                                            <p className="text-sm text-neutral-500">{formatCurrency(invoice.value)}</p>
+                                        </div>
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
+                                            {status.text}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm text-neutral-500 mt-2 pt-2 border-t">
+                                        Última Atividade: {lastAttempt ? `${formatDate(lastAttempt.date)}` : 'N/A'}
+                                    </div>
+                                </div>
+                             )
+                        })}
+                    </div>
                 </div>
             ) : (
                 <div className="text-center p-12">

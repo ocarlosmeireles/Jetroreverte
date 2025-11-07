@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -9,6 +10,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { InvoiceStatus, Invoice, CollectionStage } from '../../types';
 import AddInvoiceModal from '../../components/school/AddInvoiceModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import { PlusIcon } from '../../components/common/icons';
 
 const listVariants = {
   visible: {
@@ -83,12 +85,13 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
     return (
         <>
             <Card noPadding>
-                <div className="p-6 flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-neutral-800">Histórico de Cobranças</h2>
-                    <Button onClick={() => setIsModalOpen(true)}>Registrar Novo Débito</Button>
+                <div className="p-4 sm:p-6 flex justify-between items-center">
+                    <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Histórico de Cobranças</h2>
+                    <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="sm">Novo Débito</Button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-neutral-200">
+                    {/* Desktop Table */}
+                    <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
                         <thead className="bg-neutral-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
@@ -126,6 +129,29 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                             )})}
                         </motion.tbody>
                     </table>
+                     {/* Mobile Cards */}
+                    <div className="md:hidden">
+                        <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
+                            {invoices.map(invoice => {
+                                const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                                const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                return (
+                                <motion.div key={invoice.id} variants={itemVariants} className="p-4 hover:bg-neutral-50" onClick={() => onSelectInvoice(invoice.id)}>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-semibold text-neutral-800">{invoice.studentName}</p>
+                                            <p className="text-sm text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</p>
+                                        </div>
+                                        {getStatusChip(invoice.status)}
+                                    </div>
+                                    <div className="flex justify-between items-end mt-2 pt-2 border-t">
+                                        <p className="text-sm text-neutral-600">{invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}</p>
+                                        <p className="font-bold text-neutral-800">{formatCurrency(displayValue)}</p>
+                                    </div>
+                                </motion.div>
+                            )})}
+                        </motion.div>
+                    </div>
                 </div>
             </Card>
             <AddInvoiceModal

@@ -233,6 +233,9 @@ export interface Campaign {
     target: string; // e.g. "Escolas de Ensino Médio de SP"
     startDate: string; // ISO String
     leadsGenerated: number;
+    // FIX: Added missing properties to the Campaign type.
+    conversionRate?: number;
+    valueGenerated?: number;
 }
 
 export enum JudicialProcessStatus {

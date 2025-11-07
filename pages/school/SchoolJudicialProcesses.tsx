@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { demoJudicialProcesses, demoInvoices, demoPetitions } from '../../services/demoData';
@@ -41,7 +42,8 @@ const SchoolJudicialProcesses = (): React.ReactElement => {
             </div>
             {judicialProcesses.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-neutral-200">
+                    {/* Desktop Table */}
+                    <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
                         <thead className="bg-neutral-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
@@ -67,6 +69,21 @@ const SchoolJudicialProcesses = (): React.ReactElement => {
                             ))}
                         </tbody>
                     </table>
+                    {/* Mobile Cards */}
+                    <div className="md:hidden divide-y divide-neutral-200">
+                        {judicialProcesses.map(process => (
+                            <div key={process.id} className="p-4">
+                                <div className="flex justify-between items-start">
+                                    <p className="font-semibold text-neutral-800">{process.studentName}</p>
+                                    {getStatusChip(process.status)}
+                                </div>
+                                <p className="text-sm text-neutral-500 font-mono mt-1">{process.processNumber}</p>
+                                <div className="text-sm text-neutral-500 mt-2 pt-2 border-t">
+                                    Última Atualização: {formatDate(process.lastUpdate)}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             ) : (
                  <div className="text-center p-12">

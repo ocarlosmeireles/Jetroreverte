@@ -100,7 +100,8 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
 
         return (
             <>
-                <table className="min-w-full divide-y divide-neutral-200">
+                {/* Desktop Table */}
+                <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
                     <thead className="bg-neutral-50">
                         <tr>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
@@ -143,6 +144,34 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                         })}
                     </motion.tbody>
                 </table>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden">
+                     <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
+                        {schools.map(school => {
+                             const isSelected = selectedSchoolId === school.id;
+                            return (
+                            <motion.div
+                                key={school.id}
+                                variants={itemVariants}
+                                onClick={() => onSelectSchool(school.id)}
+                                className={`p-4 cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-semibold text-neutral-800">{school.name}</p>
+                                        <p className="text-sm text-neutral-500">{school.cnpj}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
+                                        <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-neutral-500 mt-2">{school.phone}</div>
+                            </motion.div>
+                        )})}
+                    </motion.div>
+                </div>
             </>
         );
     }

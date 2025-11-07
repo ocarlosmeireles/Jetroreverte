@@ -127,10 +127,11 @@ export const demoNotifications: Notification[] = [
     { id: 'notif-04', userId: 'user-escola-01', type: NotificationType.NEW_INVOICE_ASSIGNED, title: 'Nova Cobrança Atribuída', message: 'A dívida de Beatriz Pereira foi enviada para cobrança pelo escritório.', link: 'alunos', read: false, createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() }, // 5 minutes ago
 ];
 
+// FIX: Added conversionRate and valueGenerated to campaign data to match the updated type.
 export const demoCampaigns: Campaign[] = [
-    { id: 'camp-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8 },
-    { id: 'camp-02', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3 },
-    { id: 'camp-03', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0 },
+    { id: 'camp-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8, conversionRate: 25, valueGenerated: 1980 },
+    { id: 'camp-02', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3, conversionRate: 33.3, valueGenerated: 1490 },
+    { id: 'camp-03', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0, conversionRate: 0, valueGenerated: 0 },
 ];
 
 export const demoJudicialProcesses: JudicialProcess[] = [

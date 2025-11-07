@@ -1,3 +1,4 @@
+
 import { User, UserRole } from '../types';
 import { DEMO_USERS } from '../constants';
 import { demoSchools, demoGuardians } from './demoData';
@@ -29,8 +30,6 @@ export const allDemoUsers: (User & { status: 'Ativo' | 'Inativo' })[] = [
         schoolId: school.id,
         officeName: school.name,
         status: 'Ativo' as 'Ativo' | 'Inativo',
-        // Add specific permissions only to the first school user for demo
-        ...(index === 0 && { modulePermissions: ['dashboard', 'alunos', 'responsaveis'] }),
     })),
     // Guardians
     ...demoGuardians.map((guardian, index) => ({

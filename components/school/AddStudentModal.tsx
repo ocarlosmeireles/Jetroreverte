@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { Guardian } from '../../types';
+import { Guardian, InvoiceStatus } from '../../types';
 import { XIcon, SparklesIcon } from '../common/icons';
 import Button from '../common/Button';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface AddStudentModalProps {
     isOpen: boolean;
@@ -68,6 +70,28 @@ const AddStudentModal = ({ isOpen, onClose, onSave, existingGuardians }: AddStud
             setFileSelected(false);
         }
     }, [isOpen, existingGuardians]);
+
+    useEffect(() => {
+        if (formData.invoiceValue && formData.invoiceDueDate) {
+            const tempInvoiceForCalc = {
+                id: '', studentId: '', schoolId: '',
+                value: parseFloat(formData.invoiceValue),
+                dueDate: formData.invoiceDueDate,
+                status: InvoiceStatus.VENCIDO, // Assume overdue for calculation purposes
+            };
+
+            const { updatedValue, monthsOverdue } = calculateUpdatedInvoiceValues(tempInvoiceForCalc);
+
+            // Update state only if values have changed to prevent re-render loops
+            if (String(updatedValue.toFixed(2)) !== formData.updatedInvoiceValue || String(monthsOverdue) !== formData.overdueInstallments) {
+                setFormData(prev => ({
+                    ...prev,
+                    updatedInvoiceValue: String(updatedValue.toFixed(2)),
+                    overdueInstallments: String(monthsOverdue),
+                }));
+            }
+        }
+    }, [formData.invoiceValue, formData.invoiceDueDate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
