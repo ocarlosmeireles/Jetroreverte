@@ -15,6 +15,7 @@ import {
     UserCircleIcon,
     BellIcon,
     ScaleIcon,
+    SparklesIcon,
 } from './icons';
 
 interface NavItem {
@@ -52,6 +53,7 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Escolas': <SchoolIcon />,
     'Negociações': <ScaleIcon />,
     'Petições (IA)': <ScaleIcon />,
+    'Hub de Marketing': <SparklesIcon />,
     'Configurações': <Cog6ToothIcon />,
     'Visão Geral': <DashboardIcon />,
     'Usuários': <UsersIcon />,

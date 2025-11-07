@@ -46,6 +46,7 @@ export const NAVIGATION = {
         { name: 'Negociações', path: 'negociacoes' },
         { name: 'Cobranças (Geral)', path: 'cobrancas' },
         { name: 'Petições (IA)', path: 'peticoes' },
+        { name: 'Hub de Marketing', path: 'marketing' },
         { name: 'Financeiro', path: 'financeiro' },
         { name: 'Relatórios Consolidados', path: 'relatorios' },
         { name: 'Configurações', path: 'configuracoes' },
