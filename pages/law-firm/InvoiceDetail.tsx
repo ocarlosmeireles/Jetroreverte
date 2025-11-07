@@ -67,6 +67,14 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
         return months <= 0 ? 0 : months;
     }, [currentInvoice?.dueDate]);
 
+    const { fine, interest } = useMemo(() => {
+        if (!currentInvoice || monthsOverdue <= 0) return { fine: 0, interest: 0 };
+        const originalValue = currentInvoice.value;
+        const calculatedFine = originalValue * 0.02;
+        const calculatedInterest = originalValue * 0.01 * monthsOverdue;
+        return { fine: calculatedFine, interest: calculatedInterest };
+    }, [currentInvoice, monthsOverdue]);
+
     const handleCalculateUpdate = (showAlert = true) => {
         if (!currentInvoice) return;
         const originalValue = currentInvoice.value;
@@ -156,16 +164,15 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                                 <p className="text-sm text-neutral-500 mt-1">ID: {currentInvoice.id}</p>
                             </div>
                             <div className="mt-4 sm:mt-0 text-right">
-                                {currentInvoice.updatedValue && currentInvoice.updatedValue > currentInvoice.value && (
-                                    <p className="text-xl font-bold text-neutral-400 line-through">{formatCurrency(currentInvoice.value)}</p>
-                                )}
                                 <p className="text-3xl font-extrabold text-red-600">{formatCurrency(currentInvoice.updatedValue || currentInvoice.value)}</p>
-                                {currentInvoice.updatedValue && (
-                                    <p className="text-xs text-neutral-500 mt-1">
-                                        (Original + 2% multa + {monthsOverdue}x 1% juros)
-                                    </p>
+                                {currentInvoice.updatedValue && currentInvoice.updatedValue > currentInvoice.value && (
+                                    <div className="flex items-center justify-end gap-2 text-sm text-neutral-600 mt-1 flex-wrap">
+                                        <span className="line-through">{formatCurrency(currentInvoice.value)}</span>
+                                        <span className="text-red-500">+ {formatCurrency(fine)} (multa 2%)</span>
+                                        <span className="text-red-500">+ {formatCurrency(interest)} (juros {monthsOverdue}m)</span>
+                                    </div>
                                 )}
-                                <div className="mt-1">{getStatusChip(currentInvoice.status)}</div>
+                                <div className="mt-2">{getStatusChip(currentInvoice.status)}</div>
                             </div>
                         </div>
                         

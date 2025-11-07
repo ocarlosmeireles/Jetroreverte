@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { demoInvoices, demoStudents, demoGuardians, demoSchools, demoNegotiationAttempts } from '../../services/demoData';
@@ -20,6 +18,9 @@ interface NegotiationCase {
     guardian: Guardian | undefined;
     school: School | undefined;
     attempts: NegotiationAttempt[];
+    monthsOverdue: number;
+    fine: number;
+    interest: number;
 }
 
 const getRelativeTime = (dateString: string) => {
@@ -45,6 +46,35 @@ const ChannelIcon = ({ channel }: { channel: NegotiationChannel }) => {
     };
     return <div className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 ring-4 ring-white">{iconMap[channel]}</div>;
 };
+
+const calculateUpdatedValues = (invoice: Invoice) => {
+    const dueDate = new Date(invoice.dueDate);
+    const today = new Date();
+    if (invoice.status !== InvoiceStatus.VENCIDO || today < dueDate) {
+        return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
+    }
+
+    let months = (today.getFullYear() - dueDate.getFullYear()) * 12;
+    months -= dueDate.getMonth();
+    months += today.getMonth();
+    
+    if (today.getDate() < dueDate.getDate()) {
+        months--;
+    }
+    
+    const monthsOverdue = Math.max(0, months);
+    if (monthsOverdue === 0 && today.getDate() <= dueDate.getDate()) {
+         return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
+    }
+
+    const originalValue = invoice.value;
+    const fine = originalValue * 0.02;
+    const interest = originalValue * 0.01 * monthsOverdue;
+    const updatedValue = parseFloat((originalValue + fine + interest).toFixed(2));
+    
+    return { updatedValue, fine, interest, monthsOverdue };
+};
+
 
 const NegotiationsDashboard = (): React.ReactElement => {
     const { user } = useAuth();
@@ -77,7 +107,11 @@ const NegotiationsDashboard = (): React.ReactElement => {
             const attempts = allAttempts
                 .filter(a => a.invoiceId === invoice.id)
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            return { invoice, student, guardian, school, attempts };
+            
+            const { updatedValue, fine, interest, monthsOverdue } = calculateUpdatedValues(invoice);
+            const updatedInvoice = { ...invoice, updatedValue };
+            
+            return { invoice: updatedInvoice, student, guardian, school, attempts, monthsOverdue, fine, interest };
         }).sort((a,b) => new Date(a.invoice.dueDate).getTime() - new Date(b.invoice.dueDate).getTime());
     }, [allAttempts, user]);
     
@@ -164,8 +198,24 @@ const NegotiationsDashboard = (): React.ReactElement => {
                                             <p className="text-sm text-neutral-500 font-medium">Escola: {caseItem.school?.name}</p>
                                             <div className="my-4 p-3 bg-red-50 rounded-lg">
                                                 <p className="text-sm text-red-700">Dívida Vencida</p>
-                                                <p className="font-bold text-2xl text-red-800">{formatCurrency(caseItem.invoice.value)}</p>
-                                                <p className="text-xs text-red-600">Venceu em: {formatDate(caseItem.invoice.dueDate)}</p>
+                                                
+                                                {caseItem.invoice.updatedValue && caseItem.invoice.updatedValue > caseItem.invoice.value ? (
+                                                    <>
+                                                        <p className="font-bold text-2xl text-red-800">{formatCurrency(caseItem.invoice.updatedValue)}</p>
+                                                        <div className="flex items-center gap-2 text-xs text-neutral-600 flex-wrap">
+                                                            <span className="line-through">{formatCurrency(caseItem.invoice.value)}</span>
+                                                            <span className="text-red-500">+ {formatCurrency(caseItem.fine)} (multa 2%)</span>
+                                                            <span className="text-red-500">+ {formatCurrency(caseItem.interest)} (juros {caseItem.monthsOverdue}m)</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <p className="font-bold text-2xl text-red-800">{formatCurrency(caseItem.invoice.value)}</p>
+                                                )}
+                                                
+                                                <p className="text-xs text-red-600 mt-1">
+                                                    Venceu em: {formatDate(caseItem.invoice.dueDate)}
+                                                    <span className="font-semibold"> ({caseItem.monthsOverdue} {caseItem.monthsOverdue === 1 ? 'mês' : 'meses'} em atraso)</span>
+                                                </p>
                                             </div>
                                             <div className="mt-auto space-y-2">
                                                 <Button icon={<PlusIcon />} className="w-full" variant="secondary" onClick={() => setSelectedInvoiceId(caseItem.invoice.id)}>Adicionar Contato</Button>
