@@ -44,10 +44,18 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('TERMO DE CONFISSÃO E PARCELAMENTO DE DÍVIDA', pageWidth / 2, y, { align: 'center' });
-    y += 20;
+    y += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(`Protocolo do Acordo: ${invoice.agreement.protocolNumber}`, pageWidth / 2, y, { align: 'center' });
+    y += 12;
     
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0);
+
 
     addText(`Pelo presente instrumento particular, de um lado:`);
 
@@ -78,6 +86,12 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
     addText(`CLÁUSULA 3ª - DO INADIMPLEMENTO`);
     doc.setFont('helvetica', 'normal');
     addText(`O não pagamento de qualquer uma das parcelas na data aprazada implicará no vencimento antecipado de todo o saldo devedor, sobre o qual incidirá multa de 10% (dez por cento) e juros de 1% (um por cento) ao mês, além de correção monetária, facultando à CREDORA a execução imediata do presente termo.`);
+
+    doc.setFont('helvetica', 'bold');
+    addText(`CLÁUSULA 4ª - DA ACEITAÇÃO E VALIDADE`);
+    doc.setFont('helvetica', 'normal');
+    addText(`O(A) DEVEDOR(A) declara estar ciente de todos os termos e condições do presente acordo. A efetivação do pagamento da primeira parcela, ou a totalidade do valor, constitui ato inequívoco de aceitação e concordância com todas as cláusulas aqui estipuladas, conferindo plena validade jurídica ao acordo, independentemente de assinatura física.`);
+    addText(`Este acordo foi gerado e disponibilizado através do portal seguro da plataforma de cobrança, cujo acesso e aceite podem ser registrados eletronicamente, servindo como prova adicional da manifestação de vontade do(a) DEVEDOR(A).`);
     
     y += 10;
     addText(`E, por estarem assim justas e contratadas, firmam o presente instrumento em 2 (duas) vias de igual teor e forma.`);
@@ -85,11 +99,13 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
     y += 15;
     addText(new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }));
     
-    y += 25;
-    addText(`______________________________________\n${school.name}\n(CREDORA)`);
-    
-    y += 15;
-    addText(`______________________________________\n${guardian.name}\n(DEVEDOR(A))`);
+    y += 20;
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(128);
+    addText(`Este documento foi gerado eletronicamente pela Plataforma Jetro Reverte. A validade deste acordo é confirmada pelo pagamento da primeira parcela, conforme Cláusula 4ª.`, { align: 'center' });
 
     doc.save(`Acordo_${guardian.name.replace(/\s/g, '_')}.pdf`);
 };

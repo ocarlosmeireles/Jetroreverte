@@ -74,6 +74,7 @@ export interface AgreementDetails {
     paymentMethod: 'Boleto' | 'Pix' | 'Cartão de Crédito';
     firstDueDate: string;
     createdAt: string;
+    protocolNumber: string;
 }
 
 
@@ -158,6 +159,7 @@ export enum NotificationType {
     NEW_SCHOOL_CLIENT = 'NEW_SCHOOL_CLIENT',
     NEW_INVOICE_ASSIGNED = 'NEW_INVOICE_ASSIGNED',
     SUBSCRIPTION_PAYMENT_FAILED = 'SUBSCRIPTION_PAYMENT_FAILED',
+    NEGOTIATION_REQUESTED = 'NEGOTIATION_REQUESTED',
 }
 
 export interface Notification {

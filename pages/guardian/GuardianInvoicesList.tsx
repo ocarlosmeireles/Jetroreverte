@@ -1,14 +1,16 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { demoInvoices, demoStudents, demoGuardians, demoSchools } from '../../services/demoData';
+import { demoInvoices, demoStudents, demoGuardians, demoSchools, demoNotifications } from '../../services/demoData';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { Invoice, InvoiceStatus } from '../../types';
+import { Invoice, InvoiceStatus, CollectionStage, NotificationType } from '../../types';
 import PaymentModal from '../../components/guardian/PaymentModal';
+import NegotiationIntentModal from '../../components/guardian/NegotiationIntentModal';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 const listVariants = {
   visible: {
@@ -23,13 +25,62 @@ const listVariants = {
   },
 };
 
+type InvoiceWithCalculations = Invoice & ReturnType<typeof calculateUpdatedInvoiceValues>;
+
 const GuardianInvoicesList = (): React.ReactElement => {
     const { user } = useAuth();
     // In a real app, you would fetch students associated with the guardian's email/ID
     const myStudents = demoStudents.filter(s => s.guardianId === user?.id);
     const myStudentIds = myStudents.map(s => s.id);
     const [invoices, setInvoices] = useState(() => demoInvoices.filter(inv => myStudentIds.includes(inv.studentId)));
-    const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<Invoice | null>(null);
+    const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<InvoiceWithCalculations | null>(null);
+    const [intentModalInvoice, setIntentModalInvoice] = useState<InvoiceWithCalculations | null>(null);
+    const [negotiationRequestedId, setNegotiationRequestedId] = useState<string | null>(null);
+
+    const invoicesWithCalculations = useMemo((): InvoiceWithCalculations[] => {
+        return invoices.map(inv => ({
+            ...inv,
+            ...calculateUpdatedInvoiceValues(inv)
+        }));
+    }, [invoices]);
+
+    const handleRequestNegotiation = (invoiceId: string) => {
+        const invoiceToUpdate = invoices.find(inv => inv.id === invoiceId);
+        if (!invoiceToUpdate) return;
+        
+        // Update invoice state to reflect negotiation status
+        setInvoices(prev => prev.map(inv => 
+            inv.id === invoiceId 
+            ? { ...inv, collectionStage: CollectionStage.EM_NEGOCIACAO } 
+            : inv
+        ));
+
+        // Create notification for law firm
+        const student = demoStudents.find(s => s.id === invoiceToUpdate.studentId);
+        const guardian = demoGuardians.find(g => g.id === student?.guardianId);
+        
+        const newNotification = {
+            id: `notif-${Date.now()}`,
+            userId: 'user-escritorio-01', // Target law firm
+            type: NotificationType.NEGOTIATION_REQUESTED,
+            title: 'Solicitação de Negociação',
+            message: `O resp. ${guardian?.name} (aluno ${student?.name}) solicitou uma negociação.`,
+            link: 'negociacoes',
+            read: false,
+            createdAt: new Date().toISOString(),
+        };
+        demoNotifications.unshift(newNotification); // Add to the beginning for visibility in demo
+
+        // UI feedback
+        setIntentModalInvoice(null);
+        setNegotiationRequestedId(invoiceId);
+        setTimeout(() => setNegotiationRequestedId(null), 5000);
+    };
+
+    const handleConfirmPayment = (invoice: InvoiceWithCalculations) => {
+        setIntentModalInvoice(null);
+        setSelectedInvoiceForPayment(invoice);
+    };
 
     const handleViewReceipt = (invoice: Invoice) => {
         const student = demoStudents.find(s => s.id === invoice.studentId);
@@ -98,7 +149,14 @@ const GuardianInvoicesList = (): React.ReactElement => {
         }
     };
 
-    const getStatusInfo = (invoice: Invoice): { chip: React.ReactElement, action: React.ReactElement } => {
+    const getStatusInfo = (invoice: InvoiceWithCalculations): { chip: React.ReactElement, action: React.ReactElement } => {
+        if (negotiationRequestedId === invoice.id || invoice.collectionStage === CollectionStage.EM_NEGOCIACAO) {
+            return {
+                chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Negociação Solicitada</span>,
+                action: <span className="text-sm text-neutral-500 text-right">Aguardando contato do escritório.</span>
+            };
+        }
+
         switch (invoice.status) {
             case InvoiceStatus.PAGO:
                 return {
@@ -108,12 +166,12 @@ const GuardianInvoicesList = (): React.ReactElement => {
             case InvoiceStatus.PENDENTE:
                 return {
                     chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendente</span>,
-                    action: <Button size="sm" onClick={() => setSelectedInvoiceForPayment(invoice)}>Pagar Agora</Button>
+                    action: <Button size="sm" onClick={() => handleConfirmPayment(invoice)}>Pagar Agora</Button>
                 };
             case InvoiceStatus.VENCIDO:
                 return {
                     chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Vencido</span>,
-                    action: <Button size="sm" variant="danger" onClick={() => setSelectedInvoiceForPayment(invoice)}>Pagar com Atraso</Button>
+                    action: <Button size="sm" variant="danger" onClick={() => setIntentModalInvoice(invoice)}>Pagar ou Negociar</Button>
                 };
         }
     };
@@ -126,8 +184,9 @@ const GuardianInvoicesList = (): React.ReactElement => {
                 initial="hidden"
                 animate="visible"
             >
-                {invoices.length > 0 ? invoices.map((invoice, index) => {
+                {invoicesWithCalculations.length > 0 ? invoicesWithCalculations.map((invoice, index) => {
                     const { chip, action } = getStatusInfo(invoice);
+                    const displayValue = invoice.status === InvoiceStatus.VENCIDO ? invoice.updatedValue : invoice.value;
                     return (
                         <Card key={invoice.id} delay={index * 0.05}>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -137,7 +196,7 @@ const GuardianInvoicesList = (): React.ReactElement => {
                                     <div className="mt-2">{chip}</div>
                                 </div>
                                 <div className="flex items-center gap-4 mt-4 sm:mt-0">
-                                    <p className="text-2xl font-bold text-neutral-800">{formatCurrency(invoice.value)}</p>
+                                    <p className="text-2xl font-bold text-neutral-800">{formatCurrency(displayValue)}</p>
                                     {action}
                                 </div>
                             </div>
@@ -150,11 +209,22 @@ const GuardianInvoicesList = (): React.ReactElement => {
                 )}
             </motion.div>
 
+            {intentModalInvoice && (
+                <NegotiationIntentModal
+                    isOpen={!!intentModalInvoice}
+                    onClose={() => setIntentModalInvoice(null)}
+                    invoice={intentModalInvoice}
+                    // FIX: Removed non-existent 'calculatedValues' prop to match component's props interface.
+                    onConfirmPayment={() => handleConfirmPayment(intentModalInvoice)}
+                    onRequestNegotiation={() => handleRequestNegotiation(intentModalInvoice.id)}
+                />
+            )}
+
             {selectedInvoiceForPayment && (
                 <PaymentModal
                     isOpen={!!selectedInvoiceForPayment}
                     onClose={() => setSelectedInvoiceForPayment(null)}
-                    invoice={selectedInvoiceForPayment}
+                    invoice={{...selectedInvoiceForPayment, value: selectedInvoiceForPayment.updatedValue}}
                 />
             )}
         </>

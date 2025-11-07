@@ -12,6 +12,7 @@ import AgreementModal from '../../components/common/AgreementModal';
 import { generateAgreementPdf } from '../../utils/agreementPdfGenerator';
 import { useAuth } from '../../hooks/useAuth';
 import Switch from '../../components/common/Switch';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 
 interface InvoiceDetailProps {
@@ -42,41 +43,13 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
     const guardian = useMemo(() => demoGuardians.find(g => g.id === student?.guardianId), [student]);
     const school = useMemo(() => demoSchools.find(s => s.id === student?.schoolId), [student]);
     
-    const isOverdue = useMemo(() => {
-        if (!currentInvoice || currentInvoice.status !== InvoiceStatus.VENCIDO) return false;
-        const dueDate = new Date(currentInvoice.dueDate);
-        const today = new Date();
-        dueDate.setHours(0, 0, 0, 0);
-        today.setHours(0, 0, 0, 0);
-        return today > dueDate;
+    const { fine, interest } = useMemo(() => {
+        if (!currentInvoice) return { fine: 0, interest: 0 };
+        const { fine, interest } = calculateUpdatedInvoiceValues(currentInvoice);
+        return { fine, interest };
     }, [currentInvoice]);
 
-    const monthsOverdue = useMemo(() => {
-        if (!isOverdue || !currentInvoice) return 0;
-        
-        const dueDate = new Date(currentInvoice.dueDate);
-        const today = new Date();
-        
-        let months = (today.getFullYear() - dueDate.getFullYear()) * 12;
-        months -= dueDate.getMonth();
-        months += today.getMonth();
-        
-        if (today.getDate() < dueDate.getDate()) {
-            months--;
-        }
-        
-        return Math.max(0, months);
-    }, [currentInvoice, isOverdue]);
-
-    const { fine, interest } = useMemo(() => {
-        if (!currentInvoice || !isOverdue) return { fine: 0, interest: 0 };
-        
-        const originalValue = currentInvoice.value;
-        const calculatedFine = originalValue * 0.02;
-        const calculatedInterest = monthsOverdue > 0 ? originalValue * 0.01 * monthsOverdue : 0;
-        
-        return { fine: calculatedFine, interest: calculatedInterest };
-    }, [currentInvoice, isOverdue, monthsOverdue]);
+    const isOverdue = fine > 0 || interest > 0;
 
     const negotiatedValue = useMemo(() => {
         if (!currentInvoice) return 0;
@@ -101,8 +74,12 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
         }
     };
 
-    const handleSaveAgreement = (agreement: Omit<AgreementDetails, 'createdAt'>) => {
-        const newAgreement = { ...agreement, createdAt: new Date().toISOString() };
+    const handleSaveAgreement = (agreement: Omit<AgreementDetails, 'createdAt' | 'protocolNumber'>) => {
+        const newAgreement: AgreementDetails = { 
+            ...agreement, 
+            createdAt: new Date().toISOString(),
+            protocolNumber: `ACORDO-${currentInvoice.id}-${Date.now()}`
+        };
         setCurrentInvoice(prev => prev ? { ...prev, agreement: newAgreement, collectionStage: CollectionStage.ACORDO_FEITO } : undefined);
         setIsAgreementModalOpen(false);
     };
@@ -212,6 +189,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                              <div className="mt-6 pt-6 border-t border-neutral-200">
                                  <h3 className="text-lg font-semibold text-neutral-700 mb-3">Detalhes do Acordo</h3>
                                  <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-sm space-y-2">
+                                     <div className="flex justify-between"><span className="text-neutral-600">Protocolo:</span> <span className="font-bold text-neutral-800 font-mono text-xs">{currentInvoice.agreement.protocolNumber}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Parcelas:</span> <span className="font-bold text-neutral-800">{currentInvoice.agreement.installments}x de {formatCurrency(currentInvoice.agreement.installmentValue)}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Forma de Pagamento:</span> <span className="font-bold text-neutral-800">{currentInvoice.agreement.paymentMethod}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Venc. da 1ª Parcela:</span> <span className="font-bold text-neutral-800">{formatDate(currentInvoice.agreement.firstDueDate)}</span></div>

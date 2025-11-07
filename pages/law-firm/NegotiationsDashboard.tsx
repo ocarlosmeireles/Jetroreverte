@@ -11,6 +11,7 @@ import AddNegotiationAttemptModal from '../../components/law-firm/AddNegotiation
 import PetitionGeneratorModal from '../../components/admin/PetitionGeneratorModal';
 import Switch from '../../components/common/Switch';
 import { DEMO_USERS } from '../../constants';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface NegotiationCase {
     invoice: Invoice;
@@ -47,35 +48,6 @@ const ChannelIcon = ({ channel }: { channel: NegotiationChannel }) => {
     return <div className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 ring-4 ring-white">{iconMap[channel]}</div>;
 };
 
-const calculateUpdatedValues = (invoice: Invoice) => {
-    const dueDate = new Date(invoice.dueDate);
-    const today = new Date();
-
-    const todayAtStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const dueAtStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-
-    if (invoice.status !== InvoiceStatus.VENCIDO || todayAtStart <= dueAtStart) {
-        return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
-    }
-
-    let months = (today.getFullYear() - dueDate.getFullYear()) * 12;
-    months -= dueDate.getMonth();
-    months += today.getMonth();
-    
-    if (today.getDate() < dueDate.getDate()) {
-        months--;
-    }
-    
-    const monthsOverdue = Math.max(0, months);
-    
-    const originalValue = invoice.value;
-    const fine = originalValue * 0.02;
-    const interest = monthsOverdue > 0 ? originalValue * 0.01 * monthsOverdue : 0;
-    const updatedValue = parseFloat((originalValue + fine + interest).toFixed(2));
-    
-    return { updatedValue, fine, interest, monthsOverdue };
-};
-
 
 const NegotiationsDashboard = (): React.ReactElement => {
     const { user } = useAuth();
@@ -104,7 +76,7 @@ const NegotiationsDashboard = (): React.ReactElement => {
                 .filter(a => a.invoiceId === invoice.id)
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             
-            const { updatedValue, fine, interest, monthsOverdue } = calculateUpdatedValues(invoice);
+            const { updatedValue, fine, interest, monthsOverdue } = calculateUpdatedInvoiceValues(invoice);
             const updatedInvoice = { ...invoice, updatedValue };
             
             return { invoice: updatedInvoice, student, guardian, school, attempts, monthsOverdue, fine, interest };

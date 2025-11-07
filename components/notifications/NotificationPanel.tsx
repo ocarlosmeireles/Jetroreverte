@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
 import { Notification, NotificationType } from '../../types';
-import { XIcon, CheckIcon, DollarIcon, SchoolIcon, UsersIcon } from '../common/icons';
+import { XIcon, CheckIcon, DollarIcon, SchoolIcon, UsersIcon, ChatBubbleLeftRightIcon } from '../common/icons';
 import Button from '../common/Button';
 
 interface NotificationPanelProps {
@@ -47,6 +47,7 @@ const NotificationIcon = ({ type }: { type: NotificationType }) => {
         [NotificationType.NEW_SCHOOL_CLIENT]: <SchoolIcon className="w-5 h-5 text-blue-500" />,
         [NotificationType.NEW_INVOICE_ASSIGNED]: <UsersIcon className="w-5 h-5 text-indigo-500" />,
         [NotificationType.SUBSCRIPTION_PAYMENT_FAILED]: <SchoolIcon className="w-5 h-5 text-orange-500" />,
+        [NotificationType.NEGOTIATION_REQUESTED]: <ChatBubbleLeftRightIcon className="w-5 h-5 text-blue-500" />,
     };
     return (
         <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-neutral-100">

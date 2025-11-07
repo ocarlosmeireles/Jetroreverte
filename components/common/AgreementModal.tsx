@@ -9,7 +9,8 @@ import { INSTALLMENT_RATES } from '../../constants';
 interface AgreementModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Omit<AgreementDetails, 'createdAt'>) => void;
+    // FIX: Changed onSave prop to not expect 'protocolNumber', as it's generated in the parent component.
+    onSave: (data: Omit<AgreementDetails, 'createdAt' | 'protocolNumber'>) => void;
     invoice: Invoice;
 }
 
