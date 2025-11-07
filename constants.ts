@@ -1,4 +1,5 @@
 
+
 import { UserRole, Plan } from './types';
 
 export const DEMO_USERS = {
@@ -9,6 +10,20 @@ export const DEMO_USERS = {
 };
 
 export const DEFAULT_COMMISSION_PERCENTAGE = 10;
+
+export const INSTALLMENT_RATES: { [key: number]: number } = {
+    2: 0.0539,
+    3: 0.0612,
+    4: 0.0685,
+    5: 0.0757,
+    6: 0.0828,
+    7: 0.0899,
+    8: 0.0969,
+    9: 0.1038,
+    10: 0.1106,
+    11: 0.1174,
+    12: 0.1240,
+};
 
 export const PLANS: Plan[] = [
     {

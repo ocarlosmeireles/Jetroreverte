@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Invoice, AgreementDetails } from '../../types';
 import { XIcon } from './icons';
 import Button from './Button';
 import { formatCurrency } from '../../utils/formatters';
+import { INSTALLMENT_RATES } from '../../constants';
 
 interface AgreementModalProps {
     isOpen: boolean;
@@ -26,20 +27,40 @@ const modalVariants: Variants = {
 const AgreementModal = ({ isOpen, onClose, onSave, invoice }: AgreementModalProps): React.ReactElement => {
     const totalValue = invoice.updatedValue || invoice.value;
     
-    const [installments, setInstallments] = useState(2);
+    const [installments, setInstallments] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState<'Boleto' | 'Pix' | 'Cartão de Crédito'>('Boleto');
     const [firstDueDate, setFirstDueDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setInstallments(2);
+            setInstallments(1);
             setPaymentMethod('Boleto');
             setFirstDueDate('');
         }
     }, [isOpen]);
     
-    const installmentValue = totalValue / installments;
+    const { installmentValue, totalWithInterest, interestRate, isInterestFree } = useMemo(() => {
+        if (installments === 1) {
+            return {
+                installmentValue: totalValue,
+                totalWithInterest: totalValue,
+                interestRate: 0,
+                isInterestFree: true,
+            };
+        }
+        
+        const rate = INSTALLMENT_RATES[installments as keyof typeof INSTALLMENT_RATES] || 0;
+        const total = totalValue * (1 + rate);
+        const installment = total / installments;
+
+        return {
+            installmentValue: installment,
+            totalWithInterest: total,
+            interestRate: rate * 100,
+            isInterestFree: false,
+        };
+    }, [installments, totalValue]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -84,16 +105,16 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice }: AgreementModalProp
                         </header>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="text-center p-4 bg-primary-50 rounded-lg">
-                                <p className="text-sm text-primary-800">Valor Total do Acordo</p>
+                                <p className="text-sm text-primary-800">Valor Atualizado para Acordo</p>
                                 <p className="text-3xl font-bold text-primary-700">{formatCurrency(totalValue)}</p>
                             </div>
                              <div>
-                                <label htmlFor="installments" className="form-label">Número de Parcelas</label>
+                                <label htmlFor="installments" className="form-label">Opções de Parcelamento</label>
                                 <div className="flex items-center gap-4">
                                     <input 
                                         type="range" 
                                         id="installments" 
-                                        min="2" 
+                                        min="1" 
                                         max="12" 
                                         value={installments} 
                                         onChange={e => setInstallments(Number(e.target.value))}
@@ -101,9 +122,18 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice }: AgreementModalProp
                                     />
                                     <span className="font-bold text-lg text-neutral-700 w-8 text-center">{installments}x</span>
                                 </div>
-                                <p className="text-center text-lg font-semibold text-neutral-800 mt-2">
-                                    {installments} parcelas de <span className="text-green-600">{formatCurrency(installmentValue)}</span>
-                                </p>
+                                <div className="text-center mt-2 p-3 bg-neutral-50 rounded-md">
+                                    <p className="text-lg font-semibold text-neutral-800">
+                                        {installments}x de <span className="text-green-600">{formatCurrency(installmentValue)}</span>
+                                    </p>
+                                    {isInterestFree ? (
+                                        <p className="text-sm font-medium text-green-700">Sem juros de parcelamento</p>
+                                    ) : (
+                                        <p className="text-sm text-neutral-500">
+                                            Total com juros: {formatCurrency(totalWithInterest)} ({interestRate.toFixed(2)}%)
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
