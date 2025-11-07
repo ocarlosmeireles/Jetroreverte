@@ -74,6 +74,8 @@ export const NAVIGATION = {
         { name: 'Alunos Inadimplentes', path: 'alunos' },
         { name: 'Responsáveis', path: 'responsaveis' },
         { name: 'Cobranças', path: 'cobrancas' },
+        { name: 'Negociações', path: 'negociacoes' },
+        { name: 'Processos Judiciais', path: 'processos' },
         { name: 'Auditor de Contratos (IA)', path: 'auditor' },
         { name: 'Relatórios', path: 'relatorios' },
         { name: 'Meu Plano', path: 'plano' },

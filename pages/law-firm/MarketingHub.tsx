@@ -10,6 +10,7 @@ import { Lead, LeadStatus, Campaign } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import LeadModal from '../../components/law-firm/LeadModal';
 import { demoCampaigns } from '../../services/demoData';
+import CampaignModal from '../../components/law-firm/CampaignModal';
 
 const AiContentGenerator = () => {
     const [contentType, setContentType] = useState('Email de Prospecção');
@@ -346,6 +347,8 @@ const LeadPipeline = () => {
 };
 
 const CampaignsSection = () => {
+    const [campaigns, setCampaigns] = useState<Campaign[]>(demoCampaigns);
+    const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
 
     const getStatusChip = (status: Campaign['status']) => {
         const styles = {
@@ -356,12 +359,23 @@ const CampaignsSection = () => {
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${styles[status]}`}>{status}</span>;
     };
 
+    const handleSaveCampaign = (campaignData: Omit<Campaign, 'id' | 'status' | 'leadsGenerated'>) => {
+        const newCampaign: Campaign = {
+            id: `camp-${Date.now()}`,
+            ...campaignData,
+            status: 'Planejada',
+            leadsGenerated: 0,
+        };
+        setCampaigns(prev => [newCampaign, ...prev]);
+        setIsCampaignModalOpen(false);
+    };
+
     return (
         <div className="space-y-6">
             <Card noPadding>
                 <div className="p-4 sm:p-6 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-neutral-800">Campanhas de Marketing</h3>
-                    <Button size="sm" icon={<PlusIcon />} disabled>Nova Campanha</Button>
+                    <Button size="sm" icon={<PlusIcon />} onClick={() => setIsCampaignModalOpen(true)}>Nova Campanha</Button>
                 </div>
                  <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-neutral-200">
@@ -374,7 +388,7 @@ const CampaignsSection = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-neutral-200">
-                            {demoCampaigns.map(campaign => (
+                            {campaigns.map(campaign => (
                                 <tr key={campaign.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-neutral-900">{campaign.name}</div>
@@ -394,6 +408,12 @@ const CampaignsSection = () => {
                 <AiContentGenerator />
                 <ProposalGenerator />
             </div>
+
+            <CampaignModal 
+                isOpen={isCampaignModalOpen}
+                onClose={() => setIsCampaignModalOpen(false)}
+                onSave={handleSaveCampaign}
+            />
         </div>
     );
 };

@@ -6,6 +6,8 @@ import Solutions from '../../components/landing/Solutions';
 import Features from '../../components/landing/Features';
 import Testimonials from '../../components/landing/Testimonials';
 import Footer from '../../components/landing/Footer';
+import HowItWorks from '../../components/landing/HowItWorks';
+import CTA from '../../components/landing/CTA';
 
 interface LandingPageProps {
     onLogin: () => void;
@@ -18,10 +20,12 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps): React.ReactElem
             <Header onLogin={onLogin} onRegister={onRegister} />
 
             <main>
-                <Hero onLogin={onLogin} onRegister={onRegister} />
+                <Hero onRegister={onRegister} />
                 <Solutions />
+                <HowItWorks />
                 <Features />
                 <Testimonials />
+                <CTA onRegister={onRegister} />
             </main>
 
             <Footer />

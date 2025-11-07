@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Invoice, NotificationType, Student, Guardian, School, User } from '../../types';
@@ -97,8 +96,8 @@ const NegotiationPortal = ({ invoiceId, onBack }: NegotiationPortalProps): React
                             <div className="text-center p-8 bg-green-50 rounded-lg border border-green-200">
                                 <h4 className="font-bold text-green-800 text-xl">Acordo Aprovado!</h4>
                                 <p className="text-sm text-green-700 mt-2">
-                                    Seu acordo de {invoice.agreement!.installments}x de {formatCurrency(invoice.agreement!.installmentValue)} foi confirmado.
-                                    A primeira parcela vence em {formatDate(invoice.agreement!.firstDueDate)}.
+                                    Seu acordo de ${invoice.agreement!.installments}x de ${formatCurrency(invoice.agreement!.installmentValue)} foi confirmado.
+                                    A primeira parcela vence em ${formatDate(invoice.agreement!.firstDueDate)}.
                                 </p>
                                 <Button onClick={handleDownloadAgreement} className="mt-6" icon={<DocumentReportIcon />}>Baixar Termo de Acordo (PDF)</Button>
                             </div>

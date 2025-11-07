@@ -154,7 +154,7 @@ const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps)
     };
 
     const getStatusInfo = (invoice: InvoiceWithCalculations): { chip: React.ReactElement, action: React.ReactElement } => {
-        if (negotiationRequestedId === invoice.id || invoice.collectionStage === CollectionStage.EM_NEGOCIACAO) {
+        if (negotiationRequestedId === invoice.id || invoice.collectionStage === CollectionStage.EM_NEGOCIACAO || invoice.agreement) {
             return {
                 chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Negociação em Andamento</span>,
                 action: <Button size="sm" onClick={() => onStartNegotiation(invoice.id)}>Ver Portal</Button>
