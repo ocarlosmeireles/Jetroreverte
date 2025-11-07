@@ -11,6 +11,7 @@ import ContactHistoryModal from '../../components/common/ContactHistoryModal';
 import AgreementModal from '../../components/common/AgreementModal';
 import { generateAgreementPdf } from '../../utils/agreementPdfGenerator';
 import { useAuth } from '../../hooks/useAuth';
+import Switch from '../../components/common/Switch';
 
 
 interface InvoiceDetailProps {
@@ -35,9 +36,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
     const initialInvoice = demoInvoices.find(i => i.id === invoiceId);
     const [currentInvoice, setCurrentInvoice] = useState<Invoice | undefined>(initialInvoice);
 
-    const [isEditingLink, setIsEditingLink] = useState(false);
-    const [linkInputValue, setLinkInputValue] = useState(currentInvoice?.paymentLink || '');
-    const [isCopied, setIsCopied] = useState(false);
+    const [discounts, setDiscounts] = useState({ excludeInterest: false, excludeFine: false });
 
     const student = useMemo(() => demoStudents.find(s => s.id === currentInvoice?.studentId), [currentInvoice]);
     const guardian = useMemo(() => demoGuardians.find(g => g.id === student?.guardianId), [student]);
@@ -69,30 +68,20 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
         return Math.max(0, months);
     }, [currentInvoice, isOverdue]);
 
-    const { fine, interest, updatedValue } = useMemo(() => {
-        if (!currentInvoice) return { fine: 0, interest: 0, updatedValue: 0 };
+    const { fine, interest } = useMemo(() => {
+        if (!currentInvoice || !isOverdue) return { fine: 0, interest: 0 };
         
         const originalValue = currentInvoice.value;
-
-        if (!isOverdue) {
-            return { fine: 0, interest: 0, updatedValue: originalValue };
-        }
-        
         const calculatedFine = originalValue * 0.02;
-        const calculatedInterest = originalValue * 0.01 * monthsOverdue;
-        const calculatedUpdatedValue = originalValue + calculatedFine + calculatedInterest;
+        const calculatedInterest = monthsOverdue > 0 ? originalValue * 0.01 * monthsOverdue : 0;
         
-        return { fine: calculatedFine, interest: calculatedInterest, updatedValue: parseFloat(calculatedUpdatedValue.toFixed(2)) };
+        return { fine: calculatedFine, interest: calculatedInterest };
     }, [currentInvoice, isOverdue, monthsOverdue]);
 
-    useEffect(() => {
-        if (currentInvoice && isOverdue && currentInvoice.updatedValue !== updatedValue) {
-            setCurrentInvoice(prev => prev ? { ...prev, updatedValue: updatedValue } : undefined);
-        }
-         if (currentInvoice) {
-            setLinkInputValue(currentInvoice.paymentLink || '');
-        }
-    }, [invoiceId, updatedValue, isOverdue, currentInvoice]);
+    const negotiatedValue = useMemo(() => {
+        if (!currentInvoice) return 0;
+        return parseFloat((currentInvoice.value + (discounts.excludeFine ? 0 : fine) + (discounts.excludeInterest ? 0 : interest)).toFixed(2));
+    }, [currentInvoice, discounts, fine, interest]);
 
 
     if (!currentInvoice || !student || !guardian || !school || !user) {
@@ -110,18 +99,6 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
             case InvoiceStatus.PENDENTE: return <div className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 inline-block">Pendente</div>;
             case InvoiceStatus.VENCIDO: return <div className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 inline-block">Vencido</div>;
         }
-    };
-
-    const handleCopyLink = () => {
-        if (!currentInvoice?.paymentLink) return;
-        navigator.clipboard.writeText(currentInvoice.paymentLink).then(() => {
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        });
-    };
-
-    const handleSaveLink = () => {
-        setCurrentInvoice(prev => prev ? { ...prev, paymentLink: linkInputValue } : undefined);
     };
 
     const handleSaveAgreement = (agreement: Omit<AgreementDetails, 'createdAt'>) => {
@@ -171,12 +148,20 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                                 <p className="text-sm text-neutral-500 mt-1">ID: {currentInvoice.id}</p>
                             </div>
                             <div className="mt-4 sm:mt-0 text-right">
-                                <p className="text-3xl font-extrabold text-red-600">{formatCurrency(updatedValue)}</p>
+                                <p className="text-3xl font-extrabold text-red-600">{formatCurrency(negotiatedValue)}</p>
                                 {isOverdue && (
                                     <div className="flex items-center justify-end gap-2 text-sm text-neutral-600 mt-1 flex-wrap">
-                                        <span className="line-through">{formatCurrency(currentInvoice.value)}</span>
-                                        <span className="text-red-500">+ {formatCurrency(fine)} (multa 2%)</span>
-                                        {interest > 0 && <span className="text-red-500">+ {formatCurrency(interest)} (juros {monthsOverdue}m)</span>}
+                                        <span>{formatCurrency(currentInvoice.value)} (original)</span>
+                                        {fine > 0 && (
+                                            <span className={discounts.excludeFine ? 'line-through text-neutral-400' : 'text-red-500'}>
+                                                + {formatCurrency(fine)} (multa)
+                                            </span>
+                                        )}
+                                        {interest > 0 && (
+                                            <span className={discounts.excludeInterest ? 'line-through text-neutral-400' : 'text-red-500'}>
+                                                + {formatCurrency(interest)} (juros)
+                                            </span>
+                                        )}
                                     </div>
                                 )}
                                 <div className="mt-2">{getStatusChip(currentInvoice.status)}</div>
@@ -202,6 +187,26 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                                 </div>
                             </div>
                         </div>
+
+                        {(isOverdue && (fine > 0 || interest > 0)) && (
+                            <div className="mt-6 pt-6 border-t border-neutral-200">
+                                <h3 className="text-lg font-semibold text-neutral-700 mb-3">Opções de Desconto</h3>
+                                <div className="p-4 bg-neutral-50 rounded-lg border space-y-3">
+                                    {fine > 0 && (
+                                        <div className="flex items-center justify-between">
+                                            <label htmlFor="excludeFine" className="text-sm text-neutral-700">Excluir Multa ({formatCurrency(fine)})</label>
+                                            <Switch checked={discounts.excludeFine} onChange={(checked) => setDiscounts(d => ({ ...d, excludeFine: checked }))} />
+                                        </div>
+                                    )}
+                                    {interest > 0 && (
+                                        <div className="flex items-center justify-between">
+                                            <label htmlFor="excludeInterest" className="text-sm text-neutral-700">Excluir Juros ({formatCurrency(interest)})</label>
+                                            <Switch checked={discounts.excludeInterest} onChange={(checked) => setDiscounts(d => ({ ...d, excludeInterest: checked }))} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {currentInvoice.agreement && (
                              <div className="mt-6 pt-6 border-t border-neutral-200">
@@ -235,7 +240,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                 <AiCommunicationModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
             )}
             <ContactHistoryModal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} invoiceId={currentInvoice.id} />
-            <AgreementModal isOpen={isAgreementModalOpen} onClose={() => setIsAgreementModalOpen(false)} onSave={handleSaveAgreement} invoice={{...currentInvoice, updatedValue}} />
+            <AgreementModal isOpen={isAgreementModalOpen} onClose={() => setIsAgreementModalOpen(false)} onSave={handleSaveAgreement} invoice={{...currentInvoice, updatedValue: negotiatedValue}} />
         </>
     );
 };

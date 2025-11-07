@@ -83,13 +83,8 @@ const NegotiationsDashboard = (): React.ReactElement => {
     const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
     const [selectedCaseForPetition, setSelectedCaseForPetition] = useState<NegotiationCase | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [discounts, setDiscounts] = useState<Record<string, { excludeInterest: boolean; excludeFine: boolean }>>({});
 
-    const [automationStatus, setAutomationStatus] = useState<Record<string, boolean>>(() => 
-        demoInvoices.reduce((acc, inv) => {
-            acc[inv.id] = !!inv.isAutomationActive;
-            return acc;
-        }, {} as Record<string, boolean>)
-    );
 
     const negotiationCases = useMemo<NegotiationCase[]>(() => {
         if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) return [];
@@ -154,8 +149,14 @@ const NegotiationsDashboard = (): React.ReactElement => {
         setSelectedInvoiceId(null);
     };
     
-    const handleToggleAutomation = (invoiceId: string) => {
-        setAutomationStatus(prev => ({ ...prev, [invoiceId]: !prev[invoiceId] }));
+     const handleDiscountChange = (invoiceId: string, type: 'interest' | 'fine', isExcluded: boolean) => {
+        setDiscounts(prev => ({
+            ...prev,
+            [invoiceId]: {
+                ...(prev[invoiceId] || { excludeInterest: false, excludeFine: false }),
+                [type === 'interest' ? 'excludeInterest' : 'excludeFine']: isExcluded,
+            }
+        }));
     };
 
     return (
@@ -187,7 +188,10 @@ const NegotiationsDashboard = (): React.ReactElement => {
                         {filteredCases.map((caseItem, index) => {
                             const administrativeAttempts = caseItem.attempts.filter(a => a.type === NegotiationAttemptType.ADMINISTRATIVE).length;
                             const isReadyForLegal = administrativeAttempts >= 2;
-                            const isAutomationActive = automationStatus[caseItem.invoice.id];
+                            const currentDiscounts = discounts[caseItem.invoice.id] || { excludeInterest: false, excludeFine: false };
+                            const negotiatedValue = caseItem.invoice.value +
+                                (currentDiscounts.excludeFine ? 0 : caseItem.fine) +
+                                (currentDiscounts.excludeInterest ? 0 : caseItem.interest);
 
                             return (
                             <motion.div key={caseItem.invoice.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1, transition:{delay: index * 0.05} }} exit={{ opacity: 0 }}>
@@ -198,26 +202,43 @@ const NegotiationsDashboard = (): React.ReactElement => {
                                             <p className="text-sm text-neutral-500">Responsável: {caseItem.guardian?.name}</p>
                                             <p className="text-sm text-neutral-500 font-medium">Escola: {caseItem.school?.name}</p>
                                             <div className="my-4 p-3 bg-red-50 rounded-lg">
-                                                <p className="text-sm text-red-700">Dívida Vencida</p>
-                                                
-                                                {caseItem.invoice.updatedValue && caseItem.invoice.updatedValue > caseItem.invoice.value ? (
-                                                    <>
-                                                        <p className="font-bold text-2xl text-red-800">{formatCurrency(caseItem.invoice.updatedValue)}</p>
-                                                        <div className="flex items-center gap-2 text-xs text-neutral-600 flex-wrap">
-                                                            <span className="line-through">{formatCurrency(caseItem.invoice.value)}</span>
-                                                            <span className="text-red-500">+ {formatCurrency(caseItem.fine)} (multa 2%)</span>
-                                                            {caseItem.interest > 0 && <span className="text-red-500">+ {formatCurrency(caseItem.interest)} (juros {caseItem.monthsOverdue}m)</span>}
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <p className="font-bold text-2xl text-red-800">{formatCurrency(caseItem.invoice.value)}</p>
-                                                )}
-                                                
-                                                <p className="text-xs text-red-600 mt-1">
-                                                    Venceu em: {formatDate(caseItem.invoice.dueDate)}
-                                                    <span className="font-semibold"> ({caseItem.monthsOverdue} {caseItem.monthsOverdue === 1 ? 'mês' : 'meses'} em atraso)</span>
-                                                </p>
+                                                <p className="text-sm text-red-700">Dívida para Negociação</p>
+                                                <p className="font-bold text-2xl text-red-800">{formatCurrency(negotiatedValue)}</p>
+                                                <div className="flex items-center gap-2 text-xs text-neutral-600 flex-wrap">
+                                                    <span>{formatCurrency(caseItem.invoice.value)} (original)</span>
+                                                    {caseItem.fine > 0 && (
+                                                        <span className={currentDiscounts.excludeFine ? 'line-through text-neutral-400' : 'text-red-500'}>
+                                                            + {formatCurrency(caseItem.fine)} (multa)
+                                                        </span>
+                                                    )}
+                                                    {caseItem.interest > 0 && (
+                                                        <span className={currentDiscounts.excludeInterest ? 'line-through text-neutral-400' : 'text-red-500'}>
+                                                            + {formatCurrency(caseItem.interest)} (juros)
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {(caseItem.fine > 0 || caseItem.interest > 0) && (
+                                                <div className="mt-2 mb-4 p-3 border border-dashed rounded-lg">
+                                                    <h4 className="text-sm font-semibold text-neutral-600 mb-2">Opções de Desconto</h4>
+                                                    <div className="space-y-2">
+                                                        {caseItem.fine > 0 && (
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-sm text-neutral-700">Excluir Multa ({formatCurrency(caseItem.fine)})</label>
+                                                                <Switch checked={currentDiscounts.excludeFine} onChange={(checked) => handleDiscountChange(caseItem.invoice.id, 'fine', checked)} />
+                                                            </div>
+                                                        )}
+                                                        {caseItem.interest > 0 && (
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-sm text-neutral-700">Excluir Juros ({formatCurrency(caseItem.interest)})</label>
+                                                                <Switch checked={currentDiscounts.excludeInterest} onChange={(checked) => handleDiscountChange(caseItem.invoice.id, 'interest', checked)} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="mt-auto space-y-2">
                                                 <Button icon={<PlusIcon />} className="w-full" variant="secondary" onClick={() => setSelectedInvoiceId(caseItem.invoice.id)}>Adicionar Contato</Button>
                                                 <Button icon={<DocumentPlusIcon />} className="w-full" disabled={!isReadyForLegal} onClick={() => setSelectedCaseForPetition(caseItem)}>Gerar Petição com IA</Button>
