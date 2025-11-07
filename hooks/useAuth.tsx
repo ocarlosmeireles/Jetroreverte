@@ -13,6 +13,7 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import { User, UserRole } from '../types';
 import { allDemoUsers } from '../services/superAdminDemoData';
+import { DEMO_USERS } from '../constants';
 
 interface AuthContextType {
     user: User | null;
@@ -92,8 +93,28 @@ export const AuthProvider = ({ children }: { children?: ReactNode }): React.Reac
     }, []);
 
     const login = async (email: string, pass: string): Promise<User | null> => {
+        // Check if it's a demo user login attempt
+        const demoUserKey = (Object.keys(DEMO_USERS) as Array<keyof typeof DEMO_USERS>).find(
+            key => DEMO_USERS[key].email === email
+        );
+
+        if (demoUserKey && DEMO_USERS[demoUserKey].password === pass) {
+            // It's a valid demo user, bypass Firebase Auth
+            const demoUserProfile = allDemoUsers.find(u => u.email === email);
+            if (demoUserProfile) {
+                // Manually set user state since onAuthStateChanged won't fire
+                setUser(demoUserProfile);
+                return demoUserProfile;
+            }
+            // This should not happen if data is consistent
+            throw new Error('Demo user profile not found.');
+        }
+
+        // Original flow for non-demo users
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         if (userCredential.user) {
+            // onAuthStateChanged will handle setting the user state.
+            // We just need to return the profile to the caller.
             return await getUserProfile(userCredential.user);
         }
         return null;
