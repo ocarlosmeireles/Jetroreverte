@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Invoice, AgreementDetails } from '../../types';

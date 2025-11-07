@@ -8,7 +8,8 @@ import SaasFinancialDashboard from '../admin/SaasFinancialDashboard';
 import PagePlaceholder from '../common/PagePlaceholder';
 import { DocumentReportIcon } from '../../components/common/icons';
 import AppLayout from '../../components/layout/AppLayout';
-import NegotiationHistory from '../admin/NegotiationHistory';
+// FIX: Changed import from '../admin/NegotiationHistory' (an empty file) to the correct, existing component for handling negotiations.
+import NegotiationsDashboard from '../law-firm/NegotiationsDashboard';
 
 const AdminDashboard = (): React.ReactElement => {
     const [activePage, setActivePage] = useState('dashboard');
@@ -23,7 +24,7 @@ const AdminDashboard = (): React.ReactElement => {
             case 'escolas':
                 return <SchoolsList />;
             case 'negociacoes':
-                return <NegotiationHistory />;
+                return <NegotiationsDashboard />;
             case 'financeiro':
                 return <SaasFinancialDashboard />;
             case 'relatorios':
