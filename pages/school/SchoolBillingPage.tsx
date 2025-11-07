@@ -1,41 +1,39 @@
-import React from 'react';
-// FIX: Import Variants type from framer-motion.
-import { motion, Variants } from 'framer-motion';
+
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
-import { demoSubscriptions, demoSaasInvoices, demoSchools } from '../../services/demoData';
+import { demoSubscriptions, demoSaasInvoices, demoInvoices } from '../../services/demoData';
 import { PLANS } from '../../constants';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-
-const listVariants = {
-  visible: {
-    opacity: 1,
-    transition: {
-      when: "beforeChildren",
-      staggerChildren: 0.05,
-    },
-  },
-  hidden: {
-    opacity: 0,
-  },
-};
-
-// FIX: Explicitly type itemVariants with the Variants type.
-const itemVariants: Variants = {
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-  hidden: { opacity: 0, y: 20 },
-};
+import { InvoiceStatus } from '../../types';
 
 const SchoolBillingPage = (): React.ReactElement => {
     const { user } = useAuth();
     const subscription = demoSubscriptions.find(sub => sub.schoolId === user?.schoolId);
     const plan = PLANS.find(p => p.id === subscription?.planId);
-    const invoices = demoSaasInvoices.filter(inv => inv.schoolId === user?.schoolId);
+
+    const { delinquentStudentCount, invoices } = useMemo(() => {
+        if (!user) return { delinquentStudentCount: 0, invoices: [] };
+        
+        const schoolInvoices = demoInvoices.filter(inv => inv.schoolId === user.schoolId);
+        
+        const uniqueDelinquentStudents = new Set(
+            schoolInvoices.filter(i => i.status !== InvoiceStatus.PAGO).map(i => i.studentId)
+        ).size;
+        
+        const saasInvoices = demoSaasInvoices.filter(inv => inv.schoolId === user.schoolId);
+
+        return { delinquentStudentCount: uniqueDelinquentStudents, invoices: saasInvoices };
+
+    }, [user]);
 
     if (!subscription || !plan) {
         return <Card><p>Não foi possível carregar os dados do seu plano.</p></Card>;
     }
+    
+    const usagePercentage = plan.studentLimit ? (delinquentStudentCount / plan.studentLimit) * 100 : 0;
 
     return (
         <div className="space-y-8">
@@ -52,9 +50,28 @@ const SchoolBillingPage = (): React.ReactElement => {
                         </p>
                     </div>
                     <div className="mt-4 sm:mt-0">
-                        <Button variant="secondary">Mudar de Plano</Button>
+                        <Button variant="secondary">Ver Opções de Planos</Button>
                     </div>
                 </div>
+                {plan.studentLimit && (
+                    <div className="mt-6 pt-6 border-t">
+                        <h3 className="text-lg font-semibold text-neutral-700">Uso do Plano</h3>
+                        <p className="text-sm text-neutral-500 mt-1">Alunos inadimplentes gerenciados</p>
+                        <div className="flex items-center gap-4 mt-2">
+                            <div className="w-full bg-neutral-200 rounded-full h-2.5">
+                                <motion.div 
+                                    className="bg-primary-600 h-2.5 rounded-full" 
+                                    initial={{ width: '0%' }}
+                                    animate={{ width: `${usagePercentage}%`}}
+                                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                                />
+                            </div>
+                            <span className="font-semibold text-neutral-700 text-sm whitespace-nowrap">
+                                {delinquentStudentCount} / {plan.studentLimit}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             <Card>
@@ -88,12 +105,14 @@ const SchoolBillingPage = (): React.ReactElement => {
                         </thead>
                         <motion.tbody 
                             className="bg-white divide-y divide-neutral-200"
-                            variants={listVariants}
-                            initial="hidden"
-                            animate="visible"
                         >
-                            {invoices.map((invoice) => (
-                                <motion.tr key={invoice.id} variants={itemVariants}>
+                            {invoices.map((invoice, index) => (
+                                <motion.tr 
+                                    key={invoice.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(invoice.createdAt)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">Assinatura Plano {plan.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(invoice.amount)}</td>

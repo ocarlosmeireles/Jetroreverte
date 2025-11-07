@@ -30,9 +30,9 @@ const SchoolDashboard = (): React.ReactElement => {
     
     // Determine the title based on the view state to show "Detalhes do Aluno", etc.
     let pageTitle = navItems.find(p => p.path === activePage)?.name || 'Dashboard';
-    if (studentViewState.view === 'detail') pageTitle = 'Detalhes do Aluno';
-    if (guardianViewState.view === 'detail') pageTitle = 'Detalhes do Responsável';
-    if (invoiceViewState.view === 'detail') pageTitle = 'Detalhes da Cobrança';
+    if (activePage === 'alunos' && studentViewState.view === 'detail') pageTitle = 'Detalhes do Aluno';
+    if (activePage === 'responsaveis' && guardianViewState.view === 'detail') pageTitle = 'Detalhes do Responsável';
+    if (activePage === 'cobrancas' && invoiceViewState.view === 'detail') pageTitle = 'Detalhes da Cobrança';
 
 
     const handleSetActivePage = (page: string) => {
@@ -108,10 +108,10 @@ const SchoolDashboard = (): React.ReactElement => {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={animationKey}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
                     >
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
                         {renderContent()}

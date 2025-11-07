@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { User, UserRole, School } from '../../types';
@@ -130,9 +131,9 @@ const UserEditModal = ({ isOpen, onClose, onSave, user, allSchools }: UserEditMo
                                 </div>
                             </section>
 
-                            {availableModules.length > 0 && (
-                                <section>
-                                    <h3 className="text-lg font-semibold text-primary-700 mb-4 border-b pb-2">Módulos Acessíveis</h3>
+                            <section>
+                                <h3 className="text-lg font-semibold text-primary-700 mb-4 border-b pb-2">Módulos Acessíveis</h3>
+                                {availableModules.length > 0 ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 border rounded-lg bg-neutral-50">
                                         {availableModules.map(navItem => (
                                             <label key={navItem.path} className="flex items-center space-x-2 text-sm text-neutral-700 cursor-pointer">
@@ -146,8 +147,12 @@ const UserEditModal = ({ isOpen, onClose, onSave, user, allSchools }: UserEditMo
                                             </label>
                                         ))}
                                     </div>
-                                </section>
-                            )}
+                                ) : (
+                                    <div className="p-4 border rounded-lg bg-neutral-50 text-center text-sm text-neutral-500">
+                                        Nenhum módulo customizável para este perfil de usuário.
+                                    </div>
+                                )}
+                            </section>
                             <style>{`.form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #334155; margin-bottom: 0.25rem; } .form-input { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; transition: all 0.2s; background-color: #f8fafc; } .form-input:focus { ring: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; } .form-checkbox { color: #4f46e5; } .form-checkbox:focus { ring: #4f46e5; }`}</style>
                         </form>
                         <footer className="p-6 border-t border-neutral-200 flex-shrink-0 bg-neutral-50 rounded-b-2xl flex justify-end gap-3">

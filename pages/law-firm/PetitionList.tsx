@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import { demoPetitions, demoInvoices, demoSchools } from '../../services/demoData';
 import { formatDate } from '../../utils/formatters';
-import { Petition } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { DEMO_USERS } from '../../constants';
+import { DocumentPlusIcon } from '../../components/common/icons';
 
 const listVariants = {
   visible: { transition: { staggerChildren: 0.05 } },
@@ -45,6 +46,89 @@ const PetitionList = ({ onSelectPetition, selectedPetitionId }: PetitionListProp
             case 'filed': return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Protocolado</span>;
         }
     };
+    
+    const renderContent = () => {
+        if (petitions.length === 0) {
+            return (
+                 <div className="text-center py-12 px-6">
+                    <DocumentPlusIcon className="w-12 h-12 mx-auto text-neutral-300" />
+                    <h3 className="mt-4 text-lg font-semibold text-neutral-700">Nenhuma petição gerada</h3>
+                    <p className="mt-1 text-sm text-neutral-500">Gere petições automaticamente na tela de 'Negociações' para casos elegíveis.</p>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                {/* Desktop Table */}
+                <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
+                    <thead className="bg-neutral-50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Caso (Aluno)</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Data de Geração</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <motion.tbody 
+                        className="bg-white divide-y divide-neutral-200"
+                        variants={listVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {petitions.map((petition) => {
+                             const isSelected = selectedPetitionId === petition.id;
+                             return (
+                                <motion.tr 
+                                    key={petition.id} 
+                                    variants={itemVariants} 
+                                    onClick={() => onSelectPetition(petition.id)}
+                                    className={`cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-neutral-900">{petition.studentName}</div>
+                                        <div className="text-xs text-neutral-500">Resp.: {petition.guardianName}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{petition.schoolName}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(petition.generatedAt)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(petition.status)}</td>
+                                </motion.tr>
+                            )
+                        })}
+                    </motion.tbody>
+                </table>
+    
+                {/* Mobile Cards */}
+                <div className="md:hidden">
+                    <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
+                        {petitions.map((petition) => {
+                            const isSelected = selectedPetitionId === petition.id;
+                            return (
+                                <motion.div 
+                                    key={petition.id} 
+                                    variants={itemVariants} 
+                                    onClick={() => onSelectPetition(petition.id)}
+                                    className={`p-4 cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-semibold text-neutral-900">{petition.studentName}</div>
+                                            <div className="text-sm text-neutral-500">{petition.schoolName}</div>
+                                        </div>
+                                        {getStatusChip(petition.status)}
+                                    </div>
+                                    <div className="text-sm text-neutral-500 mt-2">
+                                        Gerado em: {formatDate(petition.generatedAt)}
+                                    </div>
+                                </motion.div>
+                            )
+                        })}
+                    </motion.div>
+                </div>
+            </>
+        );
+    }
+
 
     return (
         <Card noPadding>
@@ -53,71 +137,7 @@ const PetitionList = ({ onSelectPetition, selectedPetitionId }: PetitionListProp
                  <p className="text-sm text-neutral-500 mt-1">Visualize, edite e exporte as petições geradas pela IA.</p>
             </div>
             
-            {/* Desktop Table */}
-            <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
-                <thead className="bg-neutral-50">
-                    <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Caso (Aluno)</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Data de Geração</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <motion.tbody 
-                    className="bg-white divide-y divide-neutral-200"
-                    variants={listVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    {petitions.map((petition) => {
-                         const isSelected = selectedPetitionId === petition.id;
-                         return (
-                            <motion.tr 
-                                key={petition.id} 
-                                variants={itemVariants} 
-                                onClick={() => onSelectPetition(petition.id)}
-                                className={`cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
-                            >
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-neutral-900">{petition.studentName}</div>
-                                    <div className="text-xs text-neutral-500">Resp.: {petition.guardianName}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{petition.schoolName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(petition.generatedAt)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(petition.status)}</td>
-                            </motion.tr>
-                        )
-                    })}
-                </motion.tbody>
-            </table>
-
-            {/* Mobile Cards */}
-            <div className="md:hidden">
-                <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
-                    {petitions.map((petition) => {
-                        const isSelected = selectedPetitionId === petition.id;
-                        return (
-                            <motion.div 
-                                key={petition.id} 
-                                variants={itemVariants} 
-                                onClick={() => onSelectPetition(petition.id)}
-                                className={`p-4 cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <div className="font-semibold text-neutral-900">{petition.studentName}</div>
-                                        <div className="text-sm text-neutral-500">{petition.schoolName}</div>
-                                    </div>
-                                    {getStatusChip(petition.status)}
-                                </div>
-                                <div className="text-sm text-neutral-500 mt-2">
-                                    Gerado em: {formatDate(petition.generatedAt)}
-                                </div>
-                            </motion.div>
-                        )
-                    })}
-                </motion.div>
-            </div>
+            {renderContent()}
         </Card>
     );
 };

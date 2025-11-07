@@ -105,13 +105,11 @@ export interface CollectionHistory {
     status: 'ENVIADO' | 'FALHOU';
 }
 
-// FIX: Added PlanId enum for subscription plans.
 export enum PlanId {
     BASIC = 'basic',
     PRO = 'pro',
 }
 
-// FIX: Added Plan interface for pricing page.
 export interface Plan {
     id: PlanId | string;
     name: string;
@@ -120,9 +118,9 @@ export interface Plan {
         yearly: number;
     };
     features: string[];
+    studentLimit: number | null; // null represents 'unlimited'
 }
 
-// FIX: Added Subscription interface for school billing.
 export interface Subscription {
     id:string;
     schoolId: string;
@@ -133,7 +131,6 @@ export interface Subscription {
     cycle: 'monthly' | 'yearly';
 }
 
-// FIX: Added SaasInvoice interface for SaaS financial data.
 export interface SaasInvoice {
     id: string;
     schoolId: string;
@@ -194,4 +191,23 @@ export interface Petition {
     generatedAt: string; // ISO string
     content: string;
     status: 'draft' | 'filed';
+}
+
+export enum LeadStatus {
+    PROSPECT = 'Prospect',
+    INITIAL_CONTACT = 'Contato Inicial',
+    NEGOTIATION = 'Negociação',
+    CLOSED_WON = 'Fechado (Ganho)',
+    CLOSED_LOST = 'Fechado (Perdido)',
+}
+
+export interface Lead {
+    id: string;
+    schoolName: string;
+    contactName: string;
+    contactEmail: string;
+    potentialValue: number;
+    lastContactDate: string; // ISO String
+    status: LeadStatus;
+    notes?: string;
 }

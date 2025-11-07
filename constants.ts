@@ -10,12 +10,12 @@ export const DEMO_USERS = {
 
 export const DEFAULT_COMMISSION_PERCENTAGE = 10;
 
-// FIX: Added PLANS constant for the pricing page.
 export const PLANS: Plan[] = [
     {
         id: 'basic',
         name: 'Básico',
         price: { monthly: 99, yearly: 990 },
+        studentLimit: 100,
         features: [
             'Gestão de até 100 alunos inadimplentes',
             'Envio de lembretes automáticos',
@@ -28,10 +28,12 @@ export const PLANS: Plan[] = [
         id: 'pro',
         name: 'Pro',
         price: { monthly: 149, yearly: 1490 },
+        studentLimit: null, // Unlimited
         features: [
             'Alunos inadimplentes ilimitados',
             'Tudo do plano Básico',
-            'Régua de cobrança personalizada',
+            'Régua de cobrança personalizada com IA',
+            'Geração de Petições com IA',
             'Relatórios avançados',
             'Suporte prioritário (WhatsApp)',
             'Integração com sistema de pagamento',

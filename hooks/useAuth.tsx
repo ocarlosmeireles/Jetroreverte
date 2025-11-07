@@ -71,9 +71,16 @@ const getUserProfile = async (firebaseUser: FirebaseUser): Promise<User | null> 
 export const AuthProvider = ({ children }: { children?: ReactNode }): React.ReactElement => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isDemoSession, setIsDemoSession] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+            // If a demo session is active, don't let firebase's state (which is 'null' for authUser)
+            // overwrite our manually set demo user.
+            if (isDemoSession) {
+                return;
+            }
+
             if (authUser) {
                 try {
                     const userProfile = await getUserProfile(authUser);
@@ -90,7 +97,7 @@ export const AuthProvider = ({ children }: { children?: ReactNode }): React.Reac
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [isDemoSession]);
 
     const login = async (email: string, pass: string): Promise<User | null> => {
         // Check if it's a demo user login attempt
@@ -99,28 +106,27 @@ export const AuthProvider = ({ children }: { children?: ReactNode }): React.Reac
         );
 
         if (demoUserKey && DEMO_USERS[demoUserKey].password === pass) {
-            // It's a valid demo user, bypass Firebase Auth
             const demoUserProfile = allDemoUsers.find(u => u.email === email);
             if (demoUserProfile) {
-                // Manually set user state since onAuthStateChanged won't fire
+                setIsDemoSession(true);
                 setUser(demoUserProfile);
                 return demoUserProfile;
             }
-            // This should not happen if data is consistent
             throw new Error('Demo user profile not found.');
         }
 
-        // Original flow for non-demo users
+        // It's a real login, so ensure demo mode is off.
+        setIsDemoSession(false);
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         if (userCredential.user) {
             // onAuthStateChanged will handle setting the user state.
-            // We just need to return the profile to the caller.
             return await getUserProfile(userCredential.user);
         }
         return null;
     };
 
     const register = async (personName: string, officeName: string, email: string, pass: string): Promise<User | null> => {
+        setIsDemoSession(false); // Registering is always a real session
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const firebaseUser = userCredential.user;
 
@@ -144,8 +150,15 @@ export const AuthProvider = ({ children }: { children?: ReactNode }): React.Reac
     };
     
     const logout = async () => {
-        await signOut(auth);
-        setUser(null);
+        if (isDemoSession) {
+            // For demo sessions, just clear the state manually
+            setUser(null);
+            setIsDemoSession(false);
+        } else {
+            // For real sessions, sign out from Firebase
+            await signOut(auth);
+            // The onAuthStateChanged listener will then handle setting user to null
+        }
     };
     
     const sendPasswordResetEmail = async (email: string) => {
@@ -157,18 +170,22 @@ export const AuthProvider = ({ children }: { children?: ReactNode }): React.Reac
     };
     
     const updateUserContext = async (data: Partial<User>) => {
-        if (user && auth.currentUser) {
-            const userDocRef = doc(db, 'users', user.id);
-            // Firestore doesn't like 'id' and 'email' field in the update data if they are also part of the object
-            const updateData = { ...data };
-            delete updateData.id;
-            delete updateData.email;
+        if (user) {
+            if (isDemoSession) {
+                // For demo sessions, just update the local state.
+                setUser(currentUser => currentUser ? { ...currentUser, ...data } : null);
+            } else if (auth.currentUser) {
+                // For real users, update Firestore and re-fetch.
+                const userDocRef = doc(db, 'users', user.id);
+                const updateData = { ...data };
+                delete updateData.id;
+                delete updateData.email;
 
-            await updateDoc(userDocRef, updateData);
-            
-            // Re-fetch and update local user state to reflect changes
-            const updatedUser = await getUserProfile(auth.currentUser);
-            setUser(updatedUser);
+                await updateDoc(userDocRef, updateData);
+                
+                const updatedUser = await getUserProfile(auth.currentUser);
+                setUser(updatedUser);
+            }
         }
     };
     

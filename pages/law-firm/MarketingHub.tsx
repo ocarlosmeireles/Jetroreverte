@@ -1,10 +1,14 @@
 
-import React, { useState } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+
+import React, { useState, useRef, useEffect, ReactNode } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { SparklesIcon, XIcon } from '../../components/common/icons';
+import { SparklesIcon, XIcon, EllipsisVerticalIcon, TrashIcon, PencilIcon, UsersIcon, EnvelopeIcon, DollarIcon, PlusIcon } from '../../components/common/icons';
+import { Lead, LeadStatus } from '../../types';
+import { formatCurrency, formatDate } from '../../utils/formatters';
+import LeadModal from '../../components/law-firm/LeadModal';
 
 const AiContentGenerator = () => {
     const [contentType, setContentType] = useState('Email de Prospecção');
@@ -52,7 +56,7 @@ const AiContentGenerator = () => {
     const selectClass = "w-full p-2 border border-neutral-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 bg-white";
 
     return (
-        <Card delay={0.1}>
+        <Card>
             <div className="flex items-center gap-2 mb-4">
                 <SparklesIcon className="w-6 h-6 text-primary-500" />
                 <h3 className="text-lg font-semibold text-neutral-800">Gerador de Conteúdo com IA</h3>
@@ -140,7 +144,7 @@ const ProposalGenerator = () => {
 
     return (
         <>
-            <Card delay={0.2}>
+            <Card>
                 <h3 className="text-lg font-semibold text-neutral-800 mb-2">Gerador de Proposta Comercial</h3>
                 <p className="text-sm text-neutral-600 mb-4">Crie um rascunho completo de uma proposta comercial para enviar a escolas em potencial.</p>
                 <Button onClick={handleGenerate}>Gerar Proposta com IA</Button>
@@ -190,45 +194,165 @@ const ProposalModal = ({ proposal, isLoading, onClose }: { proposal: string, isL
     );
 };
 
-const LeadPipeline = () => {
-    const leads = [
-        { name: 'Colégio Alfa', status: 'Prospect' },
-        { name: 'Escola Beta Gênesis', status: 'Prospect' },
-        { name: 'Instituto Delta', status: 'Contato Inicial' },
-        { name: 'Centro Educacional Gama', status: 'Negociação' },
-    ];
-    
-    const columns = ['Prospect', 'Contato Inicial', 'Negociação', 'Fechado'];
+// --- New Lead Pipeline ---
+
+const initialLeads: Lead[] = [
+    { id: 'lead-1', schoolName: 'Colégio Alfa', contactName: 'Mariana Silva', contactEmail: 'mariana.s@colegioalfa.com', potentialValue: 1500, lastContactDate: '2024-07-28T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Primeiro contato a ser feito.' },
+    { id: 'lead-2', schoolName: 'Escola Beta Gênesis', contactName: 'Roberto Costa', contactEmail: 'roberto@betagenesis.com', potentialValue: 2000, lastContactDate: '2024-07-25T14:00:00Z', status: LeadStatus.INITIAL_CONTACT, notes: 'Enviado email de apresentação.' },
+    { id: 'lead-3', schoolName: 'Instituto Delta', contactName: 'Fernanda Lima', contactEmail: 'fernanda.lima@institutodelta.org', potentialValue: 1800, lastContactDate: '2024-07-20T11:00:00Z', status: LeadStatus.NEGOTIATION, notes: 'Reunião agendada para 05/08.' },
+    { id: 'lead-4', schoolName: 'Centro Educacional Gama', contactName: 'Carlos Andrade', contactEmail: 'carlos@cegama.edu.br', potentialValue: 2500, lastContactDate: '2024-07-15T09:00:00Z', status: LeadStatus.CLOSED_WON, notes: 'Contrato assinado.' },
+    { id: 'lead-5', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 1200, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.' },
+];
+
+// FIX: Defined an interface for LeadCard props, including an optional 'key' to resolve TypeScript error on mapping.
+interface LeadCardProps {
+    lead: Lead;
+    onMove: (id: string, status: LeadStatus) => void;
+    onEdit: (lead: Lead) => void;
+    onDelete: (id: string) => void;
+}
+
+const LeadCard = ({ lead, onMove, onEdit, onDelete }: LeadCardProps) => {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [menuRef]);
 
     return (
-        <Card className="lg:col-span-2" delay={0.3}>
-            <h3 className="text-lg font-semibold text-neutral-800 mb-4">Pipeline de Leads (Exemplo)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {columns.map(col => (
-                    <div key={col} className="bg-neutral-100/70 rounded-lg p-3">
-                        <h4 className="font-bold text-sm text-neutral-600 mb-3 text-center">{col}</h4>
-                        <div className="space-y-2">
-                            {leads.filter(l => l.status === col).map(lead => (
-                                <div key={lead.name} className="bg-white p-3 rounded-md shadow-sm border text-sm">
-                                    {lead.name}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+        <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} className="bg-white p-3 rounded-lg border border-neutral-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start">
+                <h4 className="font-bold text-sm text-neutral-800">{lead.schoolName}</h4>
+                <div className="relative">
+                    <button onClick={() => setMenuOpen(prev => !prev)} className="p-1 rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600">
+                        <EllipsisVerticalIcon className="w-4 h-4" />
+                    </button>
+                    <AnimatePresence>
+                        {menuOpen && (
+                            <motion.div ref={menuRef} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute top-full right-0 mt-1 w-40 bg-white rounded-md shadow-lg border z-10 text-sm">
+                                <p className="px-3 py-2 text-xs text-neutral-400 border-b">Mover para</p>
+                                {Object.values(LeadStatus).map(status => (
+                                    <button key={status} onClick={() => { onMove(lead.id, status); setMenuOpen(false); }} className="block w-full text-left px-3 py-2 hover:bg-neutral-100 disabled:text-neutral-300 disabled:cursor-not-allowed" disabled={lead.status === status}>{status}</button>
+                                ))}
+                                <div className="border-t my-1"></div>
+                                <button onClick={() => { onEdit(lead); setMenuOpen(false); }} className="flex items-center gap-2 w-full text-left px-3 py-2 hover:bg-neutral-100"><PencilIcon className="w-4 h-4"/> Editar</button>
+                                <button onClick={() => { onDelete(lead.id); setMenuOpen(false); }} className="flex items-center gap-2 w-full text-left px-3 py-2 text-red-600 hover:bg-red-50"><TrashIcon className="w-4 h-4"/> Excluir</button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
-        </Card>
+            <p className="text-xs text-neutral-500 flex items-center gap-1 mt-1"><UsersIcon className="w-3 h-3"/> {lead.contactName}</p>
+            <div className="flex justify-between items-end mt-2">
+                <p className="text-xs text-neutral-500">Último contato: <br/>{formatDate(lead.lastContactDate)}</p>
+                <p className="font-bold text-primary-700">{formatCurrency(lead.potentialValue)}</p>
+            </div>
+        </motion.div>
     );
 };
 
+const LeadPipeline = () => {
+    const [leads, setLeads] = useState<Lead[]>(initialLeads);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingLead, setEditingLead] = useState<Lead | null>(null);
+
+    const columns: { status: LeadStatus; title: string; color: string }[] = [
+        { status: LeadStatus.PROSPECT, title: 'Prospect', color: 'bg-gray-200' },
+        { status: LeadStatus.INITIAL_CONTACT, title: 'Contato Inicial', color: 'bg-blue-200' },
+        { status: LeadStatus.NEGOTIATION, title: 'Negociação', color: 'bg-yellow-200' },
+        { status: LeadStatus.CLOSED_WON, title: 'Fechado (Ganho)', color: 'bg-green-200' },
+        { status: LeadStatus.CLOSED_LOST, title: 'Fechado (Perdido)', color: 'bg-red-200' },
+    ];
+    
+    const handleAddLead = () => {
+        setEditingLead(null);
+        setIsModalOpen(true);
+    };
+    
+    const handleEditLead = (lead: Lead) => {
+        setEditingLead(lead);
+        setIsModalOpen(true);
+    };
+    
+    const handleDeleteLead = (id: string) => {
+        if(window.confirm('Tem certeza que deseja excluir este lead?')) {
+            setLeads(prev => prev.filter(lead => lead.id !== id));
+        }
+    };
+    
+    const handleMoveLead = (id: string, newStatus: LeadStatus) => {
+        setLeads(prev => prev.map(lead => lead.id === id ? { ...lead, status: newStatus, lastContactDate: new Date().toISOString() } : lead));
+    };
+
+    const handleSaveLead = (leadData: Omit<Lead, 'id' | 'status'>, id?: string) => {
+        if (id) { // Editing
+            setLeads(prev => prev.map(lead => lead.id === id ? { ...lead, ...leadData } : lead));
+        } else { // Creating
+            const newLead: Lead = {
+                id: `lead-${Date.now()}`,
+                ...leadData,
+                status: LeadStatus.PROSPECT
+            };
+            setLeads(prev => [newLead, ...prev]);
+        }
+        setIsModalOpen(false);
+    };
+
+    return (
+        <>
+            <Card noPadding>
+                <div className="p-4 sm:p-6 flex justify-between items-center border-b border-neutral-200">
+                    <h3 className="text-lg font-semibold text-neutral-800">Pipeline de Leads</h3>
+                    <Button onClick={handleAddLead} size="sm" icon={<PlusIcon />}>Adicionar Lead</Button>
+                </div>
+                <div className="flex overflow-x-auto p-4 space-x-4 bg-neutral-50/70">
+                    {columns.map(column => {
+                        const columnLeads = leads.filter(lead => lead.status === column.status);
+                        return (
+                            <div key={column.status} className="w-64 flex-shrink-0">
+                                <h4 className="flex items-center gap-2 font-semibold text-sm text-neutral-700 mb-3 px-2">
+                                    <span className={`w-2 h-2 rounded-full ${column.color}`}></span>
+                                    {column.title}
+                                    <span className="text-xs text-neutral-400 bg-neutral-200 rounded-full px-1.5 py-0.5">{columnLeads.length}</span>
+                                </h4>
+                                <div className="space-y-2 h-full">
+                                    <AnimatePresence>
+                                        {columnLeads.map(lead => (
+                                            <LeadCard key={lead.id} lead={lead} onMove={handleMoveLead} onEdit={handleEditLead} onDelete={handleDeleteLead} />
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </Card>
+             <LeadModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveLead}
+                lead={editingLead}
+            />
+        </>
+    );
+};
+
+
 const MarketingHub = (): React.ReactElement => {
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
+            <LeadPipeline />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <AiContentGenerator />
                 <ProposalGenerator />
             </div>
-            <LeadPipeline />
         </div>
     );
 };

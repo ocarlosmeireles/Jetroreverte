@@ -1,66 +1,106 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
+// FIX: Imported Tooltip component from recharts.
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { demoSchools, demoSubscriptions, demoSaasInvoices } from '../../services/demoData';
 import { allDemoUsers } from '../../services/superAdminDemoData';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatDate } from '../../utils/formatters';
 import StatCard from '../../components/common/StatCard';
 import Chart from '../../components/common/Chart';
 import Card from '../../components/common/Card';
 import { SchoolIcon, DollarIcon, UsersIcon, BillingIcon } from '../../components/common/icons';
+import { PlanId } from '../../types';
 
 const PlatformOverview = (): React.ReactElement => {
-    const totalUsers = allDemoUsers.length;
-    const totalSchools = demoSchools.length;
-    const activeSubscriptions = demoSubscriptions.filter(s => s.status === 'active' || s.status === 'trialing').length;
-    
-    // Simulate MRR from SaaS invoices for the last month
-    const mrr = demoSaasInvoices
-        .filter(inv => inv.status === 'paid' && new Date(inv.createdAt).getMonth() === new Date().getMonth() - 1)
-        .reduce((sum, inv) => sum + inv.amount, 0);
+    const { 
+        totalUsers, 
+        totalSchools, 
+        activeSubscriptions, 
+        mrr,
+        arr,
+        arpu,
+        planDistribution
+    } = useMemo(() => {
+        const users = allDemoUsers.length;
+        const schools = demoSchools.length;
+        const activeSubs = demoSubscriptions.filter(s => s.status === 'active' || s.status === 'trialing');
+        
+        const monthlyRecurringRevenue = demoSaasInvoices
+            .filter(inv => inv.status === 'paid' && new Date(inv.createdAt).getMonth() === new Date().getMonth() - 1)
+            .reduce((sum, inv) => sum + inv.amount, 0);
 
-    // Simulate revenue data for the chart
-    const revenueData = [
-        { month: 'Mar', Receita: 2100 },
-        { month: 'Abr', Receita: 2500 },
-        { month: 'Mai', Receita: 2800 },
-        { month: 'Jun', Receita: 3200 },
-        { month: 'Jul', Receita: 3100 },
-    ];
+        const annualRecurringRevenue = monthlyRecurringRevenue * 12;
+        const averageRevenuePerUser = activeSubs.length > 0 ? monthlyRecurringRevenue / activeSubs.length : 0;
+
+        const basicCount = activeSubs.filter(s => s.planId === PlanId.BASIC).length;
+        const proCount = activeSubs.filter(s => s.planId === PlanId.PRO).length;
+        
+        const distribution = [
+            { name: 'Básico', value: basicCount },
+            { name: 'Pro', value: proCount },
+        ];
+
+        return {
+            totalUsers: users,
+            totalSchools: schools,
+            activeSubscriptions: activeSubs.length,
+            mrr: monthlyRecurringRevenue,
+            arr: annualRecurringRevenue,
+            arpu: averageRevenuePerUser,
+            planDistribution: distribution,
+        }
+    }, []);
+    
+    const COLORS = ['#8884d8', '#82ca9d'];
 
     return (
-        <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <StatCard title="Total de Usuários" value={String(totalUsers)} icon={<UsersIcon />} color="primary" delay={0.1} />
-                <StatCard title="Total de Escolas" value={String(totalSchools)} icon={<SchoolIcon />} color="secondary" delay={0.2} />
-                <StatCard title="Assinaturas Ativas" value={String(activeSubscriptions)} icon={<BillingIcon />} color="green" delay={0.3} />
-                <StatCard title="MRR (Mês Anterior)" value={formatCurrency(mrr)} icon={<DollarIcon />} color="primary" delay={0.4} />
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="MRR (Mês Anterior)" value={formatCurrency(mrr)} icon={<DollarIcon />} color="primary" delay={0.1} />
+                <StatCard title="ARR (Anualizado)" value={formatCurrency(arr)} icon={<DollarIcon />} color="primary" delay={0.2} />
+                <StatCard title="ARPU (Mês Anterior)" value={formatCurrency(arpu)} icon={<UsersIcon />} color="secondary" delay={0.3} />
+                <StatCard title="Assinaturas Ativas" value={String(activeSubscriptions)} icon={<BillingIcon />} color="green" delay={0.4} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                 <div className="lg:col-span-3">
-                     <Chart data={revenueData} title="Crescimento da Receita Mensal (SaaS)" barKey="Receita" xAxisKey="month" delay={0.5} />
-                </div>
-                <div className="lg:col-span-2">
-                    <Card delay={0.6}>
-                        <h3 className="text-lg font-semibold text-neutral-800 mb-4">Atividade Recente na Plataforma</h3>
-                        <ul className="space-y-4">
-                            <li className="flex items-center text-sm">
-                                <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 flex-shrink-0 font-bold">+</div>
-                                <div><span className="font-semibold">Colégio Saber Viver</span> iniciou um trial no plano Básico.</div>
-                                <div className="ml-auto text-neutral-400 text-xs flex-shrink-0">2h atrás</div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card delay={0.5} className="lg:col-span-1">
+                    <h3 className="text-lg font-semibold text-neutral-800 mb-4">Assinaturas por Plano</h3>
+                    <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
+                            <PieChart>
+                                <Pie
+                                    data={planDistribution}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {planDistribution.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} escolas`, 'Quantidade']} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+                <Card delay={0.6} className="lg:col-span-2">
+                     <h3 className="text-lg font-semibold text-neutral-800 mb-4">Crescimento de Clientes</h3>
+                     <ul className="space-y-3">
+                        {demoSchools.slice(0, 4).map((school, index) => (
+                             <li key={school.id} className="flex items-center text-sm p-2 rounded-lg hover:bg-neutral-50">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <SchoolIcon className="w-5 h-5" />
+                                </div>
+                                <div><span className="font-semibold">{school.name}</span> se cadastrou.</div>
+                                <div className="ml-auto text-neutral-400 text-xs flex-shrink-0">{index + 1} sem atrás</div>
                             </li>
-                             <li className="flex items-center text-sm">
-                                <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-3 flex-shrink-0 font-bold">$</div>
-                                <div>Pagamento de <span className="font-semibold">R$149,00</span> recebido de <span className="font-semibold">Escola Aprender Mais</span>.</div>
-                                <div className="ml-auto text-neutral-400 text-xs flex-shrink-0">1d atrás</div>
-                            </li>
-                             <li className="flex items-center text-sm">
-                                <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center mr-3 flex-shrink-0 font-bold">!</div>
-                                <div>Falha no pagamento da assinatura do <span className="font-semibold">Instituto Crescer</span>.</div>
-                                <div className="ml-auto text-neutral-400 text-xs flex-shrink-0">2d atrás</div>
-                            </li>
-                        </ul>
-                    </Card>
-                </div>
+                        ))}
+                    </ul>
+                </Card>
             </div>
         </div>
     );

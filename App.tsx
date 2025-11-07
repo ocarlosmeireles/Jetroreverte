@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import Login from './components/auth/Login';
+import LandingPage from './pages/public/LandingPage';
 import LawFirmDashboard from './pages/dashboards/LawFirmDashboard';
 import SchoolDashboard from './pages/dashboards/SchoolDashboard';
 import GuardianDashboard from './pages/dashboards/GuardianDashboard';
 import SuperAdminDashboard from './pages/dashboards/SuperAdminDashboard';
 import { UserRole } from './types';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import LoginModal from './components/auth/LoginModal';
+import RegisterModal from './components/auth/RegisterModal';
+import ResetPasswordModal from './components/auth/ResetPasswordModal';
 
 const App = (): React.ReactElement => {
   return (
@@ -20,9 +23,52 @@ const App = (): React.ReactElement => {
   );
 };
 
-// This component now just renders the Login page as firebase-based flows are removed.
+// This component now manages the flow for unauthenticated users,
+// showing the landing page and handling which auth modal is displayed.
 const AuthFlow = (): React.ReactElement => {
-    return <Login />;
+    const [activeModal, setActiveModal] = useState<'login' | 'register' | 'reset' | null>(null);
+
+    const closeModal = () => setActiveModal(null);
+
+    return (
+        <>
+            <LandingPage
+                onLogin={() => setActiveModal('login')}
+                onRegister={() => setActiveModal('register')}
+            />
+            <AnimatePresence>
+                {activeModal && (
+                    <motion.div
+                        className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={closeModal}
+                    >
+                        {activeModal === 'login' && (
+                            <LoginModal
+                                onClose={closeModal}
+                                onSwitchToRegister={() => setActiveModal('register')}
+                                onSwitchToReset={() => setActiveModal('reset')}
+                            />
+                        )}
+                        {activeModal === 'register' && (
+                            <RegisterModal
+                                onClose={closeModal}
+                                onSwitchToLogin={() => setActiveModal('login')}
+                            />
+                        )}
+                        {activeModal === 'reset' && (
+                            <ResetPasswordModal
+                                onClose={closeModal}
+                                onSwitchToLogin={() => setActiveModal('login')}
+                            />
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
 };
 
 const DashboardRouter = (): React.ReactElement => {
