@@ -1,11 +1,15 @@
-import React from 'react';
+
+
+import React, { useState } from 'react';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
 import { InvoiceStatus } from '../../types';
 import Button from '../../components/common/Button';
 import StatCard from '../../components/common/StatCard';
-import { XIcon, DollarIcon, UsersIcon, BillingIcon } from '../../components/common/icons';
+import { XIcon, DollarIcon, UsersIcon, BillingIcon, SparklesIcon, DocumentReportIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
+import SchoolReportModal from '../../components/law-firm/SchoolReportModal';
+import { useAuth } from '../../hooks/useAuth';
 
 interface SchoolDetailProps {
     schoolId: string;
@@ -13,7 +17,9 @@ interface SchoolDetailProps {
 }
 
 const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactElement => {
+    const { user } = useAuth();
     const school = demoSchools.find(s => s.id === schoolId);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     
     if (!school) {
         return (
@@ -50,33 +56,60 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
         }
     };
 
+    const getHealthIndicatorColor = (score?: number) => {
+        if (score === undefined) return 'text-gray-500';
+        if (score > 75) return 'text-green-500';
+        if (score > 40) return 'text-yellow-500';
+        return 'text-red-500';
+    };
+
     return (
-        <div className="p-4 sm:p-6 h-full flex flex-col bg-white">
-            <header className="flex justify-between items-start mb-6">
-                 <div>
-                    <h2 className="text-xl font-bold text-neutral-800">{school.name}</h2>
-                    <p className="text-sm text-neutral-500">{school.cnpj}</p>
-                </div>
-                <button onClick={onBack} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-100">
-                    <XIcon className="w-6 h-6" />
-                </button>
-            </header>
+        <>
+            <div className="p-4 sm:p-6 h-full flex flex-col bg-white">
+                <header className="flex justify-between items-start mb-6">
+                     <div>
+                        <h2 className="text-xl font-bold text-neutral-800">{school.name}</h2>
+                        <p className="text-sm text-neutral-500">{school.cnpj}</p>
+                    </div>
+                    <button onClick={onBack} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-100">
+                        <XIcon className="w-6 h-6" />
+                    </button>
+                </header>
 
-            <div className="space-y-4 mb-6">
-                <StatCard title="Total Recuperado" value={formatCurrency(totalRecovered)} icon={<BillingIcon />} color="green" />
-                <StatCard title="Comissão Gerada" value={formatCurrency(totalCommission)} icon={<DollarIcon />} color="primary" />
-                <StatCard title="Alunos Inadimplentes" value={String(defaulterStudents)} icon={<UsersIcon />} color="red" />
-            </div>
-
-            <div className="flex-1 flex flex-col overflow-hidden border border-neutral-200/80 rounded-xl">
-                <div className="p-4 sm:p-6 border-b border-neutral-200/80">
-                    <h3 className="text-lg font-semibold text-neutral-800">Histórico de Cobranças</h3>
+                <div className="mb-6 p-4 bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-200/50">
+                     <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                            <SparklesIcon className="w-6 h-6 text-primary-500" />
+                            <h3 className="text-lg font-bold text-primary-800">Saúde do Cliente (IA)</h3>
+                        </div>
+                        <div className="text-right">
+                            <p className={`text-3xl font-bold ${getHealthIndicatorColor(school.healthScore)}`}>{school.healthScore || 'N/A'}<span className="text-lg text-neutral-400">/100</span></p>
+                        </div>
+                    </div>
+                    <p className="text-sm text-neutral-600 mt-2 italic">"{school.healthSummary || 'Análise indisponível.'}"</p>
                 </div>
-                <div className="flex-1 overflow-y-auto">
-                    {invoicesForSchool.length > 0 ? (
-                        <>
-                            {/* Desktop Table */}
-                            <table className="min-w-full hidden md:table">
+
+
+                <div className="space-y-4 mb-6">
+                    <StatCard title="Total Recuperado" value={formatCurrency(totalRecovered)} icon={<BillingIcon />} color="green" />
+                    <StatCard title="Comissão Gerada" value={formatCurrency(totalCommission)} icon={<DollarIcon />} color="primary" />
+                    <StatCard title="Alunos Inadimplentes" value={String(defaulterStudents)} icon={<UsersIcon />} color="red" />
+                </div>
+                
+                <div className="mb-6">
+                    <Button onClick={() => setIsReportModalOpen(true)} className="w-full" variant="secondary" icon={<DocumentReportIcon className="w-5 h-5"/>}>
+                        Gerar Relatório para Escola
+                    </Button>
+                </div>
+
+
+                <div className="flex-1 flex flex-col overflow-hidden border border-neutral-200/80 rounded-xl">
+                    <div className="p-4 sm:p-6 border-b border-neutral-200/80">
+                        <h3 className="text-lg font-semibold text-neutral-800">Histórico de Cobranças</h3>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {invoicesForSchool.length > 0 ? (
+                            <table className="min-w-full">
                                 <thead className="bg-neutral-50 sticky top-0">
                                     <tr>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
@@ -97,32 +130,23 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
                                     ))}
                                 </tbody>
                             </table>
-                             {/* Mobile Cards */}
-                            <div className="md:hidden divide-y divide-neutral-200">
-                                {invoicesForSchool.map(invoice => (
-                                    <div key={invoice.id} className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="font-semibold text-neutral-900">{invoice.studentName}</div>
-                                                <div className="text-sm text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-medium">{formatCurrency(invoice.value)}</div>
-                                                {getStatusChip(invoice.status)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                        ) : (
+                            <div className="px-6 py-12 text-center text-neutral-500">
+                                Nenhuma cobrança encontrada para esta escola.
                             </div>
-                        </>
-                    ) : (
-                        <div className="px-6 py-12 text-center text-neutral-500">
-                            Nenhuma cobrança encontrada para esta escola.
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+            {user && (
+                 <SchoolReportModal 
+                    isOpen={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    school={school}
+                    user={user}
+                />
+            )}
+        </>
     );
 };
 

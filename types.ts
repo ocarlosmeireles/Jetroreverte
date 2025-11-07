@@ -29,6 +29,8 @@ export interface School {
     address: string;
     phone: string;
     officeId: string; // ID of the law firm that owns this school record
+    healthScore?: number; // AI-generated client health score (0-100)
+    healthSummary?: string; // AI-generated summary and suggestions
 }
 
 export interface Guardian {
@@ -210,4 +212,13 @@ export interface Lead {
     lastContactDate: string; // ISO String
     status: LeadStatus;
     notes?: string;
+}
+
+export interface Campaign {
+    id: string;
+    name: string;
+    status: 'Ativa' | 'Concluída' | 'Planejada';
+    target: string; // e.g. "Escolas de Ensino Médio de SP"
+    startDate: string; // ISO String
+    leadsGenerated: number;
 }

@@ -1,5 +1,6 @@
 
-import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel } from '../types';
+
+import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign } from '../types';
 
 // ############### AVISO ###############
 // Estes dados são usados para popular o banco de dados Firebase
@@ -10,9 +11,9 @@ export const demoUsers: User[] = []; // Users are managed by Firebase Auth
 
 export const demoSchools: School[] = [
     // FIX: Added missing 'officeId' property to School objects to match the 'School' type definition.
-    { id: 'school-01', officeId: 'user-escritorio-01', name: 'Escola Aprender Mais', cnpj: '11.222.333/0001-44', address: 'Rua das Flores, 123, São Paulo, SP', phone: '(11) 98765-4321' },
-    { id: 'school-02', officeId: 'user-escritorio-01', name: 'Colégio Saber Viver', cnpj: '44.555.666/0001-77', address: 'Av. do Conhecimento, 456, Rio de Janeiro, RJ', phone: '(21) 91234-5678' },
-    { id: 'school-03', officeId: 'user-escritorio-01', name: 'Instituto Crescer', cnpj: '77.888.999/0001-00', address: 'Praça da Educação, 789, Belo Horizonte, MG', phone: '(31) 95555-4444' },
+    { id: 'school-01', officeId: 'user-escritorio-01', name: 'Escola Aprender Mais', cnpj: '11.222.333/0001-44', address: 'Rua das Flores, 123, São Paulo, SP', phone: '(11) 98765-4321', healthScore: 85, healthSummary: 'Saúde Boa. Baixa inadimplência e alta taxa de recuperação recente. Sugestão: Oferecer upsell para o plano Pro.' },
+    { id: 'school-02', officeId: 'user-escritorio-01', name: 'Colégio Saber Viver', cnpj: '44.555.666/0001-77', address: 'Av. do Conhecimento, 456, Rio de Janeiro, RJ', phone: '(21) 91234-5678', healthScore: 62, healthSummary: 'Saúde Razoável. Inadimplência controlada, mas com alguns casos antigos. Sugestão: Iniciar uma campanha de negociação focada.' },
+    { id: 'school-03', officeId: 'user-escritorio-01', name: 'Instituto Crescer', cnpj: '77.888.999/0001-00', address: 'Praça da Educação, 789, Belo Horizonte, MG', phone: '(31) 95555-4444', healthScore: 35, healthSummary: 'Saúde em Risco. Alto volume de inadimplência e baixa resposta às cobranças. Sugestão: Agendar reunião de alinhamento estratégico.' },
 ];
 
 export const demoGuardians: Guardian[] = [
@@ -51,6 +52,7 @@ export const demoNegotiationAttempts: NegotiationAttempt[] = [
     { id: 'neg-03', invoiceId: 'inv-04', date: '2024-06-15T11:00:00Z', type: NegotiationAttemptType.ADMINISTRATIVE, channel: NegotiationChannel.PHONE_CALL, notes: 'Ligação realizada, responsável informou que irá verificar a situação.', author: 'João Almeida' },
     { id: 'neg-04', invoiceId: 'inv-06', date: '2024-07-18T09:00:00Z', type: NegotiationAttemptType.ADMINISTRATIVE, channel: NegotiationChannel.WHATSAPP, notes: 'Responsável informou que o cartão foi recusado e que tentará novamente.', author: 'Assistente Virtual' },
     { id: 'neg-05', invoiceId: 'inv-01', date: '2024-08-01T16:00:00Z', type: NegotiationAttemptType.JUDICIAL_PREPARATION, channel: NegotiationChannel.PETITION_GENERATED, notes: 'Petição inicial gerada via IA para início do processo judicial.', author: 'Dr. Ricardo Borges' },
+    { id: 'neg-06', invoiceId: 'inv-04', date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), type: NegotiationAttemptType.ADMINISTRATIVE, channel: NegotiationChannel.EMAIL, notes: 'E-mail de lembrete enviado. Sem resposta.', author: 'Sistema' },
 ];
 
 export const demoPetitions: Petition[] = [
@@ -124,4 +126,10 @@ export const demoNotifications: Notification[] = [
     { id: 'notif-02', userId: 'user-escritorio-01', type: NotificationType.SUBSCRIPTION_PAYMENT_FAILED, title: 'Falha no Pagamento', message: 'O pagamento da assinatura do Instituto Crescer falhou.', link: 'financeiro', read: false, createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() }, // 1 day ago
     { id: 'notif-03', userId: 'user-escola-01', type: NotificationType.PAYMENT_RECEIVED, title: 'Pagamento Recebido', message: 'Recebemos o pagamento de R$ 750,50 de Carlos Silva (aluno Lucas Silva).', link: 'alunos', read: true, createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }, // 2 days ago
     { id: 'notif-04', userId: 'user-escola-01', type: NotificationType.NEW_INVOICE_ASSIGNED, title: 'Nova Cobrança Atribuída', message: 'A dívida de Beatriz Pereira foi enviada para cobrança pelo escritório.', link: 'alunos', read: false, createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() }, // 5 minutes ago
+];
+
+export const demoCampaigns: Campaign[] = [
+    { id: 'camp-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8 },
+    { id: 'camp-02', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3 },
+    { id: 'camp-03', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0 },
 ];

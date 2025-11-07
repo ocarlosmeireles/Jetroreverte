@@ -67,38 +67,13 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
         setIsModalOpen(false);
     };
 
-
-    const getCollectionStatus = (schoolId: string) => {
-        const studentsOfSchool = demoStudents.filter(s => s.schoolId === schoolId).map(s => s.id);
-        const schoolInvoices = demoInvoices.filter(inv => studentsOfSchool.includes(inv.studentId));
-
-        const overdueCount = schoolInvoices.filter(i => i.status === InvoiceStatus.VENCIDO).length;
-
-        if (overdueCount > 0) {
-            return { text: `${overdueCount} cobrança(s) vencida(s)`, color: 'bg-red-100 text-red-700' };
-        }
-        
-        const pendingCount = schoolInvoices.filter(i => i.status === InvoiceStatus.PENDENTE).length;
-        if (pendingCount > 0) {
-            return { text: `${pendingCount} cobrança(s) em aberto`, color: 'bg-yellow-100 text-yellow-700' };
-        }
-
-        return { text: 'Em dia', color: 'bg-green-100 text-green-700' };
+    const getHealthIndicator = (score?: number) => {
+        if (score === undefined) return 'bg-gray-400';
+        if (score > 75) return 'bg-green-500';
+        if (score > 40) return 'bg-yellow-500';
+        return 'bg-red-500';
     };
-    
-    const getSubscriptionStatus = (schoolId: string) => {
-        const sub = demoSubscriptions.find(s => s.schoolId === schoolId);
-        if (!sub) return { text: 'Sem Assinatura', color: 'bg-neutral-200 text-neutral-700' };
-        
-        switch(sub.status) {
-            case 'active': return { text: `Ativo (${sub.planId === PlanId.PRO ? 'Pro' : 'Básico'})`, color: 'bg-green-100 text-green-700' };
-            case 'trialing': return { text: `Trial até ${formatDate(sub.trialEnd)}`, color: 'bg-yellow-100 text-yellow-700' };
-            case 'past_due': return { text: 'Pagamento Pendente', color: 'bg-red-100 text-red-700' };
-            case 'canceled': return { text: 'Cancelado', color: 'bg-neutral-200 text-neutral-700' };
-            default: return { text: 'Inativo', color: 'bg-neutral-200 text-neutral-700' };
-        }
-    };
-    
+
     const handleSeedData = () => {
         alert("A funcionalidade de popular o banco de dados foi removida junto com o Firebase.");
     };
@@ -125,9 +100,15 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
 
         return (
             <>
-                {/* Desktop Table */}
-                <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
-                    {/* ... table header ... */}
+                <table className="min-w-full divide-y divide-neutral-200">
+                    <thead className="bg-neutral-50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Saúde do Cliente</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contato</th>
+                            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
+                        </tr>
+                    </thead>
                     <motion.tbody 
                         className="bg-white divide-y divide-neutral-200"
                         variants={listVariants}
@@ -135,8 +116,6 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                         animate="visible"
                     >
                         {schools.map((school) => {
-                            const collectionStatus = getCollectionStatus(school.id);
-                            const subscriptionStatus = getSubscriptionStatus(school.id);
                             const isSelected = selectedSchoolId === school.id;
                             return (
                                 <motion.tr 
@@ -150,50 +129,20 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                                         <div className="text-sm text-neutral-500">{school.cnpj}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriptionStatus.color}`}>
-                                            {subscriptionStatus.text}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${collectionStatus.color}`}>
-                                            {collectionStatus.text}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
+                                            <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{school.phone}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <span className="text-primary-600 hover:text-primary-900 font-medium">Ver Detalhes</span>
+                                    </td>
                                 </motion.tr>
                             )
                         })}
                     </motion.tbody>
                 </table>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden">
-                    <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
-                        {schools.map(school => {
-                            const collectionStatus = getCollectionStatus(school.id);
-                            const subscriptionStatus = getSubscriptionStatus(school.id);
-                            const isSelected = selectedSchoolId === school.id;
-                            return (
-                                <motion.div 
-                                    key={school.id} 
-                                    variants={itemVariants} 
-                                    onClick={() => onSelectSchool(school.id)}
-                                    className={`p-4 cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className="font-semibold text-neutral-800">{school.name}</div>
-                                        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${collectionStatus.color}`}>{collectionStatus.text}</span>
-                                    </div>
-                                    <div className="text-sm text-neutral-500 mt-2 space-y-1">
-                                        <p><strong>CNPJ:</strong> {school.cnpj}</p>
-                                        <p><strong>Assinatura:</strong> <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriptionStatus.color}`}>{subscriptionStatus.text}</span></p>
-                                        <p><strong>Contato:</strong> {school.phone}</p>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </motion.div>
-                </div>
             </>
         );
     }
@@ -205,7 +154,9 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                     <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Escolas Clientes</h2>
                     <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="sm" className="sm:size-md">Nova Escola</Button>
                 </div>
-                {renderContent()}
+                <div className="overflow-x-auto">
+                    {renderContent()}
+                </div>
             </Card>
             <AddSchoolModal
                 isOpen={isModalOpen}

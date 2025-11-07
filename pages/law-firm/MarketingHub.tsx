@@ -1,15 +1,15 @@
 
 
-
 import React, { useState, useRef, useEffect, ReactNode } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { SparklesIcon, XIcon, EllipsisVerticalIcon, TrashIcon, PencilIcon, UsersIcon, EnvelopeIcon, DollarIcon, PlusIcon } from '../../components/common/icons';
-import { Lead, LeadStatus } from '../../types';
+import { SparklesIcon, XIcon, EllipsisVerticalIcon, TrashIcon, PencilIcon, UsersIcon, EnvelopeIcon, DollarIcon, PlusIcon, MegaphoneIcon } from '../../components/common/icons';
+import { Lead, LeadStatus, Campaign } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import LeadModal from '../../components/law-firm/LeadModal';
+import { demoCampaigns } from '../../services/demoData';
 
 const AiContentGenerator = () => {
     const [contentType, setContentType] = useState('Email de Prospecção');
@@ -205,7 +205,6 @@ const initialLeads: Lead[] = [
     { id: 'lead-5', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 1200, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.' },
 ];
 
-// FIX: Added the optional 'key' property to the LeadCardProps interface to resolve a TypeScript error when rendering a list of components.
 interface LeadCardProps {
     key?: React.Key;
     lead: Lead;
@@ -346,15 +345,102 @@ const LeadPipeline = () => {
     );
 };
 
+const CampaignsSection = () => {
 
-const MarketingHub = (): React.ReactElement => {
+    const getStatusChip = (status: Campaign['status']) => {
+        const styles = {
+            'Ativa': 'bg-green-100 text-green-700',
+            'Concluída': 'bg-blue-100 text-blue-700',
+            'Planejada': 'bg-yellow-100 text-yellow-700'
+        }
+        return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${styles[status]}`}>{status}</span>;
+    };
+
     return (
-        <div className="space-y-8">
-            <LeadPipeline />
+        <div className="space-y-6">
+            <Card noPadding>
+                <div className="p-4 sm:p-6 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-neutral-800">Campanhas de Marketing</h3>
+                    <Button size="sm" icon={<PlusIcon />} disabled>Nova Campanha</Button>
+                </div>
+                 <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-neutral-200">
+                        <thead className="bg-neutral-50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Campanha</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Público-Alvo</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Leads Gerados</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-neutral-200">
+                            {demoCampaigns.map(campaign => (
+                                <tr key={campaign.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-neutral-900">{campaign.name}</div>
+                                        <div className="text-sm text-neutral-500">Início: {formatDate(campaign.startDate)}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(campaign.status)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{campaign.target}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-800">{campaign.leadsGenerated}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <AiContentGenerator />
                 <ProposalGenerator />
             </div>
+        </div>
+    );
+};
+
+
+const MarketingHub = (): React.ReactElement => {
+    const [activeTab, setActiveTab] = useState('pipeline');
+    
+    const tabs = [
+        { id: 'pipeline', name: 'Pipeline de Leads' },
+        { id: 'campaigns', name: 'Ferramentas & Campanhas' },
+    ];
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <div className="border-b border-neutral-200">
+                    <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`${
+                                    activeTab === tab.id
+                                    ? 'border-primary-500 text-primary-600'
+                                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
+                                } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}
+                            >
+                                {tab.name}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {activeTab === 'pipeline' && <LeadPipeline />}
+                    {activeTab === 'campaigns' && <CampaignsSection />}
+                </motion.div>
+            </AnimatePresence>
         </div>
     );
 };
