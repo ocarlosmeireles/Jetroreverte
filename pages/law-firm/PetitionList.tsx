@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
-import { demoPetitions } from '../../services/demoData';
+import { demoPetitions, demoInvoices, demoSchools } from '../../services/demoData';
 import { formatDate } from '../../utils/formatters';
 import { Petition } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
+import { DEMO_USERS } from '../../constants';
 
 const listVariants = {
   visible: { transition: { staggerChildren: 0.05 } },
@@ -21,6 +23,21 @@ interface PetitionListProps {
 }
 
 const PetitionList = ({ onSelectPetition, selectedPetitionId }: PetitionListProps): React.ReactElement => {
+    const { user } = useAuth();
+
+    const petitions = useMemo(() => {
+        if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) {
+            return [];
+        }
+
+        const officeSchools = demoSchools.filter(s => s.officeId === user.id);
+        const officeSchoolIds = new Set(officeSchools.map(s => s.id));
+
+        return demoPetitions.filter(p => {
+            const invoice = demoInvoices.find(i => i.id === p.invoiceId);
+            return invoice && officeSchoolIds.has(invoice.schoolId);
+        });
+    }, [user]);
     
     const getStatusChip = (status: 'draft' | 'filed') => {
         switch (status) {
@@ -52,7 +69,7 @@ const PetitionList = ({ onSelectPetition, selectedPetitionId }: PetitionListProp
                     initial="hidden"
                     animate="visible"
                 >
-                    {demoPetitions.map((petition) => {
+                    {petitions.map((petition) => {
                          const isSelected = selectedPetitionId === petition.id;
                          return (
                             <motion.tr 
@@ -77,7 +94,7 @@ const PetitionList = ({ onSelectPetition, selectedPetitionId }: PetitionListProp
             {/* Mobile Cards */}
             <div className="md:hidden">
                 <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
-                    {demoPetitions.map((petition) => {
+                    {petitions.map((petition) => {
                         const isSelected = selectedPetitionId === petition.id;
                         return (
                             <motion.div 

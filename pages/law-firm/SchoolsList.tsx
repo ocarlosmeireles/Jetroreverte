@@ -10,6 +10,7 @@ import { InvoiceStatus, School, PlanId } from '../../types';
 import { PlusIcon, SchoolIcon, SparklesIcon } from '../../components/common/icons';
 import AddSchoolModal from '../../components/law-firm/AddSchoolModal';
 import { formatDate } from '../../utils/formatters';
+import { DEMO_USERS } from '../../constants';
 
 const listVariants = {
   visible: { transition: { staggerChildren: 0.05 } },
@@ -40,8 +41,15 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
         }
         setIsLoading(true);
         try {
-            // For the demo user, show all demo schools regardless of officeId match
-            setSchools(demoSchools);
+            // If the user is the specific demo law firm user, show their associated demo schools.
+            // For any other user (e.g., a newly registered one), show an empty list.
+            if (user.email === DEMO_USERS.ESCRITORIO.email) {
+                const userSchools = demoSchools.filter(school => school.officeId === user.id);
+                setSchools(userSchools);
+            } else {
+                // In a real app, this would be a Firestore query. For now, show a blank slate.
+                setSchools([]);
+            }
         } catch (error) {
             console.error("Error fetching schools:", error);
             alert("Não foi possível carregar as escolas.");
@@ -105,13 +113,10 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                 <div className="text-center py-12 px-6">
                     <SchoolIcon className="w-12 h-12 mx-auto text-neutral-300" />
                     <h3 className="mt-4 text-lg font-semibold text-neutral-700">Nenhuma escola cadastrada</h3>
-                    <p className="mt-1 text-sm text-neutral-500">Adicione sua primeira escola ou popule com dados de exemplo para começar.</p>
+                    <p className="mt-1 text-sm text-neutral-500">Adicione sua primeira escola para começar a gerenciar as cobranças.</p>
                     <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />}>
                             Adicionar Escola
-                        </Button>
-                        <Button onClick={handleSeedData} variant="secondary" icon={<SparklesIcon />} isLoading={isSeeding}>
-                            {isSeeding ? 'Populando...' : 'Popular com Dados de Exemplo'}
                         </Button>
                     </div>
                 </div>

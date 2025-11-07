@@ -1,16 +1,36 @@
 
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import { demoSchools, demoSubscriptions, demoSaasInvoices } from '../../services/demoData';
 import { formatCurrency } from '../../utils/formatters';
 import StatCard from '../../components/common/StatCard';
 import Chart from '../../components/common/Chart';
 import { SchoolIcon, DollarIcon, BillingIcon } from '../../components/common/icons';
+import { DEMO_USERS } from '../../constants';
 
 const AdminDashboardContent = (): React.ReactElement => {
-    const totalSchools = demoSchools.length;
-    const activeSubscriptions = demoSubscriptions.filter(s => s.status === 'active' || s.status === 'trialing').length;
-    const mrr = demoSaasInvoices
+    const { user } = useAuth();
+
+    // Scope data based on the logged-in law firm user.
+    const { scopedSchools, scopedSubscriptions, scopedSaasInvoices } = useMemo(() => {
+        if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) {
+            // For new users or non-demo users, show 0 stats.
+            return { scopedSchools: [], scopedSubscriptions: [], scopedSaasInvoices: [] };
+        }
+
+        // For the demo user, filter data based on their ID.
+        const schools = demoSchools.filter(s => s.officeId === user.id);
+        const schoolIds = new Set(schools.map(s => s.id));
+        const subscriptions = demoSubscriptions.filter(s => schoolIds.has(s.schoolId));
+        const saasInvoices = demoSaasInvoices.filter(i => schoolIds.has(i.schoolId));
+
+        return { scopedSchools: schools, scopedSubscriptions: subscriptions, scopedSaasInvoices: saasInvoices };
+    }, [user]);
+
+    const totalSchools = scopedSchools.length;
+    const activeSubscriptions = scopedSubscriptions.filter(s => s.status === 'active' || s.status === 'trialing').length;
+    const mrr = scopedSaasInvoices
         .filter(inv => inv.status === 'paid' && new Date(inv.createdAt).getMonth() === new Date().getMonth() -1)
         .reduce((sum, inv) => sum + inv.amount, 0);
 

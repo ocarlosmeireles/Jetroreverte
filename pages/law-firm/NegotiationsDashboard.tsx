@@ -12,6 +12,7 @@ import { useAuth } from '../../hooks/useAuth';
 import AddNegotiationAttemptModal from '../../components/law-firm/AddNegotiationAttemptModal';
 import PetitionGeneratorModal from '../../components/admin/PetitionGeneratorModal';
 import Switch from '../../components/common/Switch';
+import { DEMO_USERS } from '../../constants';
 
 interface NegotiationCase {
     invoice: Invoice;
@@ -60,19 +61,31 @@ const NegotiationsDashboard = (): React.ReactElement => {
     );
 
     const negotiationCases = useMemo<NegotiationCase[]>(() => {
-        const activeInvoices = demoInvoices.filter(i => i.status === InvoiceStatus.VENCIDO || i.status === InvoiceStatus.PENDENTE);
+        // Start with an empty set if the user is not the demo user or doesn't exist.
+        if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) {
+            return [];
+        }
+
+        // Get schools associated with the demo user
+        const officeSchools = demoSchools.filter(s => s.officeId === user.id);
+        const officeSchoolIds = new Set(officeSchools.map(s => s.id));
+
+        const activeInvoices = demoInvoices.filter(i => 
+            officeSchoolIds.has(i.schoolId) && 
+            (i.status === InvoiceStatus.VENCIDO || i.status === InvoiceStatus.PENDENTE)
+        );
 
         return activeInvoices.map(invoice => {
             const student = demoStudents.find(s => s.id === invoice.studentId);
             const guardian = demoGuardians.find(g => g.id === student?.guardianId);
-            const school = demoSchools.find(s => s.id === student?.schoolId);
+            const school = officeSchools.find(s => s.id === student?.schoolId);
             const attempts = allAttempts
                 .filter(a => a.invoiceId === invoice.id)
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             return { invoice, student, guardian, school, attempts };
         }).sort((a,b) => new Date(a.invoice.dueDate).getTime() - new Date(b.invoice.dueDate).getTime());
-    }, [allAttempts]);
+    }, [allAttempts, user]);
 
     const handleSaveAttempt = (invoiceId: string, data: { channel: NegotiationChannel, notes: string }) => {
         const newAttempt: NegotiationAttempt = {

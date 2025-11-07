@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import { demoInvoices, demoStudents, demoSchools } from '../../services/demoData';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { InvoiceStatus, Invoice, CollectionStage } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
+import { DEMO_USERS } from '../../constants';
 
 const listVariants = {
   visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.05 } },
@@ -28,11 +30,33 @@ interface InvoicesListProps {
 }
 
 const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesListProps): React.ReactElement => {
-    const [invoices, setInvoices] = useState<Invoice[]>(() => demoInvoices.map(inv => {
-        const student = demoStudents.find(s => s.id === inv.studentId);
-        const school = demoSchools.find(s => s.id === student?.schoolId);
-        return { ...inv, schoolName: school?.name || 'N/A' };
-    }));
+    const { user } = useAuth();
+    const [invoices, setInvoices] = useState<(Invoice & { schoolName?: string })[]>([]);
+
+    useEffect(() => {
+        if (!user) {
+            setInvoices([]);
+            return;
+        }
+
+        // Only show data for the demo user; new users see an empty list.
+        if (user.email === DEMO_USERS.ESCRITORIO.email) {
+            const officeSchools = demoSchools.filter(s => s.officeId === user.id);
+            const officeSchoolIds = new Set(officeSchools.map(s => s.id));
+
+            const scopedInvoices = demoInvoices
+                .filter(inv => officeSchoolIds.has(inv.schoolId))
+                .map(inv => {
+                    const student = demoStudents.find(s => s.id === inv.studentId);
+                    const school = officeSchools.find(s => s.id === student?.schoolId);
+                    return { ...inv, schoolName: school?.name || 'N/A' };
+                });
+            setInvoices(scopedInvoices);
+        } else {
+            setInvoices([]);
+        }
+    }, [user]);
+
 
     const handleStageChange = (invoiceId: string, newStage: CollectionStage) => {
         setInvoices(prevInvoices => 

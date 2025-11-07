@@ -1,19 +1,43 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '../../components/common/Card';
 import StatCard from '../../components/common/StatCard';
+import { useAuth } from '../../hooks/useAuth';
 import { demoInvoices, demoSchools, demoStudents } from '../../services/demoData';
 import { InvoiceStatus } from '../../types';
 import { formatCurrency, formatCurrencyInteger } from '../../utils/formatters';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
 import { DollarIcon, CheckCircleIcon } from '../../components/common/icons';
+import { DEMO_USERS } from '../../constants';
 
 const ConsolidatedReports = (): React.ReactElement => {
+    const { user } = useAuth();
     const commissionPercentage = parseFloat(localStorage.getItem('commissionPercentage') || String(DEFAULT_COMMISSION_PERCENTAGE));
 
-    // --- Data Calculations ---
-    const paidInvoices = demoInvoices.filter(i => i.status === InvoiceStatus.PAGO);
-    const overdueInvoices = demoInvoices.filter(i => i.status === InvoiceStatus.VENCIDO);
+    // --- Scoped Data Calculations ---
+    const {
+        paidInvoices,
+        overdueInvoices,
+        scopedSchools,
+        scopedStudents,
+    } = useMemo(() => {
+        if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) {
+            return { paidInvoices: [], overdueInvoices: [], scopedSchools: [], scopedStudents: [] };
+        }
+
+        const schools = demoSchools.filter(s => s.officeId === user.id);
+        const schoolIds = new Set(schools.map(s => s.id));
+        const students = demoStudents.filter(s => schoolIds.has(s.schoolId));
+        const invoices = demoInvoices.filter(i => schoolIds.has(i.schoolId));
+
+        return {
+            paidInvoices: invoices.filter(i => i.status === InvoiceStatus.PAGO),
+            overdueInvoices: invoices.filter(i => i.status === InvoiceStatus.VENCIDO),
+            scopedSchools: schools,
+            scopedStudents: students,
+        };
+    }, [user]);
+
 
     const totalRecovered = paidInvoices.reduce((sum, inv) => sum + inv.value, 0);
     const totalCommission = totalRecovered * (commissionPercentage / 100);
@@ -40,7 +64,7 @@ const ConsolidatedReports = (): React.ReactElement => {
     // School performance data
     const schoolPerformance: { [key: string]: number } = {};
     paidInvoices.forEach(invoice => {
-        const student = demoStudents.find(s => s.id === invoice.studentId);
+        const student = scopedStudents.find(s => s.id === invoice.studentId);
         if (student) {
             const schoolId = student.schoolId;
             if (!schoolPerformance[schoolId]) {
@@ -52,7 +76,7 @@ const ConsolidatedReports = (): React.ReactElement => {
 
     const schoolChartData = Object.keys(schoolPerformance)
         .map(schoolId => ({
-            name: demoSchools.find(s => s.id === schoolId)?.name || 'Desconhecida',
+            name: scopedSchools.find(s => s.id === schoolId)?.name || 'Desconhecida',
             Valor: schoolPerformance[schoolId]
         }))
         .sort((a, b) => b.Valor - a.Valor)

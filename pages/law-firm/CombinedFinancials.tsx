@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import StatCard from '../../components/common/StatCard';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { demoSaasInvoices, demoSchools, demoInvoices, demoStudents } from '../../services/demoData';
 import { DollarIcon, UsersIcon } from '../../components/common/icons';
-import { InvoiceStatus } from '../../types';
+import { InvoiceStatus, Invoice } from '../../types';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
+import { useAuth } from '../../hooks/useAuth';
+import { DEMO_USERS } from '../../constants';
 
 const listVariants = {
   visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.05 } },
@@ -23,10 +25,29 @@ interface CombinedFinancialsProps {
 }
 
 const CombinedFinancials = ({ onSelectSchool }: CombinedFinancialsProps): React.ReactElement => {
+    const { user } = useAuth();
+    
+    // --- Scoped Data ---
+    const { scopedSaasInvoices, scopedInvoices } = useMemo(() => {
+        if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) {
+            return { scopedSaasInvoices: [], scopedInvoices: [] };
+        }
+
+        const officeSchools = demoSchools.filter(s => s.officeId === user.id);
+        const officeSchoolIds = new Set(officeSchools.map(s => s.id));
+
+        const saasInvoices = demoSaasInvoices.filter(i => officeSchoolIds.has(i.schoolId));
+        const invoices = demoInvoices.filter(i => officeSchoolIds.has(i.schoolId));
+
+        return { scopedSaasInvoices: saasInvoices, scopedInvoices: invoices };
+    }, [user]);
+
     // --- SaaS Financials Data ---
-    const saasMrr = 12540; // Simulated
-    const saasChurnRate = 2.1; // Simulated
-    const saasActiveSubs = 84; // Simulated
+    const saasMrr = scopedSaasInvoices
+        .filter(inv => inv.status === 'paid' && new Date(inv.createdAt).getMonth() === new Date().getMonth() - 1)
+        .reduce((sum, inv) => sum + inv.amount, 0);
+    const saasActiveSubs = new Set(scopedSaasInvoices.map(i => i.schoolId)).size; // Simplified metric
+    
     const getSchoolName = (schoolId: string) => demoSchools.find(s => s.id === schoolId)?.name || 'N/A';
     const getStatusChip = (status: 'paid' | 'open' | 'void') => {
         switch(status) {
@@ -90,19 +111,24 @@ const CombinedFinancials = ({ onSelectSchool }: CombinedFinancialsProps): React.
     // --- Law Firm Commission Financials Data ---
     const commissionPercentage = parseFloat(localStorage.getItem('commissionPercentage') || String(DEFAULT_COMMISSION_PERCENTAGE));
     
-    const [successfulCollections, setSuccessfulCollections] = useState(() => demoInvoices
-        .filter(i => i.status === InvoiceStatus.PAGO)
-        .map(invoice => {
-            const student = demoStudents.find(s => s.id === invoice.studentId);
-            const school = demoSchools.find(s => s.id === student?.schoolId);
-            const commission = invoice.commission ?? invoice.value * (commissionPercentage / 100);
-            return {
-                ...invoice,
-                schoolName: school?.name || 'N/A',
-                schoolId: school?.id,
-                commission,
-            };
-        }));
+    const [successfulCollections, setSuccessfulCollections] = useState<(Invoice & { schoolName?: string, schoolId?: string, commission: number })[]>([]);
+    
+    useEffect(() => {
+        const collections = scopedInvoices
+            .filter(i => i.status === InvoiceStatus.PAGO)
+            .map(invoice => {
+                const student = demoStudents.find(s => s.id === invoice.studentId);
+                const school = demoSchools.find(s => s.id === student?.schoolId);
+                const commission = invoice.commission ?? invoice.value * (commissionPercentage / 100);
+                return {
+                    ...invoice,
+                    schoolName: school?.name || 'N/A',
+                    schoolId: school?.id,
+                    commission,
+                };
+            });
+        setSuccessfulCollections(collections);
+    }, [scopedInvoices, commissionPercentage]);
     
     const handleUpdateCommission = (invoiceId: string, newCommission: number) => {
         setSuccessfulCollections(prevCollections =>
@@ -128,8 +154,8 @@ const CombinedFinancials = ({ onSelectSchool }: CombinedFinancialsProps): React.
             <section>
                  <h2 className="text-xl sm:text-2xl font-bold text-neutral-800 mb-4">Finanças da Plataforma (SaaS)</h2>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <StatCard title="MRR (Receita Recorrente Mensal)" value={formatCurrency(saasMrr)} icon={<DollarIcon />} color="primary" delay={0.1} />
-                    <StatCard title="Taxa de Cancelamento" value={`${saasChurnRate}%`} icon={<UsersIcon />} color="red" delay={0.2} />
+                    <StatCard title="MRR (Mês Anterior)" value={formatCurrency(saasMrr)} icon={<DollarIcon />} color="primary" delay={0.1} />
+                    <StatCard title="Churn (Simulado)" value={`2.1%`} icon={<UsersIcon />} color="red" delay={0.2} />
                     <StatCard title="Assinaturas Ativas" value={String(saasActiveSubs)} icon={<UsersIcon />} color="green" delay={0.3} />
                 </div>
                 <Card noPadding>
@@ -148,7 +174,7 @@ const CombinedFinancials = ({ onSelectSchool }: CombinedFinancialsProps): React.
                         </tr>
                     </thead>
                     <motion.tbody className="bg-white divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
-                        {demoSaasInvoices.map((invoice) => (
+                        {scopedSaasInvoices.map((invoice) => (
                             <motion.tr key={invoice.id} variants={itemVariants} className="hover:bg-neutral-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-500">{invoice.id}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">{getSchoolName(invoice.schoolId)}</td>
@@ -162,7 +188,7 @@ const CombinedFinancials = ({ onSelectSchool }: CombinedFinancialsProps): React.
                     {/* Mobile Cards */}
                     <div className="md:hidden">
                         <motion.div className="divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
-                            {demoSaasInvoices.map(invoice => (
+                            {scopedSaasInvoices.map(invoice => (
                                 <motion.div key={invoice.id} variants={itemVariants} className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
