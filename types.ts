@@ -68,6 +68,14 @@ export enum CollectionStage {
     PAGAMENTO_RECUSADO = 'PAGAMENTO_RECUSADO',
 }
 
+export interface AgreementDetails {
+    installments: number;
+    installmentValue: number;
+    paymentMethod: 'Boleto' | 'Pix' | 'Cartão de Crédito';
+    firstDueDate: string;
+    createdAt: string;
+}
+
 
 export interface Invoice {
     id: string;
@@ -83,6 +91,7 @@ export interface Invoice {
     receiptUrl?: string;
     commission?: number; // Law firm's commission
     collectionStage?: CollectionStage;
+    agreement?: AgreementDetails;
     overdueInstallments?: number;
     lastPaymentDate?: string;
     originalPaymentMethod?: string;
