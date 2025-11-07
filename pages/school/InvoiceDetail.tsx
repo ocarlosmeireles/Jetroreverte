@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians } from '../../services/demoData';
 import { Invoice, InvoiceStatus, CollectionStage } from '../../types';
@@ -146,7 +147,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                             <p className="text-sm text-neutral-500 mt-1">ID da Cobrança: ${currentInvoice.id}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 text-right">
-                            <p className="text-3xl font-extrabold text-neutral-900">{formatCurrency(displayValue)}</p>
+                            <p className={`text-3xl font-extrabold ${currentInvoice.status === InvoiceStatus.VENCIDO ? 'text-red-600' : 'text-neutral-900'}`}>{formatCurrency(displayValue)}</p>
                             <div className="mt-1">{getStatusChip(currentInvoice.status)}</div>
                         </div>
                     </div>
