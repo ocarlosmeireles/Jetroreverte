@@ -50,7 +50,11 @@ const ChannelIcon = ({ channel }: { channel: NegotiationChannel }) => {
 const calculateUpdatedValues = (invoice: Invoice) => {
     const dueDate = new Date(invoice.dueDate);
     const today = new Date();
-    if (invoice.status !== InvoiceStatus.VENCIDO || today < dueDate) {
+
+    const todayAtStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dueAtStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+
+    if (invoice.status !== InvoiceStatus.VENCIDO || todayAtStart <= dueAtStart) {
         return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
     }
 
@@ -63,13 +67,10 @@ const calculateUpdatedValues = (invoice: Invoice) => {
     }
     
     const monthsOverdue = Math.max(0, months);
-    if (monthsOverdue === 0 && today.getDate() <= dueDate.getDate()) {
-         return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
-    }
-
+    
     const originalValue = invoice.value;
     const fine = originalValue * 0.02;
-    const interest = originalValue * 0.01 * monthsOverdue;
+    const interest = monthsOverdue > 0 ? originalValue * 0.01 * monthsOverdue : 0;
     const updatedValue = parseFloat((originalValue + fine + interest).toFixed(2));
     
     return { updatedValue, fine, interest, monthsOverdue };
@@ -205,7 +206,7 @@ const NegotiationsDashboard = (): React.ReactElement => {
                                                         <div className="flex items-center gap-2 text-xs text-neutral-600 flex-wrap">
                                                             <span className="line-through">{formatCurrency(caseItem.invoice.value)}</span>
                                                             <span className="text-red-500">+ {formatCurrency(caseItem.fine)} (multa 2%)</span>
-                                                            <span className="text-red-500">+ {formatCurrency(caseItem.interest)} (juros {caseItem.monthsOverdue}m)</span>
+                                                            {caseItem.interest > 0 && <span className="text-red-500">+ {formatCurrency(caseItem.interest)} (juros {caseItem.monthsOverdue}m)</span>}
                                                         </div>
                                                     </>
                                                 ) : (

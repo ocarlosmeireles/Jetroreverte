@@ -9,6 +9,16 @@ declare global {
 }
 const { jsPDF } = window.jspdf;
 
+// Helper to convert numbers to Portuguese words (for 1-12) to ensure cross-browser compatibility.
+const numberToWord = (num: number): string => {
+    const words = [
+        'uma', 'duas', 'três', 'quatro', 'cinco', 'seis',
+        'sete', 'oito', 'nove', 'dez', 'onze', 'doze'
+    ];
+    return words[num - 1] || String(num);
+};
+
+
 export const generateAgreementPdf = (invoice: Invoice, student: Student, guardian: Guardian, school: School, lawFirm: User) => {
     if (!invoice.agreement) {
         alert("Dados do acordo não encontrados para gerar o PDF.");
@@ -61,7 +71,7 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
     doc.setFont('helvetica', 'bold');
     addText(`CLÁUSULA 2ª - DO PARCELAMENTO`);
     doc.setFont('helvetica', 'normal');
-    addText(`Para a quitação da dívida confessada na Cláusula 1ª, a CREDORA concorda em receber o valor em ${invoice.agreement.installments} (${(invoice.agreement.installments).toLocaleString('pt-BR', {style: 'spellout'})}) parcelas mensais e consecutivas de ${formatCurrency(invoice.agreement.installmentValue)} cada, a serem pagas via ${invoice.agreement.paymentMethod}.`);
+    addText(`Para a quitação da dívida confessada na Cláusula 1ª, a CREDORA concorda em receber o valor em ${invoice.agreement.installments} (${numberToWord(invoice.agreement.installments)}) parcelas mensais e consecutivas de ${formatCurrency(invoice.agreement.installmentValue)} cada, a serem pagas via ${invoice.agreement.paymentMethod}.`);
     addText(`A primeira parcela vencerá em ${formatDate(invoice.agreement.firstDueDate)}, e as demais nos meses subsequentes, no mesmo dia.`);
 
     doc.setFont('helvetica', 'bold');

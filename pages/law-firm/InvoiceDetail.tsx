@@ -39,54 +39,61 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
     const [linkInputValue, setLinkInputValue] = useState(currentInvoice?.paymentLink || '');
     const [isCopied, setIsCopied] = useState(false);
 
-    useEffect(() => {
-        if (currentInvoice && currentInvoice.status === InvoiceStatus.VENCIDO && !currentInvoice.updatedValue) {
-            handleCalculateUpdate(false); // Calculate on load without alert
-        }
-    }, [invoiceId]);
-
     const student = useMemo(() => demoStudents.find(s => s.id === currentInvoice?.studentId), [currentInvoice]);
     const guardian = useMemo(() => demoGuardians.find(g => g.id === student?.guardianId), [student]);
     const school = useMemo(() => demoSchools.find(s => s.id === student?.schoolId), [student]);
     
-    const monthsOverdue = useMemo(() => {
-        if (!currentInvoice) return 0;
+    const isOverdue = useMemo(() => {
+        if (!currentInvoice || currentInvoice.status !== InvoiceStatus.VENCIDO) return false;
         const dueDate = new Date(currentInvoice.dueDate);
         const today = new Date();
-        if (today < dueDate) return 0;
+        dueDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        return today > dueDate;
+    }, [currentInvoice]);
+
+    const monthsOverdue = useMemo(() => {
+        if (!isOverdue || !currentInvoice) return 0;
+        
+        const dueDate = new Date(currentInvoice.dueDate);
+        const today = new Date();
         
         let months = (today.getFullYear() - dueDate.getFullYear()) * 12;
         months -= dueDate.getMonth();
         months += today.getMonth();
         
-        // If today's date is before the due date's day of the month, we haven't completed the current month.
         if (today.getDate() < dueDate.getDate()) {
             months--;
         }
         
-        return months <= 0 ? 0 : months;
-    }, [currentInvoice?.dueDate]);
+        return Math.max(0, months);
+    }, [currentInvoice, isOverdue]);
 
-    const { fine, interest } = useMemo(() => {
-        if (!currentInvoice || monthsOverdue <= 0) return { fine: 0, interest: 0 };
+    const { fine, interest, updatedValue } = useMemo(() => {
+        if (!currentInvoice) return { fine: 0, interest: 0, updatedValue: 0 };
+        
         const originalValue = currentInvoice.value;
+
+        if (!isOverdue) {
+            return { fine: 0, interest: 0, updatedValue: originalValue };
+        }
+        
         const calculatedFine = originalValue * 0.02;
         const calculatedInterest = originalValue * 0.01 * monthsOverdue;
-        return { fine: calculatedFine, interest: calculatedInterest };
-    }, [currentInvoice, monthsOverdue]);
+        const calculatedUpdatedValue = originalValue + calculatedFine + calculatedInterest;
+        
+        return { fine: calculatedFine, interest: calculatedInterest, updatedValue: parseFloat(calculatedUpdatedValue.toFixed(2)) };
+    }, [currentInvoice, isOverdue, monthsOverdue]);
 
-    const handleCalculateUpdate = (showAlert = true) => {
-        if (!currentInvoice) return;
-        const originalValue = currentInvoice.value;
-        const fine = originalValue * 0.02; // 2% multa
-        const interest = originalValue * 0.01 * monthsOverdue; // 1% juros ao mês
-        const updatedValue = originalValue + fine + interest;
-
-        setCurrentInvoice(prev => prev ? { ...prev, updatedValue: updatedValue } : undefined);
-        if (showAlert) {
-            alert("Valor atualizado com sucesso!");
+    useEffect(() => {
+        if (currentInvoice && isOverdue && currentInvoice.updatedValue !== updatedValue) {
+            setCurrentInvoice(prev => prev ? { ...prev, updatedValue: updatedValue } : undefined);
         }
-    };
+         if (currentInvoice) {
+            setLinkInputValue(currentInvoice.paymentLink || '');
+        }
+    }, [invoiceId, updatedValue, isOverdue, currentInvoice]);
+
 
     if (!currentInvoice || !student || !guardian || !school || !user) {
         return (
@@ -164,12 +171,12 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                                 <p className="text-sm text-neutral-500 mt-1">ID: {currentInvoice.id}</p>
                             </div>
                             <div className="mt-4 sm:mt-0 text-right">
-                                <p className="text-3xl font-extrabold text-red-600">{formatCurrency(currentInvoice.updatedValue || currentInvoice.value)}</p>
-                                {currentInvoice.updatedValue && currentInvoice.updatedValue > currentInvoice.value && (
+                                <p className="text-3xl font-extrabold text-red-600">{formatCurrency(updatedValue)}</p>
+                                {isOverdue && (
                                     <div className="flex items-center justify-end gap-2 text-sm text-neutral-600 mt-1 flex-wrap">
                                         <span className="line-through">{formatCurrency(currentInvoice.value)}</span>
                                         <span className="text-red-500">+ {formatCurrency(fine)} (multa 2%)</span>
-                                        <span className="text-red-500">+ {formatCurrency(interest)} (juros {monthsOverdue}m)</span>
+                                        {interest > 0 && <span className="text-red-500">+ {formatCurrency(interest)} (juros {monthsOverdue}m)</span>}
                                     </div>
                                 )}
                                 <div className="mt-2">{getStatusChip(currentInvoice.status)}</div>
@@ -228,7 +235,7 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                 <AiCommunicationModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
             )}
             <ContactHistoryModal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} invoiceId={currentInvoice.id} />
-            <AgreementModal isOpen={isAgreementModalOpen} onClose={() => setIsAgreementModalOpen(false)} onSave={handleSaveAgreement} invoice={currentInvoice} />
+            <AgreementModal isOpen={isAgreementModalOpen} onClose={() => setIsAgreementModalOpen(false)} onSave={handleSaveAgreement} invoice={{...currentInvoice, updatedValue}} />
         </>
     );
 };
