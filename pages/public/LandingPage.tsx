@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '../../components/landing/Header';
 import Hero from '../../components/landing/Hero';
@@ -20,7 +19,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps): React.ReactElem
             <Header onLogin={onLogin} onRegister={onRegister} />
 
             <main>
-                <Hero onRegister={onRegister} />
+                <Hero onRegister={onRegister} onLogin={onLogin} />
                 <Solutions />
                 <HowItWorks />
                 <Features />
