@@ -75,6 +75,7 @@ export interface AgreementDetails {
     firstDueDate: string;
     createdAt: string;
     protocolNumber: string;
+    isApproved?: boolean;
 }
 
 
@@ -232,4 +233,23 @@ export interface Campaign {
     target: string; // e.g. "Escolas de Ensino Médio de SP"
     startDate: string; // ISO String
     leadsGenerated: number;
+}
+
+export enum JudicialProcessStatus {
+    PROTOCOLADO = 'Protocolado',
+    AGUARDANDO_CITACAO = 'Aguardando Citação',
+    CONTESTACAO = 'Contestação',
+    SENTENCA = 'Sentença',
+    RECURSO = 'Recurso',
+}
+
+export interface JudicialProcess {
+    id: string;
+    petitionId: string;
+    studentName: string;
+    schoolName: string;
+    processNumber: string;
+    status: JudicialProcessStatus;
+    lastUpdate: string; // ISO string
+    notes?: string;
 }

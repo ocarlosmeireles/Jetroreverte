@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Invoice } from '../../types';
@@ -91,7 +92,7 @@ const NegotiationIntentModal = ({ isOpen, onClose, onConfirmPayment, onRequestNe
                                 <Button onClick={onRequestNegotiation} size="lg" variant="secondary" className="flex-col h-auto py-4">
                                     <ChatBubbleLeftRightIcon className="w-6 h-6 mb-2" />
                                     <span className="font-semibold text-sm">Solicitar Acordo</span>
-                                    <span className="text-xs font-normal mt-1">A equipe entrará em contato.</span>
+                                    <span className="text-xs font-normal mt-1">Abrir portal de negociação.</span>
                                 </Button>
                                  <Button onClick={onConfirmPayment} size="lg" variant="primary" className="flex-col h-auto py-4">
                                     <CreditCardIcon className="w-6 h-6 mb-2" />

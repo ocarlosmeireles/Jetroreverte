@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -13,6 +14,7 @@ import SchoolReports from '../school/SchoolReports';
 import InvoicesList from '../school/InvoicesList';
 import InvoiceDetail from '../school/InvoiceDetail';
 import SchoolBillingPage from '../school/SchoolBillingPage';
+import ContractAuditorPage from '../school/ContractAuditorPage';
 
 
 interface ViewState {
@@ -86,6 +88,8 @@ const SchoolDashboard = (): React.ReactElement => {
                     />;
                  }
                  return <InvoicesList onSelectInvoice={handleSelectInvoice} />;
+            case 'auditor':
+                return <ContractAuditorPage />;
             case 'relatorios':
                  return <SchoolReports />;
             case 'plano':

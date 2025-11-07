@@ -27,7 +27,11 @@ const listVariants = {
 
 type InvoiceWithCalculations = Invoice & ReturnType<typeof calculateUpdatedInvoiceValues>;
 
-const GuardianInvoicesList = (): React.ReactElement => {
+interface GuardianInvoicesListProps {
+    onStartNegotiation: (invoiceId: string) => void;
+}
+
+const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps): React.ReactElement => {
     const { user } = useAuth();
     // In a real app, you would fetch students associated with the guardian's email/ID
     const myStudents = demoStudents.filter(s => s.guardianId === user?.id);
@@ -74,7 +78,7 @@ const GuardianInvoicesList = (): React.ReactElement => {
         // UI feedback
         setIntentModalInvoice(null);
         setNegotiationRequestedId(invoiceId);
-        setTimeout(() => setNegotiationRequestedId(null), 5000);
+        onStartNegotiation(invoiceId); // Open the new negotiation portal
     };
 
     const handleConfirmPayment = (invoice: InvoiceWithCalculations) => {
@@ -152,8 +156,8 @@ const GuardianInvoicesList = (): React.ReactElement => {
     const getStatusInfo = (invoice: InvoiceWithCalculations): { chip: React.ReactElement, action: React.ReactElement } => {
         if (negotiationRequestedId === invoice.id || invoice.collectionStage === CollectionStage.EM_NEGOCIACAO) {
             return {
-                chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Negociação Solicitada</span>,
-                action: <span className="text-sm text-neutral-500 text-right">Aguardando contato do escritório.</span>
+                chip: <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Negociação em Andamento</span>,
+                action: <Button size="sm" onClick={() => onStartNegotiation(invoice.id)}>Ver Portal</Button>
             };
         }
 
@@ -214,7 +218,6 @@ const GuardianInvoicesList = (): React.ReactElement => {
                     isOpen={!!intentModalInvoice}
                     onClose={() => setIntentModalInvoice(null)}
                     invoice={intentModalInvoice}
-                    // FIX: Removed non-existent 'calculatedValues' prop to match component's props interface.
                     onConfirmPayment={() => handleConfirmPayment(intentModalInvoice)}
                     onRequestNegotiation={() => handleRequestNegotiation(intentModalInvoice.id)}
                 />

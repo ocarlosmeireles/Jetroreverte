@@ -16,6 +16,7 @@ import CombinedFinancials from '../law-firm/CombinedFinancials';
 import PetitionList from '../law-firm/PetitionList';
 import PetitionDetail from '../law-firm/PetitionDetail';
 import MarketingHub from '../law-firm/MarketingHub';
+import JudicialProcessDashboard from '../law-firm/JudicialProcessDashboard';
 
 interface DetailViewState {
     type: 'school' | 'invoice' | 'petition' | null;
@@ -72,6 +73,8 @@ const LawFirmDashboard = (): React.ReactElement => {
                  return <LawFirmInvoicesList onSelectInvoice={handleSelectInvoice} selectedInvoiceId={detailView.type === 'invoice' ? detailView.id : null} />;
             case 'peticoes':
                 return <PetitionList onSelectPetition={handleSelectPetition} selectedPetitionId={detailView.type === 'petition' ? detailView.id : null} />;
+            case 'processos':
+                return <JudicialProcessDashboard />;
             case 'marketing':
                 return <MarketingHub />;
             case 'financeiro':

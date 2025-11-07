@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+
+import React, { useState, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians, demoSchools } from '../../services/demoData';
 import { Invoice, Student, Guardian, InvoiceStatus, CollectionStage, AgreementDetails, School, User } from '../../types';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, ClipboardIcon, PencilIcon, DocumentReportIcon } from '../../components/common/icons';
+import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, DocumentReportIcon, CheckCircleIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import AiCommunicationModal from '../../components/school/AiCommunicationModal';
 import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
@@ -78,8 +80,16 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
         const newAgreement: AgreementDetails = { 
             ...agreement, 
             createdAt: new Date().toISOString(),
-            protocolNumber: `ACORDO-${currentInvoice.id}-${Date.now()}`
+            protocolNumber: `ACORDO-${currentInvoice.id}-${Date.now()}`,
+            isApproved: false, // Agreements start as not approved
         };
+        // This is a hack for the demo to simulate a database update
+        const invoiceIndex = demoInvoices.findIndex(i => i.id === currentInvoice.id);
+        if (invoiceIndex !== -1) {
+            demoInvoices[invoiceIndex].agreement = newAgreement;
+            demoInvoices[invoiceIndex].collectionStage = CollectionStage.ACORDO_FEITO;
+        }
+
         setCurrentInvoice(prev => prev ? { ...prev, agreement: newAgreement, collectionStage: CollectionStage.ACORDO_FEITO } : undefined);
         setIsAgreementModalOpen(false);
     };
@@ -90,6 +100,27 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
         }
     };
     
+     const handleApproveAgreement = () => {
+        if (!currentInvoice?.agreement) return;
+
+        // This is a hack for the demo to simulate a database update
+        const invoiceIndex = demoInvoices.findIndex(i => i.id === currentInvoice.id);
+        if (invoiceIndex !== -1 && demoInvoices[invoiceIndex].agreement) {
+            demoInvoices[invoiceIndex].agreement!.isApproved = true;
+        }
+
+        setCurrentInvoice(prev => {
+            if (!prev || !prev.agreement) return prev;
+            return {
+                ...prev,
+                agreement: {
+                    ...prev.agreement,
+                    isApproved: true,
+                }
+            };
+        });
+    };
+
     const agreementProbability = currentInvoice.riskScore !== undefined ? 100 - currentInvoice.riskScore : null;
     const probabilityColor = agreementProbability === null ? 'text-neutral-700' : agreementProbability > 60 ? 'text-green-600' : agreementProbability > 30 ? 'text-yellow-600' : 'text-red-600';
 
@@ -188,12 +219,21 @@ const LawFirmInvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.
                         {currentInvoice.agreement && (
                              <div className="mt-6 pt-6 border-t border-neutral-200">
                                  <h3 className="text-lg font-semibold text-neutral-700 mb-3">Detalhes do Acordo</h3>
-                                 <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-sm space-y-2">
+                                 <div className={`p-4 rounded-lg border ${currentInvoice.agreement.isApproved ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} text-sm space-y-2`}>
                                      <div className="flex justify-between"><span className="text-neutral-600">Protocolo:</span> <span className="font-bold text-neutral-800 font-mono text-xs">{currentInvoice.agreement.protocolNumber}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Parcelas:</span> <span className="font-bold text-neutral-800">{currentInvoice.agreement.installments}x de {formatCurrency(currentInvoice.agreement.installmentValue)}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Forma de Pagamento:</span> <span className="font-bold text-neutral-800">{currentInvoice.agreement.paymentMethod}</span></div>
                                      <div className="flex justify-between"><span className="text-neutral-600">Venc. da 1ª Parcela:</span> <span className="font-bold text-neutral-800">{formatDate(currentInvoice.agreement.firstDueDate)}</span></div>
-                                     <Button onClick={handleGenerateAgreementPdf} size="sm" variant="secondary" icon={<DocumentReportIcon />} className="mt-3">Gerar Termo de Acordo (PDF)</Button>
+                                     
+                                     {!currentInvoice.agreement.isApproved ? (
+                                        <div className="pt-3 mt-3 border-t">
+                                            <Button onClick={handleApproveAgreement} size="sm" icon={<CheckCircleIcon />} className="w-full">Aprovar Acordo</Button>
+                                        </div>
+                                     ) : (
+                                        <div className="pt-3 mt-3 border-t">
+                                            <Button onClick={handleGenerateAgreementPdf} size="sm" variant="secondary" icon={<DocumentReportIcon />} className="w-full">Gerar Termo de Acordo (PDF)</Button>
+                                        </div>
+                                     )}
                                 </div>
                              </div>
                         )}

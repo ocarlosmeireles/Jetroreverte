@@ -1,4 +1,5 @@
 
+
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -16,6 +17,8 @@ import {
     BellIcon,
     ScaleIcon,
     SparklesIcon,
+    BriefcaseIcon,
+    ShieldCheckIcon,
 } from './icons';
 
 interface NavItem {
@@ -53,7 +56,9 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Escolas': <SchoolIcon />,
     'Negociações': <ScaleIcon />,
     'Petições (IA)': <ScaleIcon />,
+    'Processos Judiciais': <BriefcaseIcon />,
     'Hub de Marketing': <SparklesIcon />,
+    'Auditor de Contratos (IA)': <ShieldCheckIcon />,
     'Configurações': <Cog6ToothIcon />,
     'Visão Geral': <DashboardIcon />,
     'Usuários': <UsersIcon />,

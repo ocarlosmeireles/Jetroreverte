@@ -1,5 +1,5 @@
 
-import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign } from '../types';
+import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus } from '../types';
 
 // ############### AVISO ###############
 // Estes dados são usados para popular o banco de dados Firebase
@@ -131,4 +131,17 @@ export const demoCampaigns: Campaign[] = [
     { id: 'camp-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8 },
     { id: 'camp-02', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3 },
     { id: 'camp-03', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0 },
+];
+
+export const demoJudicialProcesses: JudicialProcess[] = [
+    {
+        id: 'proc-01',
+        petitionId: 'pet-01',
+        studentName: 'Lucas Silva',
+        schoolName: 'Escola Aprender Mais',
+        processNumber: '0012345-67.2024.8.26.0001',
+        status: JudicialProcessStatus.PROTOCOLADO,
+        lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: 'Processo distribuído para a 1ª Vara do Juizado Especial Cível.'
+    },
 ];

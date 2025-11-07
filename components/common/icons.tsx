@@ -211,6 +211,12 @@ export const MegaphoneIcon = ({ className = "w-6 h-6" }: IconProps) => (
     </svg>
 );
 
+export const BriefcaseIcon = ({ className = "w-6 h-6" }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.075c0 1.313-.964 2.5-2.25 2.5h-10.5c-1.286 0-2.25-.937-2.25-2.25V14.15M16.5 6.75v-1.5a2.25 2.25 0 00-2.25-2.25h-4.5a2.25 2.25 0 00-2.25 2.25v1.5m10.5 0h-10.5m10.5 0a2.25 2.25 0 012.25 2.25v3.75a2.25 2.25 0 01-2.25 2.25h-10.5a2.25 2.25 0 01-2.25-2.25v-3.75a2.25 2.25 0 012.25-2.25h10.5" />
+    </svg>
+);
+
 
 // --- NEW ICONS FOR LANDING PAGE ---
 
