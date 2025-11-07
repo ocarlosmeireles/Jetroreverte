@@ -97,19 +97,16 @@ const LoginModal = ({ onClose, onSwitchToReset, onSwitchToRegister }: LoginModal
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-neutral-200">
-                    <p className="text-center text-sm font-semibold text-neutral-500 mb-4">Acesso Rápido (Demonstração)</p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('ESCRITORIO')} disabled={loading}>
-                            Entrar como Escritório
+                    <p className="text-center text-sm font-semibold text-neutral-600 mb-2">Para testar, entre com um perfil de exemplo:</p>
+                    <div className="space-y-3 mt-4">
+                        <Button size="md" variant="secondary" onClick={() => handleDemoLogin('ESCRITORIO')} disabled={loading} className="w-full">
+                            Visão do Escritório de Advocacia
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('ESCOLA')} disabled={loading}>
-                            Entrar como Escola
+                        <Button size="md" variant="secondary" onClick={() => handleDemoLogin('ESCOLA')} disabled={loading} className="w-full">
+                            Visão da Escola
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('RESPONSAVEL')} disabled={loading}>
-                            Entrar como Responsável
-                        </Button>
-                        <Button size="sm" variant="secondary" onClick={() => handleDemoLogin('SUPER_ADMIN')} disabled={loading}>
-                            Entrar como Super Admin
+                        <Button size="md" variant="secondary" onClick={() => handleDemoLogin('RESPONSAVEL')} disabled={loading} className="w-full">
+                            Visão do Responsável (Pai/Mãe)
                         </Button>
                     </div>
                 </div>

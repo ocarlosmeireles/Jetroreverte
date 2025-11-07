@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect, ReactNode } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
@@ -204,8 +205,9 @@ const initialLeads: Lead[] = [
     { id: 'lead-5', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 1200, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.' },
 ];
 
-// FIX: Defined an interface for LeadCard props, including an optional 'key' to resolve TypeScript error on mapping.
+// FIX: Added the optional 'key' property to the LeadCardProps interface to resolve a TypeScript error when rendering a list of components.
 interface LeadCardProps {
+    key?: React.Key;
     lead: Lead;
     onMove: (id: string, status: LeadStatus) => void;
     onEdit: (lead: Lead) => void;
