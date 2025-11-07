@@ -8,12 +8,10 @@ import SaasFinancialDashboard from '../admin/SaasFinancialDashboard';
 import PagePlaceholder from '../common/PagePlaceholder';
 import { DocumentReportIcon } from '../../components/common/icons';
 import AppLayout from '../../components/layout/AppLayout';
-// FIX: Changed import from '../admin/NegotiationHistory' (an empty file) to the correct, existing component for handling negotiations.
 import NegotiationsDashboard from '../law-firm/NegotiationsDashboard';
 
 const AdminDashboard = (): React.ReactElement => {
     const [activePage, setActivePage] = useState('dashboard');
-    // FIX: Changed UserRole.ADMIN to UserRole.ESCRITORIO as the ADMIN role does not exist.
     const navItems = NAVIGATION[UserRole.ESCRITORIO];
     const pageTitle = navItems.find(p => p.path === activePage)?.name || 'Dashboard';
 
@@ -45,7 +43,6 @@ const AdminDashboard = (): React.ReactElement => {
             setActivePage={setActivePage}
             pageTitle={pageTitle}
         >
-             {/* FIX: Wrapped content in a div to provide consistent padding and scrolling. */}
              <div className="flex-1 overflow-y-auto p-6 lg:p-10">
                 <AnimatePresence mode="wait">
                     <motion.div

@@ -3,11 +3,11 @@
 import React, { useState, useMemo, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { demoInvoices, demoStudents, demoGuardians, demoSchools, demoNegotiationAttempts } from '../../services/demoData';
-import { InvoiceStatus, NegotiationAttemptType, NegotiationChannel, School, Guardian, Student, Invoice, NegotiationAttempt } from '../../types';
+import { InvoiceStatus, NegotiationAttemptType, NegotiationChannel, School, Guardian, Student, Invoice, NegotiationAttempt, CollectionStage } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { PlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon, SparklesIcon, DollarIcon, CheckCircleIcon } from '../../components/common/icons';
+import { PlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon, SparklesIcon, DollarIcon, CheckCircleIcon, ScaleIcon } from '../../components/common/icons';
 import { useAuth } from '../../hooks/useAuth';
 import AddNegotiationAttemptModal from '../../components/law-firm/AddNegotiationAttemptModal';
 import PetitionGeneratorModal from '../../components/admin/PetitionGeneratorModal';
@@ -15,6 +15,7 @@ import Switch from '../../components/common/Switch';
 import { DEMO_USERS } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import StatCard from '../../components/common/StatCard';
+import AgreementModal from '../../components/common/AgreementModal';
 
 interface NegotiationCase {
     invoice: Invoice;
@@ -43,23 +44,29 @@ const getRelativeTime = (dateString: string) => {
 
 const ChannelIcon = ({ channel }: { channel: NegotiationChannel }) => {
     const iconMap: Record<NegotiationChannel, ReactNode> = {
-        [NegotiationChannel.EMAIL]: <EnvelopeIcon className="w-5 h-5 text-neutral-500" />,
-        [NegotiationChannel.WHATSAPP]: <ChatBubbleLeftEllipsisIcon className="w-5 h-5 text-neutral-500" />,
-        [NegotiationChannel.PHONE_CALL]: <PhoneIcon className="w-5 h-5 text-neutral-500" />,
-        [NegotiationChannel.PETITION_GENERATED]: <DocumentPlusIcon className="w-5 h-5 text-neutral-500" />,
+        [NegotiationChannel.EMAIL]: <EnvelopeIcon className="w-4 h-4 text-neutral-500" />,
+        [NegotiationChannel.WHATSAPP]: <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-neutral-500" />,
+        [NegotiationChannel.PHONE_CALL]: <PhoneIcon className="w-4 h-4 text-neutral-500" />,
+        [NegotiationChannel.PETITION_GENERATED]: <DocumentPlusIcon className="w-4 h-4 text-neutral-500" />,
     };
-    return <div className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 ring-4 ring-white">{iconMap[channel]}</div>;
+    return <div className="w-7 h-7 rounded-full flex items-center justify-center bg-neutral-100 ring-2 ring-white">{iconMap[channel]}</div>;
 };
 
+const pipelineColumns: { id: CollectionStage; title: string }[] = [
+    { id: CollectionStage.AGUARDANDO_CONTATO, title: 'Aguardando Contato' },
+    { id: CollectionStage.EM_NEGOCIACAO, title: 'Em Negociação' },
+    { id: CollectionStage.ACORDO_FEITO, title: 'Acordo Feito' },
+    { id: CollectionStage.PREPARACAO_JUDICIAL, title: 'Preparação Judicial' }
+];
 
 const NegotiationsDashboard = (): React.ReactElement => {
     const { user } = useAuth();
+    const [allInvoices, setAllInvoices] = useState(demoInvoices);
     const [allAttempts, setAllAttempts] = useState(demoNegotiationAttempts);
-    const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
-    const [selectedCaseForPetition, setSelectedCaseForPetition] = useState<NegotiationCase | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [discounts, setDiscounts] = useState<Record<string, { excludeInterest: boolean; excludeFine: boolean }>>({});
 
+    const [modalState, setModalState] = useState<{ type: 'addAttempt' | 'createAgreement' | 'generatePetition'; caseData: NegotiationCase | null }>({ type: null, caseData: null });
+    
+    const [discounts, setDiscounts] = useState<Record<string, { excludeInterest: boolean; excludeFine: boolean }>>({});
 
     const negotiationCases = useMemo<NegotiationCase[]>(() => {
         if (!user || user.email !== DEMO_USERS.ESCRITORIO.email) return [];
@@ -67,7 +74,7 @@ const NegotiationsDashboard = (): React.ReactElement => {
         const officeSchools = demoSchools.filter(s => s.officeId === user.id);
         const officeSchoolIds = new Set(officeSchools.map(s => s.id));
 
-        const activeInvoices = demoInvoices.filter(i => 
+        const activeInvoices = allInvoices.filter(i => 
             officeSchoolIds.has(i.schoolId) && i.status === InvoiceStatus.VENCIDO
         );
 
@@ -84,47 +91,21 @@ const NegotiationsDashboard = (): React.ReactElement => {
             
             return { invoice: updatedInvoice, student, guardian, school, attempts, monthsOverdue, fine, interest };
         }).sort((a,b) => new Date(a.invoice.dueDate).getTime() - new Date(b.invoice.dueDate).getTime());
-    }, [allAttempts, user]);
+    }, [allInvoices, allAttempts, user]);
     
-    const filteredCases = useMemo(() => {
-        return negotiationCases.filter(c => {
-            const search = searchTerm.toLowerCase();
-            return (
-                c.student?.name.toLowerCase().includes(search) ||
-                c.guardian?.name.toLowerCase().includes(search) ||
-                c.school?.name.toLowerCase().includes(search)
-            );
-        });
-    }, [negotiationCases, searchTerm]);
-
-    const priorityCases = useMemo(() => {
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
-
-        return filteredCases.filter(c => {
-            const isOverdueForLong = new Date(c.invoice.dueDate) < thirtyDaysAgo;
-            const lastAttemptDate = c.attempts.length > 0 ? new Date(c.attempts[0].date) : new Date(0);
-            const noRecentContact = lastAttemptDate < fifteenDaysAgo;
-            return isOverdueForLong && noRecentContact;
-        });
-    }, [filteredCases]);
-
-
     const { totalInNegotiation, totalFromAgreements } = useMemo(() => {
-        const stats = {
-            totalInNegotiation: 0,
-            totalFromAgreements: 0,
-        };
+        let inNegotiation = 0;
+        let fromAgreements = 0;
 
         negotiationCases.forEach(c => {
             if (c.invoice.agreement) {
-                stats.totalFromAgreements += c.invoice.agreement.installments * c.invoice.agreement.installmentValue;
+                fromAgreements += c.invoice.agreement.installments * c.invoice.agreement.installmentValue;
             } else if (c.invoice.collectionStage === 'EM_NEGOCIACAO') {
-                stats.totalInNegotiation += c.invoice.updatedValue || c.invoice.value;
+                inNegotiation += c.invoice.updatedValue || c.invoice.value;
             }
         });
 
-        return stats;
+        return { totalInNegotiation: inNegotiation, totalFromAgreements: fromAgreements };
     }, [negotiationCases]);
 
     const handleSaveAttempt = (invoiceId: string, data: { channel: NegotiationChannel, notes: string }) => {
@@ -138,7 +119,17 @@ const NegotiationsDashboard = (): React.ReactElement => {
             author: user?.name || 'Advocacia Foco',
         };
         setAllAttempts(prev => [...prev, newAttempt]);
-        setSelectedInvoiceId(null);
+        setModalState({ type: null, caseData: null });
+    };
+
+    const handleSaveAgreement = (caseData: NegotiationCase, agreementData: any) => {
+        const newAgreement = {
+            ...agreementData,
+            createdAt: new Date().toISOString(),
+            protocolNumber: `AC-${caseData.invoice.id.slice(-4)}-${Date.now().toString().slice(-4)}`
+        };
+        setAllInvoices(prev => prev.map(inv => inv.id === caseData.invoice.id ? {...inv, agreement: newAgreement, collectionStage: CollectionStage.ACORDO_FEITO} : inv));
+        setModalState({ type: null, caseData: null });
     };
     
      const handleDiscountChange = (invoiceId: string, type: 'interest' | 'fine', isExcluded: boolean) => {
@@ -154,132 +145,106 @@ const NegotiationsDashboard = (): React.ReactElement => {
     return (
         <>
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatCard
-                    title="Potencial em Negociação Ativa"
-                    value={formatCurrency(totalInNegotiation)}
-                    icon={<DollarIcon />}
-                    color="secondary"
-                />
-                <StatCard
-                    title="Valor Total em Acordos Fechados"
-                    value={formatCurrency(totalFromAgreements)}
-                    icon={<CheckCircleIcon />}
-                    color="green"
-                />
+                <StatCard title="Potencial em Negociação Ativa" value={formatCurrency(totalInNegotiation)} icon={<ScaleIcon />} color="secondary" />
+                <StatCard title="Valor Consolidado em Acordos" value={formatCurrency(totalFromAgreements)} icon={<CheckCircleIcon />} color="green" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-3 space-y-6">
-                    <input
-                        type="text"
-                        placeholder="Buscar por aluno, escola..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg shadow-sm focus:ring-primary-500 focus:border-primary-500 transition"
-                    />
-                    <Card>
-                        <h3 className="font-bold text-lg text-red-700 mb-3">Casos Prioritários</h3>
-                        <div className="space-y-3">
-                            {priorityCases.length > 0 ? priorityCases.map(pCase => (
-                                <div key={pCase.invoice.id} className="p-2 bg-red-50 rounded-md text-sm">
-                                    <p className="font-semibold text-red-800">{pCase.student?.name}</p>
-                                    <p className="text-xs text-red-600">Vencido desde {formatDate(pCase.invoice.dueDate)}</p>
-                                </div>
-                            )) : <p className="text-sm text-neutral-500">Nenhum caso prioritário no momento.</p>}
-                        </div>
-                    </Card>
-                </div>
 
-                <div className="lg:col-span-9 space-y-6">
-                    <AnimatePresence>
-                        {filteredCases.map((caseItem, index) => {
-                            const administrativeAttempts = caseItem.attempts.filter(a => a.type === NegotiationAttemptType.ADMINISTRATIVE).length;
-                            const isReadyForLegal = administrativeAttempts >= 2;
-                            const currentDiscounts = discounts[caseItem.invoice.id] || { excludeInterest: false, excludeFine: false };
-                            const negotiatedValue = caseItem.invoice.value +
-                                (currentDiscounts.excludeFine ? 0 : caseItem.fine) +
-                                (currentDiscounts.excludeInterest ? 0 : caseItem.interest);
+            <div className="flex gap-6 overflow-x-auto pb-4 -mx-10 px-10">
+                {pipelineColumns.map(column => {
+                    const columnCases = negotiationCases.filter(c => (c.invoice.collectionStage || CollectionStage.AGUARDANDO_CONTATO) === column.id);
+                    return (
+                        <div key={column.id} className="w-80 flex-shrink-0">
+                            <h3 className="font-semibold text-neutral-700 mb-3 px-2 flex justify-between items-center">
+                                <span>{column.title}</span>
+                                <span className="text-sm text-neutral-400 bg-neutral-200/70 rounded-full px-2 py-0.5">{columnCases.length}</span>
+                            </h3>
+                            <div className="space-y-3 h-full bg-neutral-100/60 p-2 rounded-lg">
+                                <AnimatePresence>
+                                {columnCases.map((caseItem) => {
+                                    const administrativeAttempts = caseItem.attempts.filter(a => a.type === NegotiationAttemptType.ADMINISTRATIVE).length;
+                                    const isReadyForLegal = administrativeAttempts >= 2;
+                                    const currentDiscounts = discounts[caseItem.invoice.id] || { excludeInterest: false, excludeFine: false };
+                                    const negotiatedValue = caseItem.invoice.value +
+                                        (currentDiscounts.excludeFine ? 0 : caseItem.fine) +
+                                        (currentDiscounts.excludeInterest ? 0 : caseItem.interest);
+                                    const lastAttempt = caseItem.attempts[0];
 
-                            return (
-                            <motion.div key={caseItem.invoice.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1, transition:{delay: index * 0.05} }} exit={{ opacity: 0 }}>
-                                <Card>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="md:col-span-1 border-r-0 md:border-r md:pr-6 border-neutral-200 flex flex-col">
-                                            <h3 className="font-bold text-lg text-neutral-800">{caseItem.student?.name}</h3>
-                                            <p className="text-sm text-neutral-500">Responsável: {caseItem.guardian?.name}</p>
-                                            <p className="text-sm text-neutral-500 font-medium">Escola: {caseItem.school?.name}</p>
-                                            <div className="my-4 p-3 bg-red-50 rounded-lg">
-                                                <p className="text-sm text-red-700">Dívida para Negociação</p>
-                                                <p className="font-bold text-2xl text-red-800">{formatCurrency(negotiatedValue)}</p>
-                                                <div className="flex items-center gap-2 text-xs text-neutral-600 flex-wrap">
-                                                    <span>{formatCurrency(caseItem.invoice.value)} (original)</span>
-                                                    {caseItem.fine > 0 && (
-                                                        <span className={currentDiscounts.excludeFine ? 'line-through text-neutral-400' : 'text-red-500'}>
-                                                            + {formatCurrency(caseItem.fine)} (multa)
-                                                        </span>
-                                                    )}
-                                                    {caseItem.interest > 0 && (
-                                                        <span className={currentDiscounts.excludeInterest ? 'line-through text-neutral-400' : 'text-red-500'}>
-                                                            + {formatCurrency(caseItem.interest)} (juros)
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {(caseItem.fine > 0 || caseItem.interest > 0) && (
-                                                <div className="mt-2 mb-4 p-3 border border-dashed rounded-lg">
-                                                    <h4 className="text-sm font-semibold text-neutral-600 mb-2">Opções de Desconto</h4>
-                                                    <div className="space-y-2">
-                                                        {caseItem.fine > 0 && (
-                                                            <div className="flex items-center justify-between">
-                                                                <label className="text-sm text-neutral-700">Excluir Multa ({formatCurrency(caseItem.fine)})</label>
-                                                                <Switch checked={currentDiscounts.excludeFine} onChange={(checked) => handleDiscountChange(caseItem.invoice.id, 'fine', checked)} />
-                                                            </div>
-                                                        )}
-                                                        {caseItem.interest > 0 && (
-                                                            <div className="flex items-center justify-between">
-                                                                <label className="text-sm text-neutral-700">Excluir Juros ({formatCurrency(caseItem.interest)})</label>
-                                                                <Switch checked={currentDiscounts.excludeInterest} onChange={(checked) => handleDiscountChange(caseItem.invoice.id, 'interest', checked)} />
-                                                            </div>
-                                                        )}
+                                    return (
+                                        <motion.div key={caseItem.invoice.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                            <Card className="!p-3.5 space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm text-neutral-800">{caseItem.student?.name}</h4>
+                                                        <p className="text-xs text-neutral-500">{caseItem.school?.name}</p>
                                                     </div>
+                                                    <p className="font-bold text-lg text-red-700">{formatCurrency(negotiatedValue)}</p>
                                                 </div>
-                                            )}
 
-                                            <div className="mt-auto space-y-2">
-                                                <Button icon={<PlusIcon />} className="w-full" variant="secondary" onClick={() => setSelectedInvoiceId(caseItem.invoice.id)}>Adicionar Contato</Button>
-                                                <Button icon={<DocumentPlusIcon />} className="w-full" disabled={!isReadyForLegal} onClick={() => setSelectedCaseForPetition(caseItem)}>Gerar Petição com IA</Button>
-                                            </div>
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <h4 className="font-semibold mb-3 text-neutral-700">Histórico de Contato</h4>
-                                            {caseItem.attempts.length > 0 ? (
-                                                <div className="relative pl-6">
-                                                    <div className="absolute top-0 bottom-0 left-[21px] w-0.5 bg-neutral-200" />
-                                                    {caseItem.attempts.map(attempt => (
-                                                        <div key={attempt.id} className="relative mb-6">
-                                                            <ChannelIcon channel={attempt.channel} />
-                                                            <div className="ml-12 pt-1">
-                                                                <div className="flex justify-between items-baseline"><p className={`text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${attempt.type === NegotiationAttemptType.ADMINISTRATIVE ? 'bg-yellow-100 text-yellow-800' : 'bg-primary-100 text-primary-800'}`}>{attempt.type === NegotiationAttemptType.ADMINISTRATIVE ? 'Contato Administrativo' : 'Preparação Judicial'}</p><p className="text-xs text-neutral-400">{formatDate(attempt.date)} ({getRelativeTime(attempt.date)})</p></div>
-                                                                <p className="text-sm text-neutral-600 mt-1">{attempt.notes}</p>
-                                                                <p className="text-xs text-neutral-500 mt-1">por: {attempt.author}</p>
-                                                            </div>
+                                                {(caseItem.fine > 0 || caseItem.interest > 0) && (
+                                                    <div className="p-2 border border-dashed rounded-md bg-neutral-50">
+                                                        <div className="space-y-1">
+                                                            {caseItem.fine > 0 && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <label className="text-xs text-neutral-700">Excluir Multa</label>
+                                                                    <Switch checked={currentDiscounts.excludeFine} onChange={(c) => handleDiscountChange(caseItem.invoice.id, 'fine', c)} />
+                                                                </div>
+                                                            )}
+                                                            {caseItem.interest > 0 && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <label className="text-xs text-neutral-700">Excluir Juros</label>
+                                                                    <Switch checked={currentDiscounts.excludeInterest} onChange={(c) => handleDiscountChange(caseItem.invoice.id, 'interest', c)} />
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ))}
+                                                    </div>
+                                                )}
+
+                                                {lastAttempt && (
+                                                    <div className="flex items-center gap-2 text-xs text-neutral-500">
+                                                        <ChannelIcon channel={lastAttempt.channel} />
+                                                        <span>Último contato {getRelativeTime(lastAttempt.date)}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex gap-2 pt-2 border-t">
+                                                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => setModalState({ type: 'addAttempt', caseData: caseItem })}>Contato</Button>
+                                                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => setModalState({ type: 'createAgreement', caseData: { ...caseItem, invoice: { ...caseItem.invoice, updatedValue: negotiatedValue } } })}>Acordo</Button>
+                                                    <Button size="sm" variant="secondary" title="Gerar Petição" onClick={() => setModalState({ type: 'generatePetition', caseData: caseItem })} disabled={!isReadyForLegal}><SparklesIcon className="w-4 h-4" /></Button>
                                                 </div>
-                                            ) : <div className="text-center py-8 px-4 bg-neutral-50 rounded-lg"><p className="text-neutral-500">Nenhum contato registrado.</p></div>}
-                                        </div>
-                                    </div>
-                                </Card>
-                            </motion.div>
-                        )})}
-                    </AnimatePresence>
-                </div>
+                                            </Card>
+                                        </motion.div>
+                                    );
+                                })}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    )
+                })}
             </div>
-            {selectedInvoiceId && (
-                <AddNegotiationAttemptModal isOpen={!!selectedInvoiceId} onClose={() => setSelectedInvoiceId(null)} onSave={(data) => handleSaveAttempt(selectedInvoiceId, data)} />
+            
+            {modalState.type === 'addAttempt' && modalState.caseData && (
+                <AddNegotiationAttemptModal 
+                    isOpen={true} 
+                    onClose={() => setModalState({ type: null, caseData: null })} 
+                    onSave={(data) => handleSaveAttempt(modalState.caseData!.invoice.id, data)} 
+                />
             )}
-            {selectedCaseForPetition && (
-                <PetitionGeneratorModal isOpen={!!selectedCaseForPetition} onClose={() => setSelectedCaseForPetition(null)} negotiationCase={selectedCaseForPetition} />
+            
+            {modalState.type === 'createAgreement' && modalState.caseData && (
+                <AgreementModal
+                    isOpen={true}
+                    onClose={() => setModalState({ type: null, caseData: null })}
+                    onSave={(data) => handleSaveAgreement(modalState.caseData!, data)}
+                    invoice={modalState.caseData.invoice}
+                />
+            )}
+
+            {modalState.type === 'generatePetition' && modalState.caseData && (
+                <PetitionGeneratorModal 
+                    isOpen={true} 
+                    onClose={() => setModalState({ type: null, caseData: null })} 
+                    negotiationCase={modalState.caseData} 
+                />
             )}
         </>
     );

@@ -15,10 +15,12 @@ interface InvoiceDetailProps {
     onBack: () => void;
 }
 
+// FIX: Added missing PREPARACAO_JUDICIAL key to satisfy the Record<CollectionStage, string> type.
 const collectionStageLabels: Record<CollectionStage, string> = {
     [CollectionStage.AGUARDANDO_CONTATO]: 'Aguardando Contato',
     [CollectionStage.EM_NEGOCIACAO]: 'Em Negociação',
     [CollectionStage.ACORDO_FEITO]: 'Acordo Feito',
+    [CollectionStage.PREPARACAO_JUDICIAL]: 'Preparação Judicial',
     [CollectionStage.PAGAMENTO_RECUSADO]: 'Pagamento Recusado',
 };
 

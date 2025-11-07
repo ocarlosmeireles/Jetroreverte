@@ -11,7 +11,6 @@ import { INSTALLMENT_RATES } from '../../constants';
 interface AgreementModalProps {
     isOpen: boolean;
     onClose: () => void;
-    // FIX: Changed onSave prop to not expect 'protocolNumber', as it's generated in the parent component.
     onSave: (data: Omit<AgreementDetails, 'createdAt' | 'protocolNumber'>) => void;
     invoice: Invoice;
 }
@@ -108,7 +107,7 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice }: AgreementModalProp
                         </header>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="text-center p-4 bg-primary-50 rounded-lg">
-                                <p className="text-sm text-primary-800">Valor Atualizado para Acordo</p>
+                                <p className="text-sm text-primary-800">Valor Negociado para Acordo</p>
                                 <p className="text-3xl font-bold text-primary-700">{formatCurrency(totalValue)}</p>
                             </div>
                              <div>
