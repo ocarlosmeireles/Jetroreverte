@@ -15,8 +15,8 @@ import InvoicesList from '../school/InvoicesList';
 import InvoiceDetail from '../school/InvoiceDetail';
 import SchoolBillingPage from '../school/SchoolBillingPage';
 import ContractAuditorPage from '../school/ContractAuditorPage';
-import PagePlaceholder from '../common/PagePlaceholder';
-import { BriefcaseIcon, ScaleIcon } from '../../components/common/icons';
+import SchoolNegotiations from '../school/SchoolNegotiations';
+import SchoolJudicialProcesses from '../school/SchoolJudicialProcesses';
 
 
 interface ViewState {
@@ -91,17 +91,9 @@ const SchoolDashboard = (): React.ReactElement => {
                  }
                  return <InvoicesList onSelectInvoice={handleSelectInvoice} />;
             case 'negociacoes':
-                return <PagePlaceholder
-                    icon={<ScaleIcon className="w-16 h-16 text-primary-300" />}
-                    title="Acompanhamento de Negociações"
-                    message="Em breve, você poderá acompanhar o andamento das negociações realizadas pelo escritório em tempo real."
-                />;
+                return <SchoolNegotiations />;
             case 'processos':
-                return <PagePlaceholder
-                    icon={<BriefcaseIcon className="w-16 h-16 text-primary-300" />}
-                    title="Processos Judiciais"
-                    message="Visualize o status e as últimas atualizações dos processos judiciais abertos para a sua escola."
-                />;
+                return <SchoolJudicialProcesses />;
             case 'auditor':
                 return <ContractAuditorPage />;
             case 'relatorios':
