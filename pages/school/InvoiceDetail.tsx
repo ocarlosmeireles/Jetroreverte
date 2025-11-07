@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians } from '../../services/demoData';
 import { Invoice, InvoiceStatus, CollectionStage } from '../../types';
 import Card from '../../components/common/Card';
@@ -9,6 +9,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import AiCommunicationModal from '../../components/school/AiCommunicationModal';
 import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
 import ContactHistoryModal from '../../components/common/ContactHistoryModal';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface InvoiceDetailProps {
     invoiceId: string;
@@ -41,6 +42,11 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
     const student = demoStudents.find(s => s.id === currentInvoice?.studentId);
     const guardian = demoGuardians.find(g => g.id === student?.guardianId);
     
+    const { updatedValue, fine, interest } = useMemo(() => {
+        if (!currentInvoice) return { updatedValue: 0, fine: 0, interest: 0 };
+        return calculateUpdatedInvoiceValues(currentInvoice);
+    }, [currentInvoice]);
+
     if (!currentInvoice || !student || !guardian) {
         return (
             <Card>
@@ -49,6 +55,8 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
             </Card>
         );
     }
+
+    const displayValue = currentInvoice.status === InvoiceStatus.VENCIDO ? updatedValue : currentInvoice.value;
     
     const getStatusChip = (status: InvoiceStatus) => {
         switch (status) {
@@ -141,7 +149,12 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                             <p className="text-sm text-neutral-500 mt-1">ID da Cobrança: ${currentInvoice.id}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 text-right">
-                            <p className="text-3xl font-extrabold text-neutral-900">{formatCurrency(currentInvoice.value)}</p>
+                            <p className="text-3xl font-extrabold text-neutral-900">{formatCurrency(displayValue)}</p>
+                            {currentInvoice.status === InvoiceStatus.VENCIDO && (
+                                <p className="text-sm text-neutral-500 mt-1">
+                                    (Original: {formatCurrency(currentInvoice.value)} + {formatCurrency(fine)} multa + {formatCurrency(interest)} juros)
+                                </p>
+                            )}
                             {getStatusChip(currentInvoice.status)}
                         </div>
                     </div>
@@ -226,7 +239,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                 <EmailCommunicationModal
                     isOpen={isEmailModalOpen}
                     onClose={() => setIsEmailModalOpen(false)}
-                    invoice={currentInvoice}
+                    invoice={{...currentInvoice, value: displayValue}}
                     student={student}
                     guardian={guardian}
                 />
@@ -235,7 +248,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                 <AiCommunicationModal
                     isOpen={isAiModalOpen}
                     onClose={() => setIsAiModalOpen(false)}
-                    invoice={currentInvoice}
+                    invoice={{...currentInvoice, value: displayValue}}
                     student={student}
                     guardian={guardian}
                 />

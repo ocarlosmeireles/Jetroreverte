@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { demoStudents, demoGuardians, demoInvoices } from '../../services/demoData';
@@ -7,6 +8,7 @@ import Button from '../../components/common/Button';
 import { ArrowLeftIcon, PlusIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import AddInvoiceModal from '../../components/school/AddInvoiceModal';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface StudentDetailProps {
     studentId: string;
@@ -113,41 +115,49 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-neutral-200">
-                                        {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => (
-                                            <tr key={invoice.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.notes || 'Mensalidade'}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(invoice.dueDate)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(invoice.value)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">
-                                                  {invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
+                                            const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                                            const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                            return (
+                                                <tr key={invoice.id}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.notes || 'Mensalidade'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(invoice.dueDate)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(displayValue)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">
+                                                    {invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                                 {/* Mobile Cards */}
                                 <div className="md:hidden">
                                     <motion.div className="divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
-                                        {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map(invoice => (
-                                            <motion.div key={invoice.id} variants={itemVariants} className="p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <p className="font-semibold text-neutral-800">{invoice.notes || 'Mensalidade'}</p>
-                                                        <p className="text-sm text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</p>
+                                        {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map(invoice => {
+                                            const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                                            const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                            return (
+                                                <motion.div key={invoice.id} variants={itemVariants} className="p-4">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <p className="font-semibold text-neutral-800">{invoice.notes || 'Mensalidade'}</p>
+                                                            <p className="text-sm text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</p>
+                                                        </div>
+                                                        {getStatusChip(invoice.status)}
                                                     </div>
-                                                    {getStatusChip(invoice.status)}
-                                                </div>
-                                                <div className="text-sm flex justify-between mt-2 pt-2 border-t border-neutral-100">
-                                                    <span className="text-neutral-500">Valor:</span>
-                                                    <span className="font-medium text-neutral-800">{formatCurrency(invoice.value)}</span>
-                                                </div>
-                                                <div className="text-sm flex justify-between mt-1">
-                                                    <span className="text-neutral-500">Cobrança:</span>
-                                                    <span className="font-medium text-neutral-800">{invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}</span>
-                                                </div>
-                                            </motion.div>
-                                        ))}
+                                                    <div className="text-sm flex justify-between mt-2 pt-2 border-t border-neutral-100">
+                                                        <span className="text-neutral-500">Valor:</span>
+                                                        <span className="font-medium text-neutral-800">{formatCurrency(displayValue)}</span>
+                                                    </div>
+                                                    <div className="text-sm flex justify-between mt-1">
+                                                        <span className="text-neutral-500">Cobrança:</span>
+                                                        <span className="font-medium text-neutral-800">{invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}</span>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
                                     </motion.div>
                                 </div>
                             </>

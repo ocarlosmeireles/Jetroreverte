@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -11,6 +10,7 @@ import { InvoiceStatus, Student, Guardian, Invoice, CollectionStage } from '../.
 import AddStudentModal from '../../components/school/AddStudentModal';
 import AddInvoiceModal from '../../components/school/AddInvoiceModal';
 import { demoStudents, demoGuardians, demoInvoices } from '../../services/demoData';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 
 interface SchoolDashboardContentProps {
@@ -61,7 +61,7 @@ const SchoolDashboardContent = ({ onSelectStudent }: SchoolDashboardContentProps
 
     const [stats, setStats] = useState({ totalAlunos: 0, paidThisMonth: 0, pending: 0, overdue: 0 });
     const [revenueData, setRevenueData] = useState<{ month: string, Arrecadado: number }[]>([]);
-    const [overdueStudents, setOverdueStudents] = useState<(Invoice & { studentName?: string })[]>([]);
+    const [overdueStudents, setOverdueStudents] = useState<(Invoice & { studentName?: string, updatedValue?: number })[]>([]);
 
     const fetchData = () => {
         const schoolId = user?.schoolId || 'school-01'; // Fallback for demo purposes
@@ -92,7 +92,9 @@ const SchoolDashboardContent = ({ onSelectStudent }: SchoolDashboardContentProps
                     .reduce((sum, inv) => sum + inv.value, 0);
                 
                 const pending = invoicesList.filter(i => i.status === InvoiceStatus.PENDENTE).reduce((sum, inv) => sum + inv.value, 0);
-                const overdue = invoicesList.filter(i => i.status === InvoiceStatus.VENCIDO).reduce((sum, inv) => sum + inv.value, 0);
+                const overdue = invoicesList
+                    .filter(i => i.status === InvoiceStatus.VENCIDO)
+                    .reduce((sum, inv) => sum + calculateUpdatedInvoiceValues(inv).updatedValue, 0);
                 setStats({ totalAlunos: studentsList.length, paidThisMonth, pending, overdue });
 
                 // Calculate revenue data for chart
@@ -113,7 +115,11 @@ const SchoolDashboardContent = ({ onSelectStudent }: SchoolDashboardContentProps
                 // Get overdue students
                 const topOverdueStudents = invoicesList
                     .filter(i => i.status === InvoiceStatus.VENCIDO)
-                    .map(i => ({ ...i, studentName: studentsList.find(s => s.id === i.studentId)?.name || 'N/A' }))
+                    .map(i => ({ 
+                        ...i, 
+                        studentName: studentsList.find(s => s.id === i.studentId)?.name || 'N/A',
+                        updatedValue: calculateUpdatedInvoiceValues(i).updatedValue,
+                    }))
                     .slice(0, 5);
                 setOverdueStudents(topOverdueStudents);
 
@@ -243,7 +249,7 @@ const SchoolDashboardContent = ({ onSelectStudent }: SchoolDashboardContentProps
                             <li key={invoice.id} className="px-6 py-3 flex justify-between items-center hover:bg-neutral-50/70">
                                 <div>
                                     <p className="font-medium text-neutral-800">{invoice.studentName}</p>
-                                    <p className="text-sm text-red-600">{formatCurrency(invoice.value)} - Vencido em {formatDate(invoice.dueDate)}</p>
+                                    <p className="text-sm text-red-600">{formatCurrency(invoice.updatedValue || invoice.value)} - Vencido em {formatDate(invoice.dueDate)}</p>
                                 </div>
                                 <Button size="sm" variant="secondary" onClick={() => onSelectStudent(invoice.studentId)}>Ver Aluno</Button>
                             </li>

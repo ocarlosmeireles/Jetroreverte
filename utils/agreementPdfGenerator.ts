@@ -31,6 +31,28 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
     const margin = 20;
     let y = margin;
 
+    // --- Header ---
+    if (lawFirm.officeLogoUrl) {
+        try {
+            doc.addImage(lawFirm.officeLogoUrl, 'PNG', margin, y, 40, 20);
+        } catch (e) {
+            console.error("Could not add office logo to PDF:", e);
+        }
+    }
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(lawFirm.officeName || '', pageWidth - margin, y, { align: 'right' });
+    doc.text(lawFirm.officeAddress || '', pageWidth - margin, y + 5, { align: 'right' });
+    doc.text(lawFirm.officePhone || '', pageWidth - margin, y + 10, { align: 'right' });
+    doc.text(`OAB: ${lawFirm.oabNumber || ''}`, pageWidth - margin, y + 15, { align: 'right' });
+
+    y += 35; // Space after header
+
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+
     const addText = (text: string, options: any = {}) => {
         const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
         if (y + (lines.length * 6) > pageHeight - margin) {
@@ -43,6 +65,7 @@ export const generateAgreementPdf = (invoice: Invoice, student: Student, guardia
 
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0);
     doc.text('TERMO DE CONFISSÃO E PARCELAMENTO DE DÍVIDA', pageWidth / 2, y, { align: 'center' });
     y += 8;
 

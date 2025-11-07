@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import { ArrowLeftIcon, EnvelopeIcon } from '../../components/common/icons';
 import { formatCurrency } from '../../utils/formatters';
 import { useAuth } from '../../hooks/useAuth';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface GuardianDetailProps {
     guardianId: string;
@@ -30,7 +31,14 @@ const GuardianDetail = ({ guardianId, onBack, onSelectStudent }: GuardianDetailP
         );
     }
     
-    const totalDue = invoices.filter(i => i.status !== InvoiceStatus.PAGO).reduce((acc, i) => acc + i.value, 0);
+    const totalDue = invoices
+        .filter(i => i.status !== InvoiceStatus.PAGO)
+        .reduce((acc, i) => {
+            if (i.status === InvoiceStatus.VENCIDO) {
+                return acc + calculateUpdatedInvoiceValues(i).updatedValue;
+            }
+            return acc + i.value;
+        }, 0);
     const totalPaid = invoices.filter(i => i.status === InvoiceStatus.PAGO).reduce((acc, i) => acc + i.value, 0);
 
     const handleSendInvite = async () => {

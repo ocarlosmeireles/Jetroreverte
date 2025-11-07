@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { AnimatePresence, motion, Variants } from 'framer-motion';

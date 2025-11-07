@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -9,6 +8,7 @@ import { demoInvoices, demoStudents } from '../../services/demoData';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { InvoiceStatus, Invoice, CollectionStage } from '../../types';
 import AddInvoiceModal from '../../components/school/AddInvoiceModal';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 const listVariants = {
   visible: {
@@ -92,7 +92,7 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                         <thead className="bg-neutral-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor Original</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Vencimento</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status da Cobrança</th>
@@ -105,10 +105,13 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                             initial="hidden"
                             animate="visible"
                         >
-                            {invoices.map((invoice) => (
+                            {invoices.map((invoice) => {
+                                const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                                const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                return (
                                 <motion.tr key={invoice.id} variants={itemVariants} className="hover:bg-neutral-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.studentName}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(invoice.value)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(displayValue)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(invoice.dueDate)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">
@@ -120,7 +123,7 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                                         </button>
                                     </td>
                                 </motion.tr>
-                            ))}
+                            )})}
                         </motion.tbody>
                     </table>
                 </div>

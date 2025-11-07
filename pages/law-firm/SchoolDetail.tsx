@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
 import { InvoiceStatus } from '../../types';
@@ -10,6 +9,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
 import SchoolReportModal from '../../components/law-firm/SchoolReportModal';
 import { useAuth } from '../../hooks/useAuth';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface SchoolDetailProps {
     schoolId: string;
@@ -118,16 +118,20 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-200 bg-white">
-                                    {invoicesForSchool.map(invoice => (
-                                        <tr key={invoice.id} className="hover:bg-neutral-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-neutral-900">{invoice.studentName}</div>
-                                                <div className="text-xs text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">{formatCurrency(invoice.value)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
-                                        </tr>
-                                    ))}
+                                    {invoicesForSchool.map(invoice => {
+                                        const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                                        const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                        return (
+                                            <tr key={invoice.id} className="hover:bg-neutral-50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-neutral-900">{invoice.studentName}</div>
+                                                    <div className="text-xs text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">{formatCurrency(displayValue)}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         ) : (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
@@ -6,6 +7,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { InvoiceStatus, Invoice, CollectionStage } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { DEMO_USERS } from '../../constants';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 const listVariants = {
   visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.05 } },
@@ -111,8 +113,10 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
                     initial="hidden"
                     animate="visible"
                 >
-                    {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice: any) => {
+                    {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
                          const isSelected = selectedInvoiceId === invoice.id;
+                         const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                         const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
                          return (
                             <motion.tr 
                                 key={invoice.id} 
@@ -125,7 +129,7 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
                                     <div className="text-xs text-neutral-500">{formatDate(invoice.dueDate)}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{invoice.studentName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(invoice.value)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(displayValue)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">{getRiskChip(invoice.riskScore)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                                     {invoice.status !== InvoiceStatus.PAGO && invoice.collectionStage ? (
@@ -155,8 +159,10 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
             {/* Mobile Cards */}
             <div className="md:hidden">
                 <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
-                    {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice: any) => {
+                    {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
                         const isSelected = selectedInvoiceId === invoice.id;
+                        const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
+                        const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
                         return (
                             <motion.div
                                 key={invoice.id}
@@ -174,7 +180,7 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
                                 <div className="text-sm space-y-2 mt-2">
                                     <div className="flex justify-between">
                                         <span className="text-neutral-500">Valor:</span>
-                                        <span className="font-medium text-neutral-800">{formatCurrency(invoice.value)}</span>
+                                        <span className="font-medium text-neutral-800">{formatCurrency(displayValue)}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-neutral-500">Risco (IA):</span>
