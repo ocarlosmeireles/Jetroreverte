@@ -17,8 +17,11 @@ import {
     demoSaasInvoices,
     demoNotifications,
     demoNegotiationAttempts,
-    demoPetitions
+    demoPetitions,
+    demoJudicialProcesses,
+    demoLiveNegotiationHistories
 } from '../../services/demoData';
+import Modal from '../../components/common/Modal';
 
 
 const SettingsPage = (): React.ReactElement => {
@@ -45,6 +48,7 @@ const SettingsPage = (): React.ReactElement => {
     const [isCommissionSaved, setIsCommissionSaved] = useState(false);
     const [isSeeding, setIsSeeding] = useState(false);
     const [seedMessage, setSeedMessage] = useState('');
+    const [isConfirmingSeed, setIsConfirmingSeed] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -113,10 +117,7 @@ const SettingsPage = (): React.ReactElement => {
     };
 
     const handleSeedDatabase = async () => {
-        if (!window.confirm("Isso irá sobrescrever os dados existentes nas coleções de demonstração com os dados do arquivo 'demoData.ts'. Deseja continuar?")) {
-            return;
-        }
-        
+        setIsConfirmingSeed(false);
         setIsSeeding(true);
         setSeedMessage('Iniciando o processo...');
         
@@ -174,6 +175,18 @@ const SettingsPage = (): React.ReactElement => {
             setSeedMessage('Adicionando petições...');
             demoPetitions.forEach(item => {
                 const docRef = doc(db, "petitions", item.id);
+                batch.set(docRef, item);
+            });
+
+            setSeedMessage('Adicionando processos judiciais...');
+            demoJudicialProcesses.forEach(item => {
+                const docRef = doc(db, "judicialProcesses", item.id);
+                batch.set(docRef, item);
+            });
+
+            setSeedMessage('Adicionando históricos de negociação...');
+            demoLiveNegotiationHistories.forEach(item => {
+                const docRef = doc(db, "liveNegotiationHistories", item.id);
                 batch.set(docRef, item);
             });
     
@@ -312,7 +325,7 @@ const SettingsPage = (): React.ReactElement => {
             <Card>
                 <h2 className="text-xl font-bold text-neutral-800 mb-4">Ações de Desenvolvimento</h2>
                 <div className="flex items-center gap-4">
-                    <Button onClick={handleSeedDatabase} isLoading={isSeeding} variant="secondary" icon={<SparklesIcon/>}>
+                    <Button onClick={() => setIsConfirmingSeed(true)} isLoading={isSeeding} variant="secondary" icon={<SparklesIcon/>}>
                         {isSeeding ? 'Processando...' : 'Popular com Dados de Exemplo'}
                     </Button>
                 </div>
@@ -323,6 +336,30 @@ const SettingsPage = (): React.ReactElement => {
                 )}
             </Card>
             <style>{`.form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.25rem; }`}</style>
+
+            <Modal
+                isOpen={isConfirmingSeed}
+                onClose={() => setIsConfirmingSeed(false)}
+                title="Confirmar Ação"
+                size="md"
+            >
+                <div>
+                    <div className="p-6">
+                        <p className="text-neutral-600">
+                            Isso irá sobrescrever os dados existentes nas coleções de demonstração com os dados do arquivo 'demoData.ts'. Deseja continuar?
+                        </p>
+                        <p className="mt-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                            <strong>Aviso:</strong> Esta ação não pode ser desfeita facilmente.
+                        </p>
+                    </div>
+                    <footer className="p-4 bg-neutral-50 flex justify-end gap-3 rounded-b-2xl">
+                        <Button variant="secondary" onClick={() => setIsConfirmingSeed(false)}>Cancelar</Button>
+                        <Button variant="danger" onClick={handleSeedDatabase} isLoading={isSeeding}>
+                            Confirmar e Popular Banco
+                        </Button>
+                    </footer>
+                </div>
+            </Modal>
         </div>
     );
 };

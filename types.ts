@@ -263,6 +263,16 @@ export enum JudicialProcessStatus {
     RECURSO = 'Recurso',
 }
 
+export interface ProcessEvent {
+    id: string;
+    date: string; // ISO string
+    title: string;
+    description: string;
+    type: 'FILING' | 'DECISION' | 'HEARING' | 'UPDATE';
+    documents?: { name: string; url: string }[];
+}
+
+
 export interface JudicialProcess {
     id: string;
     officeId: string;
@@ -272,7 +282,7 @@ export interface JudicialProcess {
     processNumber: string;
     status: JudicialProcessStatus;
     lastUpdate: string; // ISO string
-    notes?: string;
+    events: ProcessEvent[];
 }
 
 export interface NegotiationCase {

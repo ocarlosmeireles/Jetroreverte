@@ -1,4 +1,4 @@
-import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus, LiveNegotiationHistory } from '../types';
+import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus, LiveNegotiationHistory, ProcessEvent } from '../types';
 
 // ############### AVISO ###############
 // Estes dados são usados para popular o banco de dados Firebase
@@ -85,10 +85,10 @@ export const demoStudents: Student[] = [
 ];
 
 export const demoInvoices: Invoice[] = [
-    { id: 'inv-01', studentId: 'stud-01', schoolId: 'school-01', studentName: 'Lucas Silva', value: 750.50, dueDate: '2024-07-10T00:00:00Z', status: InvoiceStatus.VENCIDO, notes: 'Mensalidade de Julho/2024', collectionStage: CollectionStage.EM_NEGOCIACAO, paymentLink: '#', riskScore: 85, isAutomationActive: true, nextAutomatedAction: { date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), action: 'Email formal de cobrança' } },
+    { id: 'inv-01', studentId: 'stud-01', schoolId: 'school-01', studentName: 'Lucas Silva', value: 750.50, dueDate: '2024-07-10T00:00:00Z', status: InvoiceStatus.VENCIDO, notes: 'Mensalidade de Julho/2024', collectionStage: CollectionStage.PREPARACAO_JUDICIAL, paymentLink: '#', riskScore: 85, isAutomationActive: true, nextAutomatedAction: { date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), action: 'Email formal de cobrança' } },
     { id: 'inv-02', studentId: 'stud-01', schoolId: 'school-01', studentName: 'Lucas Silva', value: 750.50, dueDate: '2024-06-10T00:00:00Z', status: InvoiceStatus.PAGO, notes: 'Mensalidade de Junho/2024', collectionStage: CollectionStage.ACORDO_FEITO, receiptUrl: '#', riskScore: 10 },
     { id: 'inv-03', studentId: 'stud-02', schoolId: 'school-01', studentName: 'Beatriz Pereira', value: 680.00, dueDate: '2024-08-10T00:00:00Z', status: InvoiceStatus.PENDENTE, notes: 'Mensalidade de Agosto/2024', collectionStage: CollectionStage.AGUARDANDO_CONTATO, paymentLink: '#', riskScore: 25, isAutomationActive: false },
-    { id: 'inv-04', studentId: 'stud-03', schoolId: 'school-02', studentName: 'Gabriel Costa', value: 820.00, dueDate: '2024-05-10T00:00:00Z', status: InvoiceStatus.VENCIDO, notes: 'Mensalidade de Maio/2024', collectionStage: CollectionStage.AGUARDANDO_CONTATO, paymentLink: '#', riskScore: 68, isAutomationActive: false },
+    { id: 'inv-04', studentId: 'stud-03', schoolId: 'school-02', studentName: 'Gabriel Costa', value: 820.00, dueDate: '2024-05-10T00:00:00Z', status: InvoiceStatus.VENCIDO, notes: 'Mensalidade de Maio/2024', collectionStage: CollectionStage.EM_NEGOCIACAO, paymentLink: '#', riskScore: 68, isAutomationActive: false },
     { id: 'inv-05', studentId: 'stud-04', schoolId: 'school-02', studentName: 'Mariana Oliveira', value: 950.00, dueDate: '2024-07-10T00:00:00Z', status: InvoiceStatus.PAGO, notes: 'Mensalidade de Julho/2024', collectionStage: CollectionStage.ACORDO_FEITO, receiptUrl: '#', riskScore: 5 },
     { id: 'inv-06', studentId: 'stud-05', schoolId: 'school-03', studentName: 'Sofia Lima', value: 890.00, dueDate: '2024-07-10T00:00:00Z', status: InvoiceStatus.VENCIDO, notes: 'Mensalidade de Julho/2024', collectionStage: CollectionStage.PAGAMENTO_RECUSADO, paymentLink: '#', riskScore: 92, isAutomationActive: true, nextAutomatedAction: { date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), action: 'Notificação extrajudicial' } },
     { id: 'inv-07', studentId: 'stud-06', schoolId: 'school-02', studentName: 'Davi Oliveira', value: 950.00, dueDate: '2024-07-10T00:00:00Z', status: InvoiceStatus.PENDENTE, notes: 'Mensalidade de Julho/2024', collectionStage: CollectionStage.AGUARDANDO_CONTATO, paymentLink: '#', riskScore: 45, isAutomationActive: true, nextAutomatedAction: { date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), action: 'Lembrete amigável via WhatsApp' } },
@@ -185,6 +185,12 @@ export const demoCampaigns: Campaign[] = [
     { id: 'camp-03', officeId: 'user-escritorio-01', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0, conversionRate: 0, valueGenerated: 0 },
 ];
 
+const processEvents: ProcessEvent[] = [
+    { id: 'evt-01', date: '2024-08-02T10:00:00Z', type: 'FILING', title: 'Petição Inicial Protocolada', description: 'Ação de cobrança distribuída para a 1ª Vara do Juizado Especial Cível.', documents: [{ name: 'Petição Inicial.pdf', url: '#' }] },
+    { id: 'evt-02', date: '2024-08-10T14:00:00Z', type: 'DECISION', title: 'Despacho Inicial', description: 'Juiz determina a citação do réu para apresentar defesa no prazo de 15 dias.' },
+    { id: 'evt-03', date: '2024-08-15T09:00:00Z', type: 'UPDATE', title: 'Mandado de Citação Expedido', description: 'AR enviado para o endereço do réu.' },
+];
+
 export const demoJudicialProcesses: JudicialProcess[] = [
     {
         id: 'proc-01',
@@ -193,9 +199,22 @@ export const demoJudicialProcesses: JudicialProcess[] = [
         studentName: 'Lucas Silva',
         schoolName: 'Escola Aprender Mais',
         processNumber: '0012345-67.2024.8.26.0001',
-        status: JudicialProcessStatus.PROTOCOLADO,
+        status: JudicialProcessStatus.AGUARDANDO_CITACAO,
         lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        notes: 'Processo distribuído para a 1ª Vara do Juizado Especial Cível.'
+        events: processEvents,
+    },
+    {
+        id: 'proc-02',
+        officeId: 'user-escritorio-01',
+        petitionId: 'pet-02',
+        studentName: 'Sofia Lima',
+        schoolName: 'Instituto Crescer',
+        processNumber: '0098765-43.2024.8.13.0024',
+        status: JudicialProcessStatus.PROTOCOLADO,
+        lastUpdate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        events: [
+             { id: 'evt-04', date: '2024-07-28T11:00:00Z', type: 'FILING', title: 'Petição Inicial Protocolada', description: 'Ação de execução de título extrajudicial distribuída.' }
+        ],
     },
 ];
 

@@ -265,3 +265,26 @@ export const ChevronRightIcon = ({ className = 'w-5 h-5' }: IconProps) => (
       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
     </svg>
 );
+
+export const GavelIcon = ({ className = 'w-6 h-6' }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5-7.5-7.5 7.5-7.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l-7.5 7.5 7.5 7.5 7.5-7.5-7.5-7.5zm0 0l7.5 7.5m-7.5-7.5L3.75 12m7.5-7.5l7.5 7.5M3.75 12l7.5 7.5m-7.5-7.5h15" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12l-7.5-7.5" />
+        <path d="M17.02 4.31L7.53 13.8m9.49-9.49l-9.49 9.49m0-9.49l9.49 9.49" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M6 18h12" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 18v-6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+export const DocumentTextIcon = ({ className = 'w-6 h-6' }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3h7.5m-7.5-3v-3m0 3h-1.5m1.5 0v-3m0 0h1.5m-1.5 0h-1.5m-1.5 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+  </svg>
+);
+
+export const CalendarDaysIcon = ({ className = 'w-6 h-6' }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M12 12.75h.008v.008H12v-.008z" />
+  </svg>
+);
