@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
 import { allDemoUsers as initialUsers } from '../../services/superAdminDemoData';
@@ -6,6 +7,8 @@ import { User, UserRole } from '../../types';
 import Button from '../../components/common/Button';
 import UserEditModal from '../../components/super-admin/UserEditModal';
 import { demoSchools } from '../../services/demoData';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 
 
 const listVariants = {
@@ -19,14 +22,60 @@ const itemVariants: Variants = {
 };
 
 const UserManagement = (): React.ReactElement => {
-    const [users, setUsers] = useState(initialUsers);
+    const [users, setUsers] = useState<(User & { status: 'Ativo' | 'Inativo' })[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<UserRole | 'ALL'>('ALL');
     const [editingUser, setEditingUser] = useState<(User & { status: 'Ativo' | 'Inativo' }) | null>(null);
 
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            try {
+                // Fetch users from Firestore 'users' collection
+                const usersCollectionRef = collection(db, 'users');
+                const querySnapshot = await getDocs(usersCollectionRef);
+                const firestoreUsers = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...(doc.data() as Omit<User, 'id'>),
+                    status: 'Ativo', // Assuming all users in DB are active for this demo
+                })) as (User & { status: 'Ativo' | 'Inativo' })[];
+    
+                // Combine demo users and firestore users, ensuring no duplicates based on email
+                const combinedUsersMap = new Map<string, (User & { status: 'Ativo' | 'Inativo' })>();
+                
+                // Add demo users first
+                initialUsers.forEach(user => {
+                    if (user.email) {
+                        combinedUsersMap.set(user.email, user);
+                    }
+                });
+    
+                // Add/overwrite with firestore users
+                firestoreUsers.forEach(user => {
+                    if (user.email) {
+                        combinedUsersMap.set(user.email, user);
+                    }
+                });
+    
+                const combinedUsers = Array.from(combinedUsersMap.values());
+    
+                setUsers(combinedUsers);
+            } catch (error) {
+                console.error("Error fetching users from Firestore:", error);
+                // Fallback to initial demo users if firestore fails
+                setUsers(initialUsers);
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        fetchUsers();
+    }, []);
+
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
-            const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
             const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
             return matchesSearch && matchesRole;
         });
@@ -47,6 +96,16 @@ const UserManagement = (): React.ReactElement => {
         return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${styles[role]}`}>{role.replace('_', ' ')}</span>;
     };
     
+    if (loading) {
+        return (
+            <Card>
+                <div className="p-8 text-center text-neutral-600">
+                    Carregando usuários...
+                </div>
+            </Card>
+        );
+    }
+
     return (
         <>
             <Card noPadding>
