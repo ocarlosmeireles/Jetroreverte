@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
@@ -118,8 +116,7 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
                 >
                     {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
                          const isSelected = selectedInvoiceId === invoice.id;
-                         const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                         const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                         const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                          return (
                             <motion.tr 
                                 key={invoice.id} 
@@ -164,8 +161,7 @@ const LawFirmInvoicesList = ({ onSelectInvoice, selectedInvoiceId }: InvoicesLis
                 <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
                     {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
                         const isSelected = selectedInvoiceId === invoice.id;
-                        const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                        const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                        const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                         return (
                             <motion.div
                                 key={invoice.id}

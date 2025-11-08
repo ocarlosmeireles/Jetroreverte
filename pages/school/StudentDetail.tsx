@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { demoStudents, demoGuardians, demoInvoices } from '../../services/demoData';
@@ -118,8 +117,7 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
                                     </thead>
                                     <tbody className="bg-white divide-y divide-neutral-200">
                                         {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
-                                            const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                                            const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                            const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                             return (
                                                 <tr key={invoice.id}>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.notes || 'Mensalidade'}</td>
@@ -138,8 +136,7 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
                                 <div className="md:hidden">
                                     <motion.div className="divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
                                         {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map(invoice => {
-                                            const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                                            const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                            const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                             return (
                                                 <motion.div key={invoice.id} variants={itemVariants} className="p-4">
                                                     <div className="flex justify-between items-start mb-2">

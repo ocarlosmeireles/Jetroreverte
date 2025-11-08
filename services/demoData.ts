@@ -1,4 +1,4 @@
-import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus } from '../types';
+import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus, LiveNegotiationHistory } from '../types';
 
 // ############### AVISO ###############
 // Estes dados são usados para popular o banco de dados Firebase
@@ -144,4 +144,17 @@ export const demoJudicialProcesses: JudicialProcess[] = [
         lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         notes: 'Processo distribuído para a 1ª Vara do Juizado Especial Cível.'
     },
+];
+
+export const demoLiveNegotiationHistories: LiveNegotiationHistory[] = [
+    {
+        id: 'live-hist-01',
+        studentId: 'stud-01',
+        studentName: 'Lucas Silva',
+        guardianName: 'Carlos Silva',
+        schoolName: 'Escola Aprender Mais',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        transcript: "Advogado: Olá, Sr. Carlos, falo sobre a mensalidade de Julho.\n\nCarlos: Ah, olá. Tive um imprevisto, fica difícil pagar o valor cheio agora.\n\nAdvogado: Entendo. E se parcelarmos em 2x sem juros no cartão?",
+        finalSuggestion: "O responsável parece aberto a um parcelamento. Sugira 2x de R$ 394,14. Se ele hesitar, ofereça 3x com juros baixos."
+    }
 ];

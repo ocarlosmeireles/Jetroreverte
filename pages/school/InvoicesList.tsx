@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -111,8 +109,7 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                             animate="visible"
                         >
                             {invoices.map((invoice) => {
-                                const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                                const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                 return (
                                 <motion.tr key={invoice.id} variants={itemVariants} className="hover:bg-neutral-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.studentName}</td>
@@ -135,8 +132,7 @@ const InvoicesList = ({ onSelectInvoice }: InvoicesListProps): React.ReactElemen
                     <div className="md:hidden">
                         <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
                             {invoices.map(invoice => {
-                                const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                                const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                 return (
                                 <motion.div key={invoice.id} variants={itemVariants} className="p-4 hover:bg-neutral-50" onClick={() => onSelectInvoice(invoice.id)}>
                                     <div className="flex justify-between items-start">

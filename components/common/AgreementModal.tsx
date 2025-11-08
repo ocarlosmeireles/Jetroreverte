@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Invoice, AgreementDetails } from '../../types';
@@ -13,6 +12,10 @@ interface AgreementModalProps {
     onClose: () => void;
     onSave: (data: Omit<AgreementDetails, 'createdAt' | 'protocolNumber'>) => void;
     invoice: Invoice;
+    initialValues?: {
+        installments: number;
+        totalValue: number;
+    }
 }
 
 const backdropVariants: Variants = {
@@ -26,21 +29,24 @@ const modalVariants: Variants = {
     exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: 0.2 } },
 };
 
-const AgreementModal = ({ isOpen, onClose, onSave, invoice }: AgreementModalProps): React.ReactElement => {
-    const totalValue = invoice.updatedValue || invoice.value;
+const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: AgreementModalProps): React.ReactElement => {
     
     const [installments, setInstallments] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState<'Boleto' | 'Pix' | 'Cartão de Crédito'>('Boleto');
     const [firstDueDate, setFirstDueDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    const totalValue = useMemo(() => {
+        return initialValues?.totalValue ?? invoice.updatedValue ?? invoice.value;
+    }, [initialValues, invoice]);
 
     useEffect(() => {
         if (isOpen) {
-            setInstallments(1);
+            setInstallments(initialValues?.installments ?? 1);
             setPaymentMethod('Boleto');
             setFirstDueDate('');
         }
-    }, [isOpen]);
+    }, [isOpen, initialValues]);
     
     const { installmentValue, totalWithInterest, interestRate, isInterestFree } = useMemo(() => {
         if (installments === 1) {

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../../components/common/Card';
@@ -263,7 +261,7 @@ const GuardianFinancials = ({ onStartNegotiation }: GuardianFinancialsProps): Re
             >
                 {invoicesWithCalculations.length > 0 ? invoicesWithCalculations.map((invoice, index) => {
                     const { chip, action } = getStatusInfo(invoice);
-                    const displayValue = invoice.status === InvoiceStatus.VENCIDO ? invoice.updatedValue : invoice.value;
+                    const displayValue = invoice.updatedValue;
                     return (
                         <Card key={invoice.id} delay={index * 0.05}>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">

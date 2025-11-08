@@ -263,3 +263,22 @@ export interface JudicialProcess {
     lastUpdate: string; // ISO string
     notes?: string;
 }
+
+export interface NegotiationCase {
+    invoice: Invoice;
+    student: Student | undefined;
+    guardian: Guardian | undefined;
+    school: School | undefined;
+    attempts: NegotiationAttempt[];
+}
+
+export interface LiveNegotiationHistory {
+    id: string;
+    studentId: string;
+    studentName: string;
+    guardianName: string;
+    schoolName: string;
+    date: string; // ISO string
+    transcript: string;
+    finalSuggestion: string;
+}

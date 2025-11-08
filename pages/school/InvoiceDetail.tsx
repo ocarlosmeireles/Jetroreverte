@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians } from '../../services/demoData';
 import { Invoice, InvoiceStatus, CollectionStage } from '../../types';
@@ -56,7 +55,8 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
         );
     }
 
-    const displayValue = currentInvoice.status === InvoiceStatus.VENCIDO ? updatedValue : currentInvoice.value;
+    const isOverdue = fine > 0 || interest > 0;
+    const displayValue = updatedValue;
     
     const getStatusChip = (status: InvoiceStatus) => {
         switch (status) {
@@ -149,7 +149,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                             <p className="text-sm text-neutral-500 mt-1">ID da Cobrança: ${currentInvoice.id}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 text-right">
-                            <p className={`text-3xl font-extrabold ${currentInvoice.status === InvoiceStatus.VENCIDO ? 'text-red-600' : 'text-neutral-900'}`}>{formatCurrency(displayValue)}</p>
+                            <p className={`text-3xl font-extrabold ${isOverdue ? 'text-red-600' : 'text-neutral-900'}`}>{formatCurrency(displayValue)}</p>
                             <div className="mt-1">{getStatusChip(currentInvoice.status)}</div>
                         </div>
                     </div>
@@ -174,7 +174,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                         </div>
                     </div>
 
-                    {currentInvoice.status === InvoiceStatus.VENCIDO && (
+                    {isOverdue && (
                         <div className="mt-6 pt-6 border-t border-neutral-200">
                             <h3 className="text-lg font-semibold text-neutral-700 mb-3">Composição do Valor Atualizado</h3>
                             <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 space-y-2 text-sm">

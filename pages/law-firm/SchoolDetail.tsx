@@ -158,8 +158,7 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
                                 </thead>
                                 <tbody className="divide-y divide-neutral-200 bg-white">
                                     {invoicesForSchool.map(invoice => {
-                                        const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
-                                        const displayValue = invoice.status === InvoiceStatus.VENCIDO ? updatedValue : invoice.value;
+                                        const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                         return (
                                             <tr key={invoice.id} className="hover:bg-neutral-50/70 transition-colors">
                                                 <td className="px-4 py-3 whitespace-nowrap">

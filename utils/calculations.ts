@@ -8,7 +8,7 @@ export const calculateUpdatedInvoiceValues = (invoice: Invoice) => {
     const todayAtStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const dueAtStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
 
-    if (invoice.status !== InvoiceStatus.VENCIDO || todayAtStart <= dueAtStart) {
+    if (invoice.status === InvoiceStatus.PAGO || todayAtStart <= dueAtStart) {
         return { updatedValue: invoice.value, fine: 0, interest: 0, monthsOverdue: 0 };
     }
 
