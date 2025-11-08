@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Invoice, AgreementDetails } from '../../types';
@@ -58,6 +57,19 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
             };
         }
         
+        // If initialValues are provided, it's from an AI suggestion.
+        // The totalValue from AI is the FINAL amount, so we just divide it.
+        if (initialValues) {
+             const installment = totalValue / installments;
+             return {
+                installmentValue: installment,
+                totalWithInterest: totalValue,
+                interestRate: 0, // Rate is already baked into the total
+                isInterestFree: false,
+             }
+        }
+        
+        // Original logic for manual agreement creation: apply interest rates.
         const rate = INSTALLMENT_RATES[installments as keyof typeof INSTALLMENT_RATES] || 0;
         const total = totalValue * (1 + rate);
         const installment = total / installments;
@@ -68,7 +80,7 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
             interestRate: rate * 100,
             isInterestFree: false,
         };
-    }, [installments, totalValue]);
+    }, [installments, totalValue, initialValues]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,6 +148,10 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
                                     </p>
                                     {isInterestFree ? (
                                         <p className="text-sm font-medium text-green-700">Sem juros de parcelamento</p>
+                                    ) : initialValues ? (
+                                        <p className="text-sm text-neutral-500">
+                                            Valor total do acordo: {formatCurrency(totalWithInterest)}
+                                        </p>
                                     ) : (
                                         <p className="text-sm text-neutral-500">
                                             Total com juros: {formatCurrency(totalWithInterest)} ({interestRate.toFixed(2)}%)
