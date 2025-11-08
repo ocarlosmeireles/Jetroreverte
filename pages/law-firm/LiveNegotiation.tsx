@@ -8,7 +8,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { NegotiationCase, LiveNegotiationHistory, CollectionStage, NegotiationChannel } from '../../types';
 import { demoInvoices, demoStudents, demoGuardians, demoSchools, demoNegotiationAttempts, demoLiveNegotiationHistories } from '../../services/demoData';
 import { useAuth } from '../../hooks/useAuth';
-import { DEMO_USERS } from '../../constants';
+import { DEMO_USERS, INSTALLMENT_RATES } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Modal from '../../components/common/Modal';
 import AgreementModal from '../../components/common/AgreementModal';
@@ -66,6 +66,42 @@ const NegotiationControlPanel = ({
     const { invoice, student, guardian, attempts } = caseData;
     const { updatedValue, fine, interest } = calculateUpdatedInvoiceValues(invoice);
     const originalValue = invoice.value;
+
+    const [manualInstallments, setManualInstallments] = useState(1);
+    const isInitialMount = useRef(true);
+
+    const manualCalculation = useMemo(() => {
+        let totalValue, installmentValue, rate = 0;
+
+        if (manualInstallments === 1) {
+            totalValue = updatedValue;
+            installmentValue = updatedValue;
+        } else {
+            rate = INSTALLMENT_RATES[manualInstallments as keyof typeof INSTALLMENT_RATES] || 0;
+            totalValue = updatedValue * (1 + rate);
+            installmentValue = totalValue / manualInstallments;
+        }
+
+        return {
+            totalWithInterest: totalValue,
+            installmentValue: installmentValue,
+            interestRate: rate * 100,
+        };
+    }, [manualInstallments, updatedValue]);
+
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        const manualOption: NegotiationOption = {
+            title: `Acordo Manual ${manualInstallments}x`,
+            description: `Parcelamento em ${manualInstallments}x de ${formatCurrency(manualCalculation.installmentValue)} (Total: ${formatCurrency(manualCalculation.totalWithInterest)})`,
+            installments: manualInstallments,
+            totalValue: manualCalculation.totalWithInterest,
+        };
+        onSelectOption(manualOption);
+    }, [manualCalculation]);
 
     return (
         <aside className="w-full lg:w-96 flex-shrink-0">
@@ -125,6 +161,39 @@ const NegotiationControlPanel = ({
                                 </motion.div>
                             );
                         })}
+                    </div>
+                </Card>
+
+                <Card>
+                    <h3 className="text-lg font-bold text-neutral-800 mb-2">Simulador de Acordo Manual</h3>
+                    <div className="text-center p-3 bg-neutral-100 rounded-lg">
+                        <p className="text-sm text-neutral-600">Valor Base para Acordo</p>
+                        <p className="text-2xl font-bold text-neutral-800">{formatCurrency(updatedValue)}</p>
+                    </div>
+                    <div className="mt-4">
+                        <label htmlFor="manual-installments" className="text-sm font-medium text-neutral-700 mb-1">Parcelas</label>
+                        <div className="flex items-center gap-4">
+                            <input 
+                                type="range" 
+                                id="manual-installments" 
+                                min="1" 
+                                max="12" 
+                                value={manualInstallments} 
+                                onChange={e => setManualInstallments(Number(e.target.value))}
+                                className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer"
+                            />
+                            <span className="font-bold text-lg text-neutral-700 w-8 text-center">{manualInstallments}x</span>
+                        </div>
+                    </div>
+                    <div className={`text-center mt-3 p-3 border rounded-md transition-colors ${selectedOption?.title.startsWith('Acordo Manual') ? 'bg-primary-500' : 'bg-blue-50/70 border-blue-100'}`}>
+                        <p className={`text-lg font-semibold ${selectedOption?.title.startsWith('Acordo Manual') ? 'text-white' : 'text-neutral-800'}`}>
+                            {manualInstallments}x de <span className={selectedOption?.title.startsWith('Acordo Manual') ? 'text-white' : 'text-blue-600'}>{formatCurrency(manualCalculation.installmentValue)}</span>
+                        </p>
+                        {manualInstallments > 1 && (
+                            <p className={`text-sm mt-1 ${selectedOption?.title.startsWith('Acordo Manual') ? 'text-primary-100' : 'text-neutral-500'}`}>
+                                Total com juros: {formatCurrency(manualCalculation.totalWithInterest)} ({manualCalculation.interestRate.toFixed(2)}%)
+                            </p>
+                        )}
                     </div>
                 </Card>
                 
