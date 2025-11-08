@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Card from '../../components/common/Card';
@@ -283,7 +284,7 @@ const SettingsPage = (): React.ReactElement => {
                     {isCommissionSaved && <p className="text-sm text-green-600 animate-fade-in">Configuração salva com sucesso!</p>}
                 </div>
             </Card>
-
+            
             <Card>
                 <h2 className="text-xl font-bold text-neutral-800 mb-4">Integrações</h2>
                 <div className="bg-neutral-50 p-4 rounded-lg border flex items-center justify-between">

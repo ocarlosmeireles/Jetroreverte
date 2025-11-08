@@ -1,5 +1,7 @@
 {
   "name": "Jetro Reverte Cobrança Educacional",
   "description": "Uma ferramenta interna para um escritório de advocacia gerenciar a cobrança de inadimplentes para escolas clientes.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

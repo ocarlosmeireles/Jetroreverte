@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Invoice, NotificationType, Student, Guardian, School, User } from '../../types';
@@ -18,6 +19,47 @@ interface NegotiationPortalProps {
     invoiceId: string;
     onBack: () => void;
 }
+
+const BudgetSimulator = ({ installmentValue }: { installmentValue: number }) => {
+    const [income, setIncome] = useState('');
+    const [expenses, setExpenses] = useState('');
+
+    const remaining = useMemo(() => {
+        const numericIncome = parseFloat(income) || 0;
+        const numericExpenses = parseFloat(expenses) || 0;
+        if (numericIncome === 0) return null;
+        return numericIncome - numericExpenses - installmentValue;
+    }, [income, expenses, installmentValue]);
+
+    return (
+        <Card>
+            <h3 className="text-xl font-bold text-neutral-800 mb-2">Simulador de Orçamento Mensal</h3>
+            <p className="text-sm text-neutral-600 mb-4">Veja como a parcela do acordo se encaixa no seu orçamento.</p>
+            <div className="space-y-4">
+                <div>
+                    <label className="form-label">Sua Renda Mensal (R$)</label>
+                    <input type="number" value={income} onChange={e => setIncome(e.target.value)} className="w-full form-input" placeholder="Ex: 3500.00" />
+                </div>
+                <div>
+                    <label className="form-label">Outras Despesas Mensais (R$)</label>
+                    <input type="number" value={expenses} onChange={e => setExpenses(e.target.value)} className="w-full form-input" placeholder="Ex: 2000.00" />
+                </div>
+                <div className="p-4 bg-primary-50 rounded-lg text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-neutral-600">Parcela do Acordo:</span>
+                        <span className="font-bold text-neutral-800">-{formatCurrency(installmentValue)}</span>
+                    </div>
+                </div>
+                {remaining !== null && (
+                    <div className={`text-center p-4 rounded-lg font-bold text-lg ${remaining >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        Saldo Restante Estimado: {formatCurrency(remaining)}
+                    </div>
+                )}
+            </div>
+        </Card>
+    );
+};
+
 
 const NegotiationPortal = ({ invoiceId, onBack }: NegotiationPortalProps): React.ReactElement => {
     const { user } = useAuth();
@@ -80,7 +122,7 @@ const NegotiationPortal = ({ invoiceId, onBack }: NegotiationPortalProps): React
         }
     };
     
-    const chatSystemInstruction = `Você é um assistente financeiro educado da plataforma Jetro Reverte. Seu objetivo é ajudar o responsável financeiro a entender sua dívida e as opções de negociação. Responda apenas a perguntas sobre a dívida atual, juros, multas e formas de pagamento disponíveis. Não negocie valores ou crie condições de pagamento. Apenas forneça informações claras e guie o usuário a usar as ferramentas do portal (simulador ou formulário de proposta) para formalizar um acordo. A dívida atual é de ${formatCurrency(updatedValue)}.`;
+    const chatSystemInstruction = `Você é um assistente financeiro amigável e compreensivo da plataforma Jetro Reverte. Seu objetivo é ajudar o responsável financeiro a entender o débito pendente e a explorar soluções de forma clara e sem julgamentos. Você pode explicar como juros são calculados, detalhar a dívida atual e explicar as opções disponíveis no portal (simulador de parcelas, formulário de proposta). Você não tem autorização para negociar valores diretamente, mas deve ser sempre solidário e guiá-lo para usar as ferramentas da plataforma a fim de encontrar uma resolução. A dívida atual é de ${formatCurrency(updatedValue)}.`;
 
     const hasPendingAgreement = invoice.agreement && !invoice.agreement.isApproved;
     const hasApprovedAgreement = invoice.agreement && invoice.agreement.isApproved;
@@ -155,7 +197,7 @@ const NegotiationPortal = ({ invoiceId, onBack }: NegotiationPortalProps): React
                     )}
                 </div>
 
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-6">
                     <Card>
                         <h3 className="text-lg font-bold text-neutral-800 mb-3">Resumo do Débito</h3>
                          <div className="space-y-2 text-sm p-4 bg-neutral-50 rounded-lg border">
@@ -165,6 +207,7 @@ const NegotiationPortal = ({ invoiceId, onBack }: NegotiationPortalProps): React
                             <div className="flex justify-between pt-2 border-t mt-2"><span className="text-neutral-500">Valor Atualizado:</span> <span className="font-bold text-red-600">{formatCurrency(updatedValue)}</span></div>
                         </div>
                     </Card>
+                    <BudgetSimulator installmentValue={installmentValue} />
                 </div>
             </div>
 

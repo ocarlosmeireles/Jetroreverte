@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, ReactNode } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { School, User, InvoiceStatus } from '../../types';

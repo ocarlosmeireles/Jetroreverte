@@ -1,9 +1,9 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
-import { UserRole } from '../../types';
+import { UserRole, School } from '../../types';
 import AdminDashboardContent from '../admin/AdminDashboardContent';
 import SchoolsList from '../law-firm/SchoolsList';
 import AppLayout from '../../components/layout/AppLayout';
@@ -18,6 +18,11 @@ import PetitionList from '../law-firm/PetitionList';
 import PetitionDetail from '../law-firm/PetitionDetail';
 import MarketingHub from '../law-firm/MarketingHub';
 import JudicialProcessDashboard from '../law-firm/JudicialProcessDashboard';
+import { demoSchools } from '../../services/demoData';
+import { useAuth } from '../../hooks/useAuth';
+import { DEMO_USERS } from '../../constants';
+import LiveNegotiation from '../law-firm/LiveNegotiation';
+
 
 interface DetailViewState {
     type: 'school' | 'invoice' | 'petition' | null;
@@ -25,6 +30,7 @@ interface DetailViewState {
 }
 
 const LawFirmDashboard = (): React.ReactElement => {
+    const { user } = useAuth();
     const [activePage, setActivePage] = useState('dashboard');
     const [detailView, setDetailView] = useState<DetailViewState>({ type: null, id: null });
     
@@ -37,6 +43,16 @@ const LawFirmDashboard = (): React.ReactElement => {
         if (detailView.type === 'petition') pageTitle = 'Detalhes da Petição';
     }
 
+    // Effect to auto-select the first school when navigating to 'escolas'
+    useEffect(() => {
+        if (activePage === 'escolas' && !detailView.id && user?.email === DEMO_USERS.ESCRITORIO.email) {
+            const userSchools = demoSchools.filter(school => school.officeId === user.id);
+            if (userSchools.length > 0) {
+                handleSelectSchool(userSchools[0].id);
+            }
+        }
+    }, [activePage, detailView.id, user]);
+
 
     const handleSetActivePage = (page: string) => {
         setDetailView({ type: null, id: null });
@@ -44,7 +60,8 @@ const LawFirmDashboard = (): React.ReactElement => {
     };
 
     const handleSelectSchool = (schoolId: string) => {
-        setActivePage('escolas');
+        // No need to set active page here, as this function can be called
+        // from various contexts. Let the originating component handle that.
         setDetailView({ type: 'school', id: schoolId });
     };
 
@@ -70,6 +87,8 @@ const LawFirmDashboard = (): React.ReactElement => {
                 return <SchoolsList onSelectSchool={handleSelectSchool} selectedSchoolId={detailView.type === 'school' ? detailView.id : null} />;
             case 'negociacoes':
                 return <NegotiationsDashboard />;
+            case 'live-negociacao':
+                return <LiveNegotiation />;
             case 'cobrancas':
                  return <LawFirmInvoicesList onSelectInvoice={handleSelectInvoice} selectedInvoiceId={detailView.type === 'invoice' ? detailView.id : null} />;
             case 'peticoes':

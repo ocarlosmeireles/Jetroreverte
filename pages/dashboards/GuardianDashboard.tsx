@@ -1,10 +1,8 @@
-
-
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
 import { UserRole } from '../../types';
-import GuardianInvoicesList from '../guardian/GuardianInvoicesList';
+import GuardianFinancials from '../guardian/GuardianInvoicesList';
 import PaymentHistory from '../guardian/PaymentHistory';
 import AppLayout from '../../components/layout/AppLayout';
 import NegotiationPortal from '../guardian/NegotiationPortal';
@@ -20,7 +18,7 @@ const GuardianDashboard = (): React.ReactElement => {
     const [negotiationViewState, setNegotiationViewState] = useState<ViewState>({ view: 'list', id: null });
 
     const navItems = NAVIGATION[UserRole.RESPONSAVEL];
-    let pageTitle = navItems.find(p => p.path === activePage)?.name || 'Meus Débitos';
+    let pageTitle = navItems.find(p => p.path === activePage)?.name || 'Saúde Financeira';
     if (negotiationViewState.view === 'detail') {
         pageTitle = 'Portal de Negociação';
     }
@@ -45,11 +43,11 @@ const GuardianDashboard = (): React.ReactElement => {
                 if (negotiationViewState.view === 'detail' && negotiationViewState.id) {
                     return <NegotiationPortal invoiceId={negotiationViewState.id} onBack={handleBackToList} />;
                 }
-                return <GuardianInvoicesList onStartNegotiation={handleStartNegotiation} />;
+                return <GuardianFinancials onStartNegotiation={handleStartNegotiation} />;
             case 'historico':
                  return <PaymentHistory />;
             default:
-                return <GuardianInvoicesList onStartNegotiation={handleStartNegotiation} />;
+                return <GuardianFinancials onStartNegotiation={handleStartNegotiation} />;
         }
     };
 

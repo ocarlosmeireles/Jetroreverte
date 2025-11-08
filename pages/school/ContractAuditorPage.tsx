@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -79,7 +78,15 @@ const ContractAuditorPage = (): React.ReactElement => {
                 }
             });
             
-            const jsonResponse = JSON.parse(response.text) as AnalysisResult;
+            let jsonString = response.text.trim();
+            // The model can sometimes wrap the JSON in markdown code blocks.
+            // This removes the wrapping before parsing.
+            const match = jsonString.match(/```json\s*([\s\S]*?)\s*```/);
+            if (match && match[1]) {
+                jsonString = match[1];
+            }
+
+            const jsonResponse = JSON.parse(jsonString) as AnalysisResult;
             setResult(jsonResponse);
 
         } catch (err) {
@@ -153,7 +160,7 @@ const ContractAuditorPage = (): React.ReactElement => {
                                     <p className={`text-6xl font-extrabold ${getScoreColor(result.score)} mt-2`}>{result.score}<span className="text-3xl text-neutral-400">/100</span></p>
                                 </div>
                                 <div className="space-y-4">
-                                    {result.analysis.map((item, index) => {
+                                    {result.analysis && result.analysis.map((item, index) => {
                                         const colors = getAnalysisItemColor(item.type);
                                         return (
                                             <div key={index} className={`p-4 rounded-lg border ${colors.bg} ${colors.border}`}>

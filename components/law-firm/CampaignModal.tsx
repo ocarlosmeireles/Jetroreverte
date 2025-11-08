@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { Campaign } from '../../types';
@@ -8,7 +7,9 @@ import Button from '../common/Button';
 interface CampaignModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (campaignData: Omit<Campaign, 'id' | 'status' | 'leadsGenerated'>) => void;
+    onSave: (campaignData: Omit<Campaign, 'id' | 'status' | 'leadsGenerated' | 'officeId' | 'conversionRate' | 'valueGenerated'>, id?: string) => void;
+    personas: any[];
+    campaign: Campaign | null;
 }
 
 const backdropVariants: Variants = {
@@ -22,23 +23,36 @@ const modalVariants: Variants = {
     exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: 0.2 } },
 };
 
-const initialFormData = {
-    name: '',
-    target: '',
-    startDate: new Date().toISOString().split('T')[0],
-};
-
-const CampaignModal = ({ isOpen, onClose, onSave }: CampaignModalProps): React.ReactElement => {
-    const [formData, setFormData] = useState(initialFormData);
+const CampaignModal = ({ isOpen, onClose, onSave, personas, campaign }: CampaignModalProps): React.ReactElement => {
+    const [formData, setFormData] = useState({
+        name: '',
+        target: '',
+        startDate: new Date().toISOString().split('T')[0],
+        personaName: '',
+    });
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setFormData(initialFormData);
+            if(campaign) {
+                setFormData({
+                    name: campaign.name,
+                    target: campaign.target,
+                    startDate: new Date(campaign.startDate).toISOString().split('T')[0],
+                    personaName: (campaign as any).personaName || '',
+                });
+            } else {
+                setFormData({
+                    name: '',
+                    target: '',
+                    startDate: new Date().toISOString().split('T')[0],
+                    personaName: '',
+                });
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, campaign]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -49,15 +63,15 @@ const CampaignModal = ({ isOpen, onClose, onSave }: CampaignModalProps): React.R
         const dataToSave = {
             ...formData,
             startDate: new Date(formData.startDate).toISOString(),
+            target: formData.personaName || formData.target, // Use persona name as target if selected
         };
-        // Simulate API call
         setTimeout(() => {
-            onSave(dataToSave);
+            onSave(dataToSave, campaign?.id);
             setIsLoading(false);
         }, 500);
     };
 
-    const isFormValid = () => formData.name && formData.target && formData.startDate;
+    const isFormValid = () => formData.name && (formData.target || formData.personaName) && formData.startDate;
 
     return (
         <AnimatePresence>
@@ -79,7 +93,7 @@ const CampaignModal = ({ isOpen, onClose, onSave }: CampaignModalProps): React.R
                         onClick={(e) => e.stopPropagation()}
                     >
                         <header className="p-6 border-b border-neutral-200 flex justify-between items-center flex-shrink-0">
-                            <h2 className="text-xl font-bold text-neutral-800">Criar Nova Campanha</h2>
+                            <h2 className="text-xl font-bold text-neutral-800">{campaign ? 'Editar Campanha' : 'Criar Nova Campanha'}</h2>
                             <button onClick={onClose} className="p-1 rounded-full text-neutral-500 hover:bg-neutral-100">
                                 <XIcon className="w-6 h-6" />
                             </button>
@@ -90,9 +104,19 @@ const CampaignModal = ({ isOpen, onClose, onSave }: CampaignModalProps): React.R
                                 <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full form-input" required />
                             </div>
                              <div>
-                                <label className="form-label">Público-Alvo *</label>
-                                <input type="text" name="target" value={formData.target} onChange={handleChange} className="w-full form-input" placeholder="Ex: Escolas de Ensino Médio de SP" required />
+                                <label className="form-label">Público-Alvo (Persona) *</label>
+                                <select name="personaName" value={formData.personaName} onChange={handleChange} className="w-full form-input" required>
+                                    <option value="">Selecione uma persona</option>
+                                    {personas.map((p, i) => <option key={i} value={p.personaName}>{p.personaName}</option>)}
+                                    <option value="custom">Outro (descrever abaixo)</option>
+                                </select>
                             </div>
+                            {formData.personaName === 'custom' && (
+                                <div>
+                                    <label className="form-label">Descreva o Público-Alvo</label>
+                                    <input type="text" name="target" value={formData.target} onChange={handleChange} className="w-full form-input" placeholder="Ex: Escolas de Ensino Médio de SP" required />
+                                </div>
+                            )}
                             <div>
                                 <label className="form-label">Data de Início *</label>
                                 <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="w-full form-input" required />

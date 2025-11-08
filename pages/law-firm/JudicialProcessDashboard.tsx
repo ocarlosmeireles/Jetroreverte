@@ -8,6 +8,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { SparklesIcon } from '../../components/common/icons';
 import { formatDate } from '../../utils/formatters';
+import { useAuth } from '../../hooks/useAuth';
 
 const columns: { id: JudicialProcessStatus; title: string }[] = [
     { id: JudicialProcessStatus.PROTOCOLADO, title: 'Protocolado' },
@@ -137,7 +138,11 @@ const AiAnalyzer = () => {
 }
 
 const JudicialProcessDashboard = (): React.ReactElement => {
-    const processes = useMemo(() => demoJudicialProcesses, []);
+    const { user } = useAuth();
+    const processes = useMemo(() => {
+        if (!user) return [];
+        return demoJudicialProcesses.filter(p => p.officeId === user.id);
+    }, [user]);
 
     return (
         <div className="space-y-8">

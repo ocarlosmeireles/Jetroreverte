@@ -11,6 +11,9 @@ import { Invoice, InvoiceStatus, CollectionStage, NotificationType } from '../..
 import PaymentModal from '../../components/guardian/PaymentModal';
 import NegotiationIntentModal from '../../components/guardian/NegotiationIntentModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import { ChatBubbleLeftEllipsisIcon } from '../../components/common/icons';
+import AiChatbot from '../../components/common/AiChatbot';
+
 
 const listVariants = {
   visible: {
@@ -27,11 +30,59 @@ const listVariants = {
 
 type InvoiceWithCalculations = Invoice & ReturnType<typeof calculateUpdatedInvoiceValues>;
 
-interface GuardianInvoicesListProps {
+interface GuardianFinancialsProps {
     onStartNegotiation: (invoiceId: string) => void;
 }
 
-const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps): React.ReactElement => {
+const FinancialHealthScore = ({ score }: { score: number }) => {
+    const circumference = 2 * Math.PI * 55; // 2 * pi * radius
+    const offset = circumference - (score / 100) * circumference;
+    const color = score > 80 ? 'text-green-500' : score > 50 ? 'text-yellow-500' : 'text-red-500';
+
+    return (
+      <div className="relative w-36 h-36 flex-shrink-0">
+        <svg className="w-full h-full" viewBox="0 0 120 120">
+          <circle className="text-neutral-200/70" strokeWidth="10" stroke="currentColor" fill="transparent" r="55" cx="60" cy="60" />
+          <motion.circle
+            className={color}
+            strokeWidth="10" strokeLinecap="round" stroke="currentColor" fill="transparent" r="55" cx="60" cy="60"
+            style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+            initial={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-4xl font-bold text-neutral-800">{score}</span>
+          <span className="text-xs text-neutral-500 -mt-1">/ 100</span>
+        </div>
+      </div>
+    );
+};
+
+const Achievements = ({ score }: { score: number }) => {
+    const achievements = [
+        { name: "Parceiro da Educação", description: "Manteve todos os pagamentos em dia no último semestre.", earned: score > 90 },
+        { name: "Bom Planejador", description: "Realizou pagamentos antes do vencimento.", earned: score > 70 },
+        { name: "Compromisso em Dia", description: "Quitou um débito que estava vencido.", earned: true }, // Assuming they had a debt before
+    ];
+    return (
+        <div>
+            <h3 className="font-bold text-neutral-700 mb-2">Suas Conquistas</h3>
+            <div className="flex gap-4">
+                {achievements.filter(a => a.earned).map(ach => (
+                     <div key={ach.name} className={`p-3 text-center rounded-lg border-2 ${ach.earned ? 'border-secondary-400 bg-secondary-50' : 'border-neutral-200 bg-neutral-100 opacity-60'}`} title={ach.description}>
+                        <span className="text-2xl">{ach.earned ? '🏆' : '🔒'}</span>
+                        <p className={`text-xs font-semibold ${ach.earned ? 'text-secondary-800' : 'text-neutral-500'}`}>{ach.name}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+const GuardianFinancials = ({ onStartNegotiation }: GuardianFinancialsProps): React.ReactElement => {
     const { user } = useAuth();
     // In a real app, you would fetch students associated with the guardian's email/ID
     const myStudents = demoStudents.filter(s => s.guardianId === user?.id);
@@ -40,12 +91,20 @@ const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps)
     const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<InvoiceWithCalculations | null>(null);
     const [intentModalInvoice, setIntentModalInvoice] = useState<InvoiceWithCalculations | null>(null);
     const [negotiationRequestedId, setNegotiationRequestedId] = useState<string | null>(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const invoicesWithCalculations = useMemo((): InvoiceWithCalculations[] => {
         return invoices.map(inv => ({
             ...inv,
             ...calculateUpdatedInvoiceValues(inv)
         }));
+    }, [invoices]);
+    
+    const financialHealthScore = useMemo(() => {
+        const totalInvoices = invoices.length;
+        if (totalInvoices === 0) return 100;
+        const paidCount = invoices.filter(i => i.status === InvoiceStatus.PAGO).length;
+        return Math.round((paidCount / totalInvoices) * 100);
     }, [invoices]);
 
     const handleRequestNegotiation = (invoiceId: string) => {
@@ -180,8 +239,22 @@ const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps)
         }
     };
     
+     const chatSystemInstruction = `Você é um assistente financeiro amigável e compreensivo da plataforma Jetro Reverte, chamado 'Fin'. Seu objetivo é ajudar o responsável financeiro a se planejar para as despesas escolares e entender sua "Saúde Financeira". Você NÃO pode negociar ou alterar valores de dívidas. Você DEVE explicar como o score é calculado (proporção de pagamentos em dia), dar dicas de planejamento financeiro, e guiar o usuário a usar as ferramentas da plataforma (como o portal de negociação) caso ele queira discutir valores. Seja sempre solidário e educacional. A dívida atual em aberto é de ${formatCurrency(invoices.filter(i => i.status !== InvoiceStatus.PAGO).reduce((acc, i) => acc + (i.updatedValue || i.value), 0))}.`;
+
     return (
         <>
+            <Card className="mb-6">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <FinancialHealthScore score={financialHealthScore} />
+                    <div className="flex-1 text-center sm:text-left">
+                         <h3 className="text-2xl font-bold text-neutral-800">Olá, {user?.name}!</h3>
+                         <p className="text-neutral-600 mt-1">Este é o seu portal de saúde financeira. Manter os pagamentos em dia fortalece a parceria com a escola.</p>
+                    </div>
+                    <Achievements score={financialHealthScore} />
+                </div>
+            </Card>
+
+            <h3 className="text-xl font-bold text-neutral-800 mb-4">Situação Atual</h3>
             <motion.div 
                 className="space-y-6"
                 variants={listVariants}
@@ -208,7 +281,7 @@ const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps)
                     );
                 }) : (
                     <Card>
-                        <p className="text-center text-neutral-600">Nenhum débito encontrado.</p>
+                        <p className="text-center text-neutral-600">Nenhum débito encontrado. Parabéns por manter tudo em dia!</p>
                     </Card>
                 )}
             </motion.div>
@@ -230,8 +303,15 @@ const GuardianInvoicesList = ({ onStartNegotiation }: GuardianInvoicesListProps)
                     invoice={{...selectedInvoiceForPayment, value: selectedInvoiceForPayment.updatedValue}}
                 />
             )}
+
+             <div className="fixed bottom-6 right-6 z-40">
+                <Button onClick={() => setIsChatOpen(true)} className="rounded-full !p-4 shadow-lg" aria-label="Abrir chat de ajuda">
+                    <ChatBubbleLeftEllipsisIcon className="w-8 h-8"/>
+                </Button>
+            </div>
+            <AiChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} systemInstruction={chatSystemInstruction} />
         </>
     );
 };
 
-export default GuardianInvoicesList;
+export default GuardianFinancials;

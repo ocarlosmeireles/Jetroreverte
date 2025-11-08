@@ -1,4 +1,3 @@
-
 import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus } from '../types';
 
 // ############### AVISO ###############
@@ -25,11 +24,11 @@ export const demoGuardians: Guardian[] = [
 
 export const demoStudents: Student[] = [
     { id: 'stud-01', name: 'Lucas Silva', class: '5º Ano A', guardianId: 'resp-01', schoolId: 'school-01', guardianName: 'Carlos Silva' },
-    { id: 'stud-02', name: 'Beatriz Pereira', class: '3º Ano B', guardianId: 'resp-02', schoolId: 'school-01', guardianName: 'Ana Pereira' },
+    { id: 'stud-02', name: 'Beatriz Pereira', class: '3º Ano B', guardianId: 'resp-02', schoolId: 'school-01', guardianName: 'Ana Pereira', futureRiskScore: 78, riskPattern: 'Pagamentos recentes feitos com mais de 5 dias de atraso.' },
     { id: 'stud-03', name: 'Gabriel Costa', class: '7º Ano C', guardianId: 'resp-03', schoolId: 'school-02', guardianName: 'Juliana Costa' },
-    { id: 'stud-04', name: 'Mariana Oliveira', class: '1º Ano A', guardianId: 'resp-04', schoolId: 'school-02', guardianName: 'Marcos Oliveira' },
+    { id: 'stud-04', name: 'Mariana Oliveira', class: '1º Ano A', guardianId: 'resp-04', schoolId: 'school-02', guardianName: 'Marcos Oliveira', futureRiskScore: 65, riskPattern: 'Mudança frequente do método de pagamento (Boleto para Cartão e vice-versa).' },
     { id: 'stud-05', name: 'Sofia Lima', class: '8º Ano B', guardianId: 'resp-05', schoolId: 'school-03', guardianName: 'Fernanda Lima' },
-    { id: 'stud-06', name: 'Davi Oliveira', class: '1º Ano A', guardianId: 'resp-04', schoolId: 'school-02', guardianName: 'Marcos Oliveira' },
+    { id: 'stud-06', name: 'Davi Oliveira', class: '1º Ano A', guardianId: 'resp-04', schoolId: 'school-02', guardianName: 'Marcos Oliveira', futureRiskScore: 40, riskPattern: 'Histórico de pagamentos sempre próximo à data de vencimento.' },
 ];
 
 export const demoInvoices: Invoice[] = [
@@ -127,16 +126,16 @@ export const demoNotifications: Notification[] = [
     { id: 'notif-04', userId: 'user-escola-01', type: NotificationType.NEW_INVOICE_ASSIGNED, title: 'Nova Cobrança Atribuída', message: 'A dívida de Beatriz Pereira foi enviada para cobrança pelo escritório.', link: 'alunos', read: false, createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() }, // 5 minutes ago
 ];
 
-// FIX: Added conversionRate and valueGenerated to campaign data to match the updated type.
 export const demoCampaigns: Campaign[] = [
-    { id: 'camp-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8, conversionRate: 25, valueGenerated: 1980 },
-    { id: 'camp-02', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3, conversionRate: 33.3, valueGenerated: 1490 },
-    { id: 'camp-03', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0, conversionRate: 0, valueGenerated: 0 },
+    { id: 'camp-01', officeId: 'user-escritorio-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8, conversionRate: 25, valueGenerated: 1980 },
+    { id: 'camp-02', officeId: 'user-escritorio-01', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3, conversionRate: 33.3, valueGenerated: 1490 },
+    { id: 'camp-03', officeId: 'user-escritorio-01', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0, conversionRate: 0, valueGenerated: 0 },
 ];
 
 export const demoJudicialProcesses: JudicialProcess[] = [
     {
         id: 'proc-01',
+        officeId: 'user-escritorio-01',
         petitionId: 'pet-01',
         studentName: 'Lucas Silva',
         schoolName: 'Escola Aprender Mais',

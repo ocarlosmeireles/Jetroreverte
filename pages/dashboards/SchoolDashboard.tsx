@@ -17,6 +17,8 @@ import SchoolBillingPage from '../school/SchoolBillingPage';
 import ContractAuditorPage from '../school/ContractAuditorPage';
 import SchoolNegotiations from '../school/SchoolNegotiations';
 import SchoolJudicialProcesses from '../school/SchoolJudicialProcesses';
+import AiConsultantPage from '../school/AiConsultantPage';
+import DelinquencyPrevention from '../school/DelinquencyPrevention';
 
 
 interface ViewState {
@@ -73,6 +75,8 @@ const SchoolDashboard = (): React.ReactElement => {
                     />;
                 }
                 return <StudentsList onSelectStudent={handleSelectStudent} />;
+            case 'prevencao':
+                return <DelinquencyPrevention />;
             case 'responsaveis':
                  if (guardianViewState.view === 'detail' && guardianViewState.id) {
                     return <GuardianDetail 
@@ -96,6 +100,8 @@ const SchoolDashboard = (): React.ReactElement => {
                 return <SchoolJudicialProcesses />;
             case 'auditor':
                 return <ContractAuditorPage />;
+            case 'consultor-ia':
+                return <AiConsultantPage />;
             case 'relatorios':
                  return <SchoolReports />;
             case 'plano':

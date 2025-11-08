@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { demoPetitions } from '../../services/demoData';
 import { Petition, User } from '../../types';

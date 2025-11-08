@@ -53,6 +53,9 @@ export interface Student {
     guardianId: string;
     schoolId: string;
     guardianName?: string;
+    // AI Features for Delinquency Prevention
+    futureRiskScore?: number; // Predictive Analysis: 0-100, probability of future default
+    riskPattern?: string; // AI-generated summary of the risk pattern
 }
 
 export enum InvoiceStatus {
@@ -105,6 +108,7 @@ export interface Invoice {
     // AI Features
     riskScore?: number; // Predictive Analysis: 0-100, probability of default
     isAutomationActive?: boolean; // Collection Pipeline
+    isCollectionAutomated?: boolean;
     nextAutomatedAction?: { // Collection Pipeline
         date: string; // ISO String
         action: string; // e.g., "WhatsApp Amigável"
@@ -218,6 +222,7 @@ export enum LeadStatus {
 
 export interface Lead {
     id: string;
+    officeId: string;
     schoolName: string;
     contactName: string;
     contactEmail: string;
@@ -229,12 +234,12 @@ export interface Lead {
 
 export interface Campaign {
     id: string;
+    officeId: string;
     name: string;
     status: 'Ativa' | 'Concluída' | 'Planejada';
     target: string; // e.g. "Escolas de Ensino Médio de SP"
     startDate: string; // ISO String
     leadsGenerated: number;
-    // FIX: Added missing properties to the Campaign type.
     conversionRate?: number;
     valueGenerated?: number;
 }
@@ -249,6 +254,7 @@ export enum JudicialProcessStatus {
 
 export interface JudicialProcess {
     id: string;
+    officeId: string;
     petitionId: string;
     studentName: string;
     schoolName: string;

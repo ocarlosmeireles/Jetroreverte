@@ -19,6 +19,9 @@ import {
     SparklesIcon,
     BriefcaseIcon,
     ShieldCheckIcon,
+    ChatBubbleLeftRightIcon,
+    PhoneIcon,
+    HeartIcon,
 } from './icons';
 
 interface NavItem {
@@ -52,13 +55,17 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Relatórios Consolidados': <DocumentReportIcon />,
     'Meu Plano': <BillingIcon />,
     'Meus Débitos': <DollarIcon />,
+    'Saúde Financeira': <HeartIcon />,
     'Histórico de Pagamentos': <DocumentReportIcon />,
     'Escolas': <SchoolIcon />,
     'Negociações': <ScaleIcon />,
+    'Negociação "Live" (IA)': <PhoneIcon />,
+    'Prevenção (IA)': <ShieldCheckIcon />,
     'Petições (IA)': <ScaleIcon />,
     'Processos Judiciais': <BriefcaseIcon />,
     'Hub de Marketing': <SparklesIcon />,
     'Auditor de Contratos (IA)': <ShieldCheckIcon />,
+    'Consultor IA': <ChatBubbleLeftRightIcon />,
     'Configurações': <Cog6ToothIcon />,
     'Visão Geral': <DashboardIcon />,
     'Usuários': <UsersIcon />,
@@ -77,6 +84,7 @@ interface NavLinkProps {
 
 const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = false }: NavLinkProps) => {
     const isActive = activePage === item.path;
+    const icon = iconMap[item.name];
 
     const handleNavigation = (path: string) => {
         setActivePage(path);
@@ -98,7 +106,7 @@ const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = fal
                 }`}
             >
                 <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-primary-500' : 'text-neutral-400'}`}>
-                    {React.cloneElement(iconMap[item.name] as React.ReactElement<any>, { className: 'w-6 h-6' })}
+                    {icon && React.cloneElement(icon, { className: 'w-6 h-6' })}
                 </span>
                 <span className="text-sm ml-4">{item.name}</span>
             </a>

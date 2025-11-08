@@ -61,6 +61,7 @@ export const NAVIGATION = {
         { name: 'Dashboard Geral', path: 'dashboard' },
         { name: 'Gestão de Escolas', path: 'escolas' },
         { name: 'Negociações', path: 'negociacoes' },
+        { name: 'Negociação "Live" (IA)', path: 'live-negociacao' },
         { name: 'Cobranças (Geral)', path: 'cobrancas' },
         { name: 'Petições (IA)', path: 'peticoes' },
         { name: 'Processos Judiciais', path: 'processos' },
@@ -72,16 +73,18 @@ export const NAVIGATION = {
     [UserRole.ESCOLA]: [
         { name: 'Dashboard', path: 'dashboard' },
         { name: 'Alunos Inadimplentes', path: 'alunos' },
+        { name: 'Prevenção (IA)', path: 'prevencao' },
         { name: 'Responsáveis', path: 'responsaveis' },
         { name: 'Cobranças', path: 'cobrancas' },
         { name: 'Negociações', path: 'negociacoes' },
         { name: 'Processos Judiciais', path: 'processos' },
         { name: 'Auditor de Contratos (IA)', path: 'auditor' },
+        { name: 'Consultor IA', path: 'consultor-ia' },
         { name: 'Relatórios', path: 'relatorios' },
         { name: 'Meu Plano', path: 'plano' },
     ],
     [UserRole.RESPONSAVEL]: [
-        { name: 'Meus Débitos', path: 'cobrancas' },
+        { name: 'Saúde Financeira', path: 'cobrancas' },
         { name: 'Histórico de Pagamentos', path: 'historico' },
     ],
     [UserRole.SUPER_ADMIN]: [
