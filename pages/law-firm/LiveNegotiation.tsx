@@ -289,7 +289,7 @@ const LiveNegotiation = (): React.ReactElement => {
                             if (fullTranscriptRef.current.trim()) {
                                 updateDynamicSuggestions(fullTranscriptRef.current, caseData);
                             }
-                        }, 10000); // Update suggestions every 10 seconds
+                        }, 40000); // Update suggestions every 40 seconds
                     },
                     onmessage: (message: LiveServerMessage) => {
                         if (message.serverContent?.inputTranscription?.text) {
@@ -349,9 +349,30 @@ const LiveNegotiation = (): React.ReactElement => {
     
     const updateDynamicSuggestions = async (transcript: string, caseData: NegotiationCase) => {
         setIsLoadingOptions(true);
-        const { updatedValue } = calculateUpdatedInvoiceValues(caseData.invoice);
+        const { updatedValue, fine, interest } = calculateUpdatedInvoiceValues(caseData.invoice);
 
-        const prompt = `Aja como um assistente de negociação. Para uma dívida de ${formatCurrency(updatedValue)}, e com base na transcrição da conversa até agora, crie 3 opções de acordo realistas. Se a conversa indicar dificuldade, foque em parcelamentos. Se indicar cooperação, pode incluir descontos. A transcrição é:\n"${transcript}". Formate a saída como um JSON contendo um array de objetos, onde cada objeto tem "title" (string), "description" (string), "installments" (number), e "totalValue" (number).`;
+        const prompt = `Aja como um assistente de negociação para um escritório de advocacia.
+A dívida atualizada é de ${formatCurrency(updatedValue)}.
+A conversa com o devedor até agora é:
+---
+${transcript}
+---
+
+Baseado na conversa, gere 3 opções de acordo realistas, seguindo estas regras de negociação pré-definidas:
+1.  **Pagamento à vista:** Pode-se oferecer a remoção total dos juros (${formatCurrency(interest)}) e/ou da multa (${formatCurrency(fine)}) se o tom da conversa for cooperativo.
+2.  **Parcelamento:** O número máximo de parcelas é 12. Juros de parcelamento se aplicam conforme a tabela da empresa (você não precisa dos valores exatos, apenas saiba que parcelamentos mais longos têm juros maiores).
+3.  **Entrada + Parcelamento:** Pode-se combinar uma entrada (ex: 20% do valor) com um parcelamento do restante, possivelmente com juros reduzidos.
+
+Analise o sentimento e a disposição do devedor na transcrição para adaptar as propostas.
+- Se o devedor parece com muita dificuldade financeira, foque em opções com mais parcelas e valor menor.
+- Se o devedor parece disposto a pagar mas pede um desconto, foque em opções à vista com remoção de juros/multa.
+- Se o devedor está buscando um meio-termo, ofereça uma opção com entrada e parcelas.
+
+Formate a saída como um JSON contendo um array de objetos, onde cada objeto tem:
+- "title": Um título curto e chamativo para a opção (ex: "Quitar à Vista com Desconto Máximo").
+- "description": Uma breve descrição explicando a proposta.
+- "installments": O número de parcelas (1 para à vista).
+- "totalValue": O valor total final do acordo para esta opção.`;
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
