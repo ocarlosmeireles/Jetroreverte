@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, Type } from '@google/genai';
-import { encode } from 'js-base64';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { SparklesIcon, MicrophoneIcon, XIcon, DocumentReportIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon } from '../../components/common/icons';
@@ -14,6 +13,16 @@ import { DEMO_USERS } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Modal from '../../components/common/Modal';
 import AgreementModal from '../../components/common/AgreementModal';
+
+// FIX: Per @google/genai guidelines, removed js-base64 import and implemented encode manually.
+function encode(bytes: Uint8Array) {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
 // ----- Interfaces & Types -----
 interface ConversationItem {
@@ -55,7 +64,6 @@ const NegotiationControlPanel = ({
     onSelectOption: (option: NegotiationOption) => void,
 }) => {
     const { invoice, student, guardian, attempts } = caseData;
-    // FIX: Destructure only the properties returned by `calculateUpdatedInvoiceValues` and get `originalValue` directly from the `invoice` object to resolve a TypeScript error.
     const { updatedValue, fine, interest } = calculateUpdatedInvoiceValues(invoice);
     const originalValue = invoice.value;
 
@@ -101,7 +109,7 @@ const NegotiationControlPanel = ({
                         <h3 className="text-lg font-bold text-neutral-800">Sugestões da IA (em tempo real)</h3>
                     </div>
                      <div className="space-y-2">
-                        {isLoadingOptions && <p className="text-sm text-center text-neutral-500">Analisando conversa...</p>}
+                        {isLoadingOptions && negotiationOptions.length === 0 && <p className="text-sm text-center text-neutral-500">Analisando conversa...</p>}
                         {negotiationOptions.map((opt, index) => {
                             const isSelected = selectedOption?.title === opt.title;
                             return (
@@ -171,7 +179,6 @@ const LiveNegotiation = (): React.ReactElement => {
     const [isSessionStarting, setIsSessionStarting] = useState(false);
     const [permissionError, setPermissionError] = useState('');
     const [conversation, setConversation] = useState<ConversationItem[]>([]);
-    const [isThinking, setIsThinking] = useState(false);
     const [viewingHistoryItem, setViewingHistoryItem] = useState<LiveNegotiationHistory | null>(null);
     
     // States for new features
@@ -186,6 +193,8 @@ const LiveNegotiation = (): React.ReactElement => {
     const mediaStreamRef = useRef<MediaStream | null>(null);
     const fullTranscriptRef = useRef<string>('');
     const conversationEndRef = useRef<HTMLDivElement>(null);
+    // FIX: Changed NodeJS.Timeout to number, as this is the correct type for setInterval in a browser environment.
+    const suggestionIntervalRef = useRef<number | null>(null);
 
     // --- Data Loading ---
     useEffect(() => {
@@ -214,13 +223,14 @@ const LiveNegotiation = (): React.ReactElement => {
     }, [negotiableCases, searchTerm]);
 
     // --- Session Management ---
-    useEffect(() => { conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [conversation, isThinking]);
+    useEffect(() => { conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [conversation, isLoadingOptions]);
     useEffect(() => { return () => { stopSession(false); }; }, []);
 
     const stopSession = async (saveHistory = true) => {
-        if (saveHistory && selectedCase) {
-            const fullTranscript = conversation.filter(c => c.type === 'user').map(c => `Responsável: ${c.text}`).join('\n\n');
-            const finalSuggestion = await getFinalSuggestion(fullTranscript);
+        if (suggestionIntervalRef.current) clearInterval(suggestionIntervalRef.current);
+
+        if (saveHistory && selectedCase && fullTranscriptRef.current.trim()) {
+            const finalSuggestion = await getFinalSuggestion(fullTranscriptRef.current);
             const newHistory: LiveNegotiationHistory = {
                 id: `live-hist-${Date.now()}`,
                 studentId: selectedCase.student!.id,
@@ -228,7 +238,7 @@ const LiveNegotiation = (): React.ReactElement => {
                 guardianName: selectedCase.guardian!.name,
                 schoolName: selectedCase.school!.name,
                 date: new Date().toISOString(),
-                transcript: fullTranscript,
+                transcript: fullTranscriptRef.current,
                 finalSuggestion,
             };
             setLiveHistories(prev => [newHistory, ...prev]);
@@ -275,10 +285,17 @@ const LiveNegotiation = (): React.ReactElement => {
                     onopen: () => {
                         setView('session');
                         setIsSessionStarting(false);
+                        suggestionIntervalRef.current = setInterval(() => {
+                            if (fullTranscriptRef.current.trim()) {
+                                updateDynamicSuggestions(fullTranscriptRef.current, caseData);
+                            }
+                        }, 10000); // Update suggestions every 10 seconds
                     },
                     onmessage: (message: LiveServerMessage) => {
                         if (message.serverContent?.inputTranscription?.text) {
                             const text = message.serverContent.inputTranscription.text;
+                            fullTranscriptRef.current += text;
+
                             setConversation(prev => {
                                 const lastItem = prev[prev.length - 1];
                                 if (lastItem?.type === 'user' && !message.serverContent?.turnComplete) {
@@ -288,9 +305,8 @@ const LiveNegotiation = (): React.ReactElement => {
                                 return [...prev, { id: `user-${Date.now()}`, type: 'user', text }];
                             });
                         }
-                        if (message.serverContent?.turnComplete && message.serverContent?.inputTranscription?.text) {
-                            fullTranscriptRef.current += `Responsável: ${message.serverContent.inputTranscription.text}\n`;
-                            updateDynamicSuggestions(fullTranscriptRef.current, caseData);
+                        if (message.serverContent?.turnComplete) {
+                            fullTranscriptRef.current += '\n\n'; // Separator for context
                         }
                     },
                     onerror: (e: ErrorEvent) => {
@@ -299,6 +315,7 @@ const LiveNegotiation = (): React.ReactElement => {
                         stopSession(false);
                     },
                     onclose: () => {
+                        if (suggestionIntervalRef.current) clearInterval(suggestionIntervalRef.current);
                         setView('list');
                         setSelectedCase(null);
                         setIsSessionStarting(false);
@@ -377,12 +394,9 @@ const LiveNegotiation = (): React.ReactElement => {
 
     const handleSaveAgreement = (agreementData: any) => {
         if (!selectedCase) return;
-
-        const totalAgreementValue = selectedOption ? selectedOption.totalValue : calculateUpdatedInvoiceValues(selectedCase.invoice).updatedValue;
         
         const newAgreement = {
-            ...agreementData,
-            createdAt: new Date().toISOString(),
+            ...agreementData, createdAt: new Date().toISOString(),
             protocolNumber: `AC-${selectedCase.invoice.id.slice(-4)}-${Date.now().toString().slice(-4)}`,
             isApproved: true,
         };
@@ -393,8 +407,6 @@ const LiveNegotiation = (): React.ReactElement => {
                 ...selectedCase.invoice,
                 agreement: newAgreement,
                 collectionStage: CollectionStage.ACORDO_FEITO,
-                // Update the value to reflect the agreement total, if different
-                updatedValue: totalAgreementValue, 
             }
         };
 
@@ -424,20 +436,10 @@ const LiveNegotiation = (): React.ReactElement => {
                             <AnimatePresence>
                                 {conversation.map(item => (
                                     <motion.div key={item.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                                        {item.type === 'user' ? (
-                                            <div className="text-neutral-700 text-sm leading-relaxed p-2">{item.text}</div>
-                                        ) : (
-                                            <div className="my-4 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-lg">
-                                                <div className="flex items-start gap-3">
-                                                    <SparklesIcon className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-                                                    <p className="text-sm text-primary-800 font-medium">{item.text}</p>
-                                                </div>
-                                            </div>
-                                        )}
+                                        <div className="text-neutral-700 text-sm leading-relaxed p-2">{item.text}</div>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
-                             {isThinking && <p className="text-sm italic text-neutral-500 text-center">IA está pensando...</p>}
                             <div ref={conversationEndRef} />
                         </div>
                     </Card>
@@ -456,7 +458,11 @@ const LiveNegotiation = (): React.ReactElement => {
                         onClose={() => setIsAgreementModalOpen(false)} 
                         onSave={handleSaveAgreement} 
                         invoice={selectedCase.invoice}
-                        initialValues={selectedOption ? { installments: selectedOption.installments, totalValue: selectedOption.totalValue } : undefined}
+                        initialValues={
+                            selectedOption
+                            ? { installments: selectedOption.installments, totalValue: selectedOption.totalValue }
+                            : { installments: 1, totalValue: calculateUpdatedInvoiceValues(selectedCase.invoice).updatedValue }
+                        }
                     />
                 )}
             </div>
