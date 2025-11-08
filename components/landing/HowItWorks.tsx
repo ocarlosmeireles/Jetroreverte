@@ -1,51 +1,53 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { DocumentPlusIcon, SparklesIcon, ChatBubbleLeftRightIcon, ScaleIcon, ShieldCheckIcon } from '../common/icons';
+import { SparklesIcon, ChatBubbleLeftRightIcon, ScaleIcon, ShieldCheckIcon } from '../common/icons';
 
 const HowItWorks = () => {
     const steps = [
-        { icon: <ShieldCheckIcon className="w-8 h-8"/>, title: "Prevenção & Análise", description: "A IA analisa padrões e identifica alunos com risco de inadimplência, permitindo ações proativas." },
-        { icon: <SparklesIcon className="w-8 h-8"/>, title: "Automação Inteligente", description: "Lembretes automáticos são enviados, e os responsáveis são direcionados para um portal de autonegociação." },
-        { icon: <ChatBubbleLeftRightIcon className="w-8 h-8"/>, title: "Negociação Assistida", description: "O escritório assume os casos, usando a IA para transcrever chamadas e sugerir abordagens de negociação." },
-        { icon: <ScaleIcon className="w-8 h-8"/>, title: "Resolução Jurídica", description: "Se necessário, a IA gera o rascunho da petição, e o caso avança para o pipeline judicial com um clique." },
+        { icon: <ShieldCheckIcon className="w-8 h-8"/>, title: "Prevenção & Análise de Risco", description: "A IA analisa padrões e identifica alunos com risco de inadimplência, permitindo ações proativas antes do vencimento." },
+        { icon: <SparklesIcon className="w-8 h-8"/>, title: "Automação Inteligente", description: "Lembretes e notificações são enviados automaticamente. Responsáveis podem negociar em um portal 24/7." },
+        { icon: <ChatBubbleLeftRightIcon className="w-8 h-8"/>, title: "Negociação Assistida", description: "O escritório assume os casos complexos, usando a IA para transcrever chamadas e sugerir as melhores abordagens." },
+        { icon: <ScaleIcon className="w-8 h-8"/>, title: "Resolução Jurídica", description: "Para casos extremos, a IA gera o rascunho da petição, e o processo avança para o pipeline judicial com um clique." },
     ];
 
     const containerVariants = {
         hidden: {},
-        visible: { transition: { staggerChildren: 0.2 } },
+        visible: { transition: { staggerChildren: 0.3 } },
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+        hidden: { opacity: 0, x: -50 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
     };
 
     return (
-        <section className="py-20 sm:py-28 bg-white">
+        <section className="py-20 sm:py-28 bg-neutral-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center">
-                    <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">Do Alerta de Risco à Resolução: Um Ecossistema Inteligente</h2>
-                    <p className="mt-4 max-w-3xl mx-auto text-lg text-neutral-600">Nosso fluxo de trabalho cobre todas as etapas do ciclo de vida da cobrança, de forma integrada e eficiente.</p>
+                    <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">Nosso Ecossistema: Da Prevenção à Resolução</h2>
+                    <p className="mt-4 max-w-3xl mx-auto text-lg text-neutral-600">Nossa jornada de trabalho integrada garante eficiência em cada etapa do ciclo de vida da cobrança.</p>
                 </div>
 
-                <div className="relative">
-                    {/* The connecting line - visible on larger screens */}
-                    <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-neutral-200 transform -translate-y-4"></div>
-
-                    <motion.div 
+                <div className="max-w-3xl mx-auto mt-16">
+                     <motion.div 
                         variants={containerVariants}
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, amount: 0.2 }}
-                        className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-10"
+                        className="relative"
                     >
+                         {/* The connecting line */}
+                        <div className="absolute top-10 left-10 w-0.5 h-[calc(100%-5rem)] bg-neutral-200"></div>
+
                         {steps.map((step, index) => (
-                            <motion.div key={index} variants={itemVariants} className="text-center relative">
-                                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 text-primary-600 mx-auto mb-5 border-4 border-white shadow-md relative z-10">
+                            <motion.div key={index} variants={itemVariants} className="relative pl-28 pb-12">
+                                <div className="absolute top-0 left-0 flex items-center justify-center w-20 h-20 rounded-full bg-white text-primary-600 shadow-md border-4 border-neutral-50 z-10">
                                     {step.icon}
                                 </div>
-                                <h3 className="font-bold text-lg text-neutral-800">{step.title}</h3>
-                                <p className="mt-2 text-neutral-600 text-sm">{step.description}</p>
+                                <div className="pt-5">
+                                    <h3 className="font-bold text-xl text-neutral-800">{step.title}</h3>
+                                    <p className="mt-2 text-neutral-600">{step.description}</p>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>

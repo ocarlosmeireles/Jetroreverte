@@ -8,6 +8,7 @@ import Footer from '../../components/landing/Footer';
 import HowItWorks from '../../components/landing/HowItWorks';
 import CTA from '../../components/landing/CTA';
 import TrustedBy from '../../components/landing/TrustedBy';
+import Stats from '../../components/landing/Stats';
 
 interface LandingPageProps {
     onLogin: () => void;
@@ -24,6 +25,7 @@ const LandingPage = ({ onLogin, onRegister }: LandingPageProps): React.ReactElem
                 <TrustedBy />
                 <Solutions />
                 <HowItWorks />
+                <Stats />
                 <Features />
                 <Testimonials />
                 <CTA onRegister={onRegister} />
