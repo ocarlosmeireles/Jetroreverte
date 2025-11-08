@@ -31,6 +31,17 @@ export interface School {
     officeId: string; // ID of the law firm that owns this school record
     healthScore?: number; // AI-generated client health score (0-100)
     healthSummary?: string; // AI-generated summary and suggestions
+
+    // Detailed registration fields
+    financialContactName?: string;
+    financialContactEmail?: string;
+    financialContactPhone?: string;
+    legalRepresentativeName?: string;
+    legalRepresentativeCpf?: string;
+    totalStudents?: number;
+    averageTuition?: number; // Valor médio da mensalidade
+    currentDefaultRate?: number; // Taxa de inadimplência atual em %
+    internalCollectionProcess?: string; // Descrição do processo de cobrança interno
 }
 
 export interface Guardian {

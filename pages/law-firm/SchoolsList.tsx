@@ -2,19 +2,17 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
-import { demoInvoices, demoStudents, demoSchools } from '../../services/demoData';
+import { demoInvoices, demoStudents } from '../../services/demoData';
 import { InvoiceStatus, School } from '../../types';
 import { PlusIcon, SchoolIcon, DollarIcon, UsersIcon } from '../../components/common/icons';
 import AddSchoolModal from '../../components/law-firm/AddSchoolModal';
 import { formatCurrency } from '../../utils/formatters';
-import { DEMO_USERS } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface SchoolCardProps {
     school: any;
     onSelectSchool: (id: string) => void;
     isSelected: boolean;
-    // FIX: Added an optional key to props to allow passing it when mapping over a list, resolving a TypeScript error.
     key?: React.Key;
 }
 
@@ -82,20 +80,17 @@ const SchoolCard = ({ school, onSelectSchool, isSelected }: SchoolCardProps) => 
 
 
 interface SchoolsListProps {
+    schools: School[];
     onSelectSchool: (schoolId: string) => void;
     selectedSchoolId: string | null;
 }
 
-const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): React.ReactElement => {
+const SchoolsList = ({ schools, onSelectSchool, selectedSchoolId }: SchoolsListProps): React.ReactElement => {
     const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const enrichedSchools = useMemo(() => {
-        if (user?.email !== DEMO_USERS.ESCRITORIO.email) return [];
-        
-        const userSchools = demoSchools.filter(school => school.officeId === user.id);
-
-        return userSchools.map(school => {
+        return schools.map(school => {
             const schoolStudents = demoStudents.filter(s => s.schoolId === school.id);
             const schoolStudentIds = new Set(schoolStudents.map(s => s.id));
             const schoolInvoices = demoInvoices.filter(i => schoolStudentIds.has(i.studentId));
@@ -114,7 +109,7 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
                 totalRecovered
             };
         });
-    }, [user]);
+    }, [schools]);
 
     const handleSaveSchool = (data: any) => {
         alert("A adição de escolas está desabilitada nesta versão sem banco de dados.");

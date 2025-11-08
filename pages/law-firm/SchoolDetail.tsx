@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
 import { InvoiceStatus } from '../../types';
 import Button from '../../components/common/Button';
-import { XIcon, DollarIcon, UsersIcon, BillingIcon, SparklesIcon, DocumentReportIcon } from '../../components/common/icons';
+import { XIcon, DollarIcon, UsersIcon, BillingIcon, SparklesIcon, DocumentReportIcon, TrashIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
 import SchoolReportModal from '../../components/law-firm/SchoolReportModal';
@@ -13,6 +13,7 @@ import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 interface SchoolDetailProps {
     schoolId: string;
     onBack: () => void;
+    onDelete: (schoolId: string) => void;
 }
 
 const HealthScoreCircle = ({ score }: { score: number | undefined }) => {
@@ -61,7 +62,7 @@ const HealthScoreCircle = ({ score }: { score: number | undefined }) => {
     );
 };
 
-const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactElement => {
+const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.ReactElement => {
     const { user } = useAuth();
     const school = demoSchools.find(s => s.id === schoolId);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -178,6 +179,17 @@ const SchoolDetail = ({ schoolId, onBack }: SchoolDetailProps): React.ReactEleme
                             </div>
                         )}
                     </div>
+                </div>
+
+                <div className="mt-auto pt-6 border-t border-neutral-200/80">
+                    <Button
+                        onClick={() => onDelete(school.id)}
+                        variant="secondary"
+                        className="w-full !text-red-600 hover:!bg-red-50 hover:!border-red-200"
+                        icon={<TrashIcon className="w-5 h-5" />}
+                    >
+                        Excluir Escola
+                    </Button>
                 </div>
             </div>
             {user && (

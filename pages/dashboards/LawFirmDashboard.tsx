@@ -33,6 +33,13 @@ const LawFirmDashboard = (): React.ReactElement => {
     const { user } = useAuth();
     const [activePage, setActivePage] = useState('dashboard');
     const [detailView, setDetailView] = useState<DetailViewState>({ type: null, id: null });
+    const [schools, setSchools] = useState<School[]>(() => {
+        if (user?.email === DEMO_USERS.ESCRITORIO.email) {
+            // Make sure to filter based on the correct user ID for the demo
+            return demoSchools.filter(school => school.officeId === 'user-escritorio-01');
+        }
+        return [];
+    });
     
     const navItems = NAVIGATION[UserRole.ESCRITORIO];
     
@@ -43,25 +50,12 @@ const LawFirmDashboard = (): React.ReactElement => {
         if (detailView.type === 'petition') pageTitle = 'Detalhes da Petição';
     }
 
-    // Effect to auto-select the first school when navigating to 'escolas'
-    useEffect(() => {
-        if (activePage === 'escolas' && !detailView.id && user?.email === DEMO_USERS.ESCRITORIO.email) {
-            const userSchools = demoSchools.filter(school => school.officeId === user.id);
-            if (userSchools.length > 0) {
-                handleSelectSchool(userSchools[0].id);
-            }
-        }
-    }, [activePage, detailView.id, user]);
-
-
     const handleSetActivePage = (page: string) => {
         setDetailView({ type: null, id: null });
         setActivePage(page);
     };
 
     const handleSelectSchool = (schoolId: string) => {
-        // No need to set active page here, as this function can be called
-        // from various contexts. Let the originating component handle that.
         setDetailView({ type: 'school', id: schoolId });
     };
 
@@ -79,12 +73,20 @@ const LawFirmDashboard = (): React.ReactElement => {
         setDetailView({ type: null, id: null });
     };
 
+    const handleDeleteSchool = (schoolId: string) => {
+        if (window.confirm("Tem certeza de que deseja excluir esta escola? Todos os dados relacionados (alunos, cobranças) também serão removidos. Esta ação não pode ser desfeita.")) {
+            setSchools(prevSchools => prevSchools.filter(s => s.id !== schoolId));
+            handleCloseDetail(); // Close the panel after deletion
+        }
+    };
+
+
     const renderContent = () => {
         switch (activePage) {
             case 'dashboard':
                 return <AdminDashboardContent />;
             case 'escolas':
-                return <SchoolsList onSelectSchool={handleSelectSchool} selectedSchoolId={detailView.type === 'school' ? detailView.id : null} />;
+                return <SchoolsList schools={schools} onSelectSchool={handleSelectSchool} selectedSchoolId={detailView.type === 'school' ? detailView.id : null} />;
             case 'negociacoes':
                 return <NegotiationsDashboard />;
             case 'live-negociacao':
@@ -112,7 +114,7 @@ const LawFirmDashboard = (): React.ReactElement => {
         if (!detailView.id) return null;
         switch (detailView.type) {
             case 'school':
-                return <SchoolDetail schoolId={detailView.id} onBack={handleCloseDetail} />;
+                return <SchoolDetail schoolId={detailView.id} onBack={handleCloseDetail} onDelete={handleDeleteSchool} />;
             case 'invoice':
                 return <LawFirmInvoiceDetail invoiceId={detailView.id} onBack={handleCloseDetail} />;
             case 'petition':
