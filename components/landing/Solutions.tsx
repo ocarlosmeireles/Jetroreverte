@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AcademicCapIcon, ScaleIcon, CheckCircleIcon } from '../common/icons';
@@ -22,7 +23,7 @@ const Solutions = () => (
                 <motion.div id="escolas" initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.7 }} className="flex flex-col">
                     <div className="bg-white p-8 rounded-2xl border border-neutral-200/80 shadow-soft hover:shadow-soft-hover transition-all duration-300 flex-grow">
                         <div className="flex items-center gap-4 mb-6">
-                            <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=300&auto=format&fit=crop" alt="Ambiente escolar" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
+                            <img src="https://images.unsplash.com/photo-1571260899304-425eee4c7efc?q=80&w=300&auto=format&fit=crop" alt="Diretora escolar em corredor da escola" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
                             <div>
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary-100 text-secondary-800 shadow-sm mb-2">
                                     <AcademicCapIcon className="w-5 h-5 mr-2" /> Para Escolas
@@ -43,7 +44,7 @@ const Solutions = () => (
                 <motion.div id="escritorios" initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.7 }} className="flex flex-col">
                      <div className="bg-white p-8 rounded-2xl border border-neutral-200/80 shadow-soft hover:shadow-soft-hover transition-all duration-300 flex-grow">
                         <div className="flex items-center gap-4 mb-6">
-                             <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=300&auto=format&fit=crop" alt="Advogado trabalhando" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
+                             <img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=300&auto=format&fit=crop" alt="Advogado moderno trabalhando em notebook" className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" />
                             <div>
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 shadow-sm mb-2">
                                     <ScaleIcon className="w-5 h-5 mr-2" /> Para Escritórios

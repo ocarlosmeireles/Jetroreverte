@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
