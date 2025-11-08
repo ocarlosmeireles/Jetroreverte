@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
@@ -104,7 +106,7 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
 
     return (
         <>
-            <div className="p-4 sm:p-6 h-full flex flex-col bg-white">
+            <div className="px-4 sm:px-6 pb-6 flex-1 flex flex-col min-h-0">
                 <header className="flex justify-between items-start mb-6">
                      <div>
                         <h2 className="text-xl font-bold text-neutral-800">{school.name}</h2>

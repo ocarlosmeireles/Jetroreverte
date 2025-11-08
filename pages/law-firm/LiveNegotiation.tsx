@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, Type } from '@google/genai';
@@ -13,6 +12,7 @@ import { DEMO_USERS } from '../../constants';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Modal from '../../components/common/Modal';
 import AgreementModal from '../../components/common/AgreementModal';
+import PreSessionDetailModal from '../../components/law-firm/PreSessionDetailModal';
 
 // FIX: Per @google/genai guidelines, removed js-base64 import and implemented encode manually.
 function encode(bytes: Uint8Array) {
@@ -174,6 +174,7 @@ const LiveNegotiation = (): React.ReactElement => {
     const [negotiableCases, setNegotiableCases] = useState<NegotiationCase[]>([]);
     const [liveHistories, setLiveHistories] = useState<LiveNegotiationHistory[]>(demoLiveNegotiationHistories);
     const [searchTerm, setSearchTerm] = useState('');
+    const [preSessionDetailCase, setPreSessionDetailCase] = useState<NegotiationCase | null>(null);
 
     const [selectedCase, setSelectedCase] = useState<NegotiationCase | null>(null);
     const [isSessionStarting, setIsSessionStarting] = useState(false);
@@ -264,6 +265,7 @@ const LiveNegotiation = (): React.ReactElement => {
     };
 
     const handleStartSession = async (caseData: NegotiationCase) => {
+        setPreSessionDetailCase(null); // Close modal
         setSelectedCase(caseData);
         setConversation([]);
         setIsSessionStarting(true);
@@ -337,6 +339,7 @@ const LiveNegotiation = (): React.ReactElement => {
             console.error('Failed to get user media:', error);
             setPermissionError('É necessário permitir o acesso ao microfone para usar esta funcionalidade.');
             setIsSessionStarting(false);
+            setSelectedCase(null);
         }
     };
     
@@ -492,61 +495,71 @@ Formate a saída como um JSON contendo um array de objetos, onde cada objeto tem
 
     // List & History View
     return (
-        <Card noPadding>
-            <div className="p-4 sm:p-6 border-b">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Co-piloto de Negociação</h2>
-                    <div className="flex p-1 bg-neutral-200/70 rounded-full">
-                        {['list', 'history'].map(tab => (
-                             <button key={tab} onClick={() => setView(tab as any)} className={`relative px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${view === tab ? 'text-white' : 'text-neutral-600'}`}>
-                                {view === tab && <motion.span layoutId="tab-bubble" className="absolute inset-0 z-0 bg-primary-600 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />}
-                                <span className="relative z-10">{tab === 'list' ? 'Iniciar Sessão' : 'Histórico'}</span>
-                            </button>
-                        ))}
+        <>
+            <Card noPadding>
+                <div className="p-4 sm:p-6 border-b">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Co-piloto de Negociação</h2>
+                        <div className="flex p-1 bg-neutral-200/70 rounded-full">
+                            {['list', 'history'].map(tab => (
+                                 <button key={tab} onClick={() => setView(tab as any)} className={`relative px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${view === tab ? 'text-white' : 'text-neutral-600'}`}>
+                                    {view === tab && <motion.span layoutId="tab-bubble" className="absolute inset-0 z-0 bg-primary-600 rounded-full" transition={{ type: "spring", stiffness: 300, damping: 25 }} />}
+                                    <span className="relative z-10">{tab === 'list' ? 'Iniciar Sessão' : 'Histórico'}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
+                     {view === 'list' && <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar por aluno ou responsável..." className="w-full px-4 py-2 border rounded-full shadow-sm" />}
                 </div>
-                 {view === 'list' && <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar por aluno ou responsável..." className="w-full px-4 py-2 border rounded-full shadow-sm" />}
-            </div>
-            <div className="overflow-y-auto max-h-[calc(100vh-20rem)]">
-                <AnimatePresence mode="wait">
-                    <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        {view === 'list' && (
-                             <ul className="divide-y divide-neutral-200">
-                                {filteredCases.map(c => (
-                                    <li key={c.invoice.id} className="p-4 flex justify-between items-center hover:bg-neutral-50">
-                                        <div>
-                                            <p className="font-semibold text-neutral-800">{c.student?.name}</p>
-                                            <p className="text-sm text-neutral-500">{c.school?.name} / Resp.: {c.guardian?.name}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-red-600">{formatCurrency(calculateUpdatedInvoiceValues(c.invoice).updatedValue)}</p>
-                                            <Button size="sm" className="mt-1" onClick={() => handleStartSession(c)} isLoading={isSessionStarting && selectedCase?.invoice.id === c.invoice.id}>Iniciar Sessão</Button>
-                                        </div>
-                                    </li>
-                                ))}
-                                {filteredCases.length === 0 && <p className="p-8 text-center text-neutral-500">Nenhum caso vencido para negociação.</p>}
-                                {permissionError && <p className="p-4 text-center text-red-600 bg-red-50">{permissionError}</p>}
-                            </ul>
-                        )}
-                        {view === 'history' && (
-                            <ul className="divide-y divide-neutral-200">
-                                {liveHistories.map(item => (
-                                    <li key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-50 cursor-pointer" onClick={() => setViewingHistoryItem(item)}>
-                                        <div>
-                                            <p className="font-semibold text-neutral-800">{item.studentName}</p>
-                                            <p className="text-sm text-neutral-500">{item.schoolName} / {formatDate(item.date)}</p>
-                                        </div>
-                                        <Button size="sm" variant="secondary">Ver Detalhes</Button>
-                                    </li>
-                                ))}
-                                {liveHistories.length === 0 && <p className="p-8 text-center text-neutral-500">Nenhum histórico de sessão encontrado.</p>}
-                            </ul>
-                        )}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
+                <div className="overflow-y-auto max-h-[calc(100vh-20rem)]">
+                    <AnimatePresence mode="wait">
+                        <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            {view === 'list' && (
+                                 <ul className="divide-y divide-neutral-200">
+                                    {filteredCases.map(c => (
+                                        <li key={c.invoice.id} className="p-4 flex justify-between items-center hover:bg-neutral-50 cursor-pointer" onClick={() => setPreSessionDetailCase(c)}>
+                                            <div>
+                                                <p className="font-semibold text-neutral-800">{c.student?.name}</p>
+                                                <p className="text-sm text-neutral-500">{c.school?.name} / Resp.: {c.guardian?.name}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-red-600">{formatCurrency(calculateUpdatedInvoiceValues(c.invoice).updatedValue)}</p>
+                                                <p className="text-xs text-neutral-500">Clique para revisar</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                    {filteredCases.length === 0 && <p className="p-8 text-center text-neutral-500">Nenhum caso vencido para negociação.</p>}
+                                    {permissionError && <p className="p-4 text-center text-red-600 bg-red-50">{permissionError}</p>}
+                                </ul>
+                            )}
+                            {view === 'history' && (
+                                <ul className="divide-y divide-neutral-200">
+                                    {liveHistories.map(item => (
+                                        <li key={item.id} className="p-4 flex justify-between items-center hover:bg-neutral-50 cursor-pointer" onClick={() => setViewingHistoryItem(item)}>
+                                            <div>
+                                                <p className="font-semibold text-neutral-800">{item.studentName}</p>
+                                                <p className="text-sm text-neutral-500">{item.schoolName} / {formatDate(item.date)}</p>
+                                            </div>
+                                            <Button size="sm" variant="secondary">Ver Detalhes</Button>
+                                        </li>
+                                    ))}
+                                    {liveHistories.length === 0 && <p className="p-8 text-center text-neutral-500">Nenhum histórico de sessão encontrado.</p>}
+                                </ul>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+                
+            </Card>
+            <PreSessionDetailModal
+                isOpen={!!preSessionDetailCase}
+                onClose={() => setPreSessionDetailCase(null)}
+                caseData={preSessionDetailCase}
+                onStartSession={handleStartSession}
+                isLoading={isSessionStarting && selectedCase?.invoice.id === preSessionDetailCase?.invoice.id}
+            />
             <HistoryDetailModal item={viewingHistoryItem} onClose={() => setViewingHistoryItem(null)} />
-        </Card>
+        </>
     );
 };
 

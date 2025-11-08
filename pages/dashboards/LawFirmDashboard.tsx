@@ -124,7 +124,8 @@ const LawFirmDashboard = (): React.ReactElement => {
         }
     };
     
-    const pageKey = activePage + (detailView.id || '');
+    const pageKey = activePage;
+    const transition = { type: 'spring', stiffness: 500, damping: 35, mass: 0.8 };
 
     return (
         <AppLayout
@@ -133,37 +134,62 @@ const LawFirmDashboard = (): React.ReactElement => {
             setActivePage={handleSetActivePage}
             pageTitle={pageTitle}
         >
-             <motion.div layout className="flex-1 flex overflow-hidden">
-                <div className={`flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 ${detailView.id ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'}`}>
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={pageKey}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            className="w-full"
-                        >
-                             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
-                            {renderContent()}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
+             <div className="relative flex-1 flex flex-col overflow-hidden">
+                <motion.div
+                    animate={{ 
+                        scale: detailView.id ? 0.95 : 1,
+                        borderRadius: detailView.id ? '1.5rem' : '0rem'
+                    }}
+                    transition={transition}
+                    className="flex-1 flex flex-col overflow-hidden bg-neutral-50 will-change-transform origin-center"
+                >
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 flex flex-col">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={pageKey}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                className="w-full"
+                            >
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
+                                {renderContent()}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+
                 <AnimatePresence>
-                {detailView.id && (
-                     <motion.div
-                        key={detailView.id}
-                        initial={{ x: '100%' }}
-                        animate={{ x: '0%' }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="w-full lg:w-2/5 xl:w-1/3 flex-shrink-0 bg-white border-l border-neutral-200/80 overflow-y-auto"
-                    >
-                         {renderDetailContent()}
-                    </motion.div>
-                )}
+                    {detailView.id && (
+                        <div className="absolute inset-0 z-30">
+                            {/* Backdrop */}
+                            <motion.div
+                                className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                onClick={handleCloseDetail}
+                            />
+                            {/* Modal Container */}
+                            <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+                                <motion.div
+                                    key={detailView.id}
+                                    layout
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.9, opacity: 0 }}
+                                    transition={transition}
+                                    className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden"
+                                >
+                                    {renderDetailContent()}
+                                </motion.div>
+                            </div>
+                        </div>
+                    )}
                 </AnimatePresence>
-            </motion.div>
+            </div>
         </AppLayout>
     );
 };

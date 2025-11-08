@@ -1,80 +1,38 @@
+
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import { demoInvoices, demoStudents } from '../../services/demoData';
 import { InvoiceStatus, School } from '../../types';
-import { PlusIcon, SchoolIcon, DollarIcon, UsersIcon } from '../../components/common/icons';
+import { PlusIcon, SchoolIcon } from '../../components/common/icons';
 import AddSchoolModal from '../../components/law-firm/AddSchoolModal';
 import { formatCurrency } from '../../utils/formatters';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import Card from '../../components/common/Card';
 
-interface SchoolCardProps {
-    school: any;
-    onSelectSchool: (id: string) => void;
-    isSelected: boolean;
-    key?: React.Key;
-}
+const HealthScoreIndicator = ({ score }: { score?: number }) => {
+    if (score === undefined) {
+        return <div className="text-sm text-neutral-400">-</div>;
+    }
 
-const SchoolCard = ({ school, onSelectSchool, isSelected }: SchoolCardProps) => {
-    
-    const getHealthIndicator = (score?: number) => {
-        if (score === undefined) return 'bg-gray-400';
+    const getHealthColor = () => {
         if (score > 75) return 'bg-green-500';
         if (score > 40) return 'bg-yellow-500';
         return 'bg-red-500';
     };
 
     return (
-        <motion.div
-            layout
-            variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-            }}
-            onClick={() => onSelectSchool(school.id)}
-            className={`cursor-pointer rounded-2xl border-2 transition-all duration-300 ${isSelected ? 'bg-primary-50 border-primary-400 shadow-lg shadow-primary-500/10' : 'bg-white border-transparent shadow-soft hover:shadow-soft-hover hover:-translate-y-1'}`}
-        >
-            <div className="p-5">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-neutral-800 text-lg pr-4">{school.name}</h3>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
-                        <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
-                    </div>
-                </div>
-                <p className="text-xs text-neutral-500 mt-1">Health Score (IA)</p>
+        <div className="flex items-center gap-2">
+            <div className="w-20 bg-neutral-200 rounded-full h-1.5">
+                <motion.div 
+                    className={`h-1.5 rounded-full ${getHealthColor()}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${score}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                />
             </div>
-            <div className="px-5 pb-5 mt-2 space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
-                        <DollarIcon className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-neutral-500">Valor Vencido</p>
-                        <p className="font-semibold text-neutral-800">{formatCurrency(school.totalOverdue)}</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                        <UsersIcon className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-neutral-500">Alunos Inadimplentes</p>
-                        <p className="font-semibold text-neutral-800">{school.defaulterStudentsCount}</p>
-                    </div>
-                </div>
-                 <div className="flex items-center gap-3 text-sm">
-                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
-                        <DollarIcon className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-neutral-500">Total Recuperado</p>
-                        <p className="font-semibold text-neutral-800">{formatCurrency(school.totalRecovered)}</p>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
+            <span className="font-semibold text-sm text-neutral-700 w-8 text-right">{score}</span>
+        </div>
     );
 };
 
@@ -86,7 +44,6 @@ interface SchoolsListProps {
 }
 
 const SchoolsList = ({ schools, onSelectSchool, selectedSchoolId }: SchoolsListProps): React.ReactElement => {
-    const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const enrichedSchools = useMemo(() => {
@@ -115,11 +72,21 @@ const SchoolsList = ({ schools, onSelectSchool, selectedSchoolId }: SchoolsListP
         alert("A adição de escolas está desabilitada nesta versão sem banco de dados.");
         setIsModalOpen(false);
     };
+    
+    const listVariants = {
+        visible: { transition: { staggerChildren: 0.05 } },
+        hidden: {},
+    };
+
+    const itemVariants = {
+        visible: { opacity: 1, y: 0 },
+        hidden: { opacity: 0, y: 10 },
+    };
 
     const renderContent = () => {
         if (enrichedSchools.length === 0) {
             return (
-                <div className="text-center py-12 px-6">
+                 <div className="text-center py-12 px-6">
                     <SchoolIcon className="w-12 h-12 mx-auto text-neutral-300" />
                     <h3 className="mt-4 text-lg font-semibold text-neutral-700">Nenhuma escola cadastrada</h3>
                     <p className="mt-1 text-sm text-neutral-500">Adicione sua primeira escola para começar a gerenciar as cobranças.</p>
@@ -133,33 +100,64 @@ const SchoolsList = ({ schools, onSelectSchool, selectedSchoolId }: SchoolsListP
         }
 
         return (
-            <motion.div 
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-                variants={{ visible: { transition: { staggerChildren: 0.05 } }, hidden: {} }}
-                initial="hidden"
-                animate="visible"
-            >
-                {enrichedSchools.map(school => (
-                    <SchoolCard
-                        key={school.id}
-                        school={school}
-                        onSelectSchool={onSelectSchool}
-                        isSelected={selectedSchoolId === school.id}
-                    />
-                ))}
-            </motion.div>
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-200">
+                    <thead className="bg-neutral-50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Saúde (IA)</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase tracking-wider">Alunos Inadimp.</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor Vencido</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Total Recuperado</th>
+                            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
+                        </tr>
+                    </thead>
+                    <motion.tbody 
+                        className="bg-white divide-y divide-neutral-200"
+                        variants={listVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {enrichedSchools.map((school) => (
+                            <motion.tr 
+                                key={school.id} 
+                                variants={itemVariants} 
+                                onClick={() => onSelectSchool(school.id)}
+                                className={`transition-colors cursor-pointer ${selectedSchoolId === school.id ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
+                            >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm font-semibold text-neutral-900">{school.name}</div>
+                                    <div className="text-xs text-neutral-500">{school.cnpj}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <HealthScoreIndicator score={school.healthScore} />
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-neutral-800">{school.defaulterStudentsCount}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-red-600">{formatCurrency(school.totalOverdue)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-green-600">{formatCurrency(school.totalRecovered)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <span className="text-primary-600 hover:text-primary-900">
+                                        Detalhes
+                                    </span>
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </motion.tbody>
+                </table>
+            </div>
         );
     }
 
     return (
         <>
             <div className="flex justify-between items-center mb-6">
-                 {/* This h2 is hidden but keeps the layout consistent with other pages that have visible titles here */}
                 <h2 className="text-xl font-semibold text-neutral-800 invisible">Escolas Clientes</h2>
                 <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="md">Nova Escola</Button>
             </div>
             
-            {renderContent()}
+            <Card noPadding>
+                {renderContent()}
+            </Card>
 
             <AddSchoolModal
                 isOpen={isModalOpen}
