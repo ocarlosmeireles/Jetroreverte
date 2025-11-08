@@ -5,6 +5,7 @@ import { XIcon } from './icons';
 import Button from './Button';
 import { formatCurrency } from '../../utils/formatters';
 import { INSTALLMENT_RATES } from '../../constants';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface AgreementModalProps {
     isOpen: boolean;
@@ -34,53 +35,62 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
     const [paymentMethod, setPaymentMethod] = useState<'Boleto' | 'Pix' | 'Cartão de Crédito'>('Boleto');
     const [firstDueDate, setFirstDueDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
-    const totalValue = useMemo(() => {
-        return initialValues?.totalValue ?? invoice.updatedValue ?? invoice.value;
-    }, [initialValues, invoice]);
 
+    // This is the definitive, calculated debt value. All manual calculations start from here.
+    const baseDebtValue = useMemo(() => calculateUpdatedInvoiceValues(invoice).updatedValue, [invoice]);
+    
     useEffect(() => {
         if (isOpen) {
+            // When modal opens, set state from initialValues or defaults
             setInstallments(initialValues?.installments ?? 1);
             setPaymentMethod('Boleto');
             setFirstDueDate('');
         }
     }, [isOpen, initialValues]);
     
-    const { installmentValue, totalWithInterest, interestRate, isInterestFree } = useMemo(() => {
-        if (installments === 1) {
+    // This is the value displayed in the header. It's either the AI's special total or the base debt.
+    const displayTotalValue = useMemo(() => {
+        if (initialValues && initialValues.installments === installments) {
+            return initialValues.totalValue;
+        }
+        return baseDebtValue;
+    }, [installments, baseDebtValue, initialValues]);
+
+    const { installmentValue, totalWithInterest, interestRate, isSpecialOffer } = useMemo(() => {
+        const isAiSuggestionActive = initialValues && initialValues.installments === installments;
+
+        // Case 1: An AI suggestion is active (user hasn't changed the slider)
+        if (isAiSuggestionActive) {
             return {
-                installmentValue: totalValue,
-                totalWithInterest: totalValue,
+                installmentValue: initialValues.totalValue / installments,
+                totalWithInterest: initialValues.totalValue,
                 interestRate: 0,
-                isInterestFree: true,
+                isSpecialOffer: true,
             };
         }
         
-        // If initialValues are provided, it's from an AI suggestion.
-        // The totalValue from AI is the FINAL amount, so we just divide it.
-        if (initialValues) {
-             const installment = totalValue / installments;
-             return {
-                installmentValue: installment,
-                totalWithInterest: totalValue,
-                interestRate: 0, // Rate is already baked into the total
-                isInterestFree: false,
-             }
+        // Case 2: Payment in 1 installment (always based on base debt)
+        if (installments === 1) {
+            return {
+                installmentValue: baseDebtValue,
+                totalWithInterest: baseDebtValue,
+                interestRate: 0,
+                isSpecialOffer: false,
+            };
         }
-        
-        // Original logic for manual agreement creation: apply interest rates.
+
+        // Case 3: Manual calculation for multiple installments (or if user changed slider from AI suggestion)
         const rate = INSTALLMENT_RATES[installments as keyof typeof INSTALLMENT_RATES] || 0;
-        const total = totalValue * (1 + rate);
+        const total = baseDebtValue * (1 + rate);
         const installment = total / installments;
 
         return {
             installmentValue: installment,
             totalWithInterest: total,
             interestRate: rate * 100,
-            isInterestFree: false,
+            isSpecialOffer: false,
         };
-    }, [installments, totalValue, initialValues]);
+    }, [installments, baseDebtValue, initialValues]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -126,9 +136,9 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="text-center p-4 bg-primary-50 rounded-lg">
                                 <p className="text-sm text-primary-800">Valor Negociado para Acordo</p>
-                                <p className="text-3xl font-bold text-primary-700">{formatCurrency(totalValue)}</p>
+                                <p className="text-3xl font-bold text-primary-700">{formatCurrency(displayTotalValue)}</p>
                             </div>
-                             <div>
+                            <div>
                                 <label htmlFor="installments" className="form-label">Opções de Parcelamento</label>
                                 <div className="flex items-center gap-4">
                                     <input 
@@ -146,12 +156,12 @@ const AgreementModal = ({ isOpen, onClose, onSave, invoice, initialValues }: Agr
                                     <p className="text-lg font-semibold text-neutral-800">
                                         {installments}x de <span className="text-green-600">{formatCurrency(installmentValue)}</span>
                                     </p>
-                                    {isInterestFree ? (
-                                        <p className="text-sm font-medium text-green-700">Sem juros de parcelamento</p>
-                                    ) : initialValues ? (
+                                    {isSpecialOffer ? (
                                         <p className="text-sm text-neutral-500">
-                                            Valor total do acordo: {formatCurrency(totalWithInterest)}
+                                            Total do acordo (sugestão IA): {formatCurrency(totalWithInterest)}
                                         </p>
+                                    ) : installments === 1 ? (
+                                        <p className="text-sm font-medium text-green-700">Sem juros de parcelamento</p>
                                     ) : (
                                         <p className="text-sm text-neutral-500">
                                             Total com juros: {formatCurrency(totalWithInterest)} ({interestRate.toFixed(2)}%)

@@ -1,26 +1,85 @@
-
-
-import React, { useState, useEffect } from 'react';
-import { motion, Variants } from 'framer-motion';
+import React, { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { demoInvoices, demoStudents, demoSubscriptions, demoSchools } from '../../services/demoData';
-import { InvoiceStatus, School, PlanId } from '../../types';
-import { PlusIcon, SchoolIcon, SparklesIcon } from '../../components/common/icons';
+import { demoInvoices, demoStudents, demoSchools } from '../../services/demoData';
+import { InvoiceStatus, School } from '../../types';
+import { PlusIcon, SchoolIcon, DollarIcon, UsersIcon } from '../../components/common/icons';
 import AddSchoolModal from '../../components/law-firm/AddSchoolModal';
-import { formatDate } from '../../utils/formatters';
+import { formatCurrency } from '../../utils/formatters';
 import { DEMO_USERS } from '../../constants';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
-const listVariants = {
-  visible: { transition: { staggerChildren: 0.05 } },
-  hidden: {},
+interface SchoolCardProps {
+    school: any;
+    onSelectSchool: (id: string) => void;
+    isSelected: boolean;
+    // FIX: Added an optional key to props to allow passing it when mapping over a list, resolving a TypeScript error.
+    key?: React.Key;
+}
+
+const SchoolCard = ({ school, onSelectSchool, isSelected }: SchoolCardProps) => {
+    
+    const getHealthIndicator = (score?: number) => {
+        if (score === undefined) return 'bg-gray-400';
+        if (score > 75) return 'bg-green-500';
+        if (score > 40) return 'bg-yellow-500';
+        return 'bg-red-500';
+    };
+
+    return (
+        <motion.div
+            layout
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
+            }}
+            onClick={() => onSelectSchool(school.id)}
+            className={`cursor-pointer rounded-2xl border-2 transition-all duration-300 ${isSelected ? 'bg-primary-50 border-primary-400 shadow-lg shadow-primary-500/10' : 'bg-white border-transparent shadow-soft hover:shadow-soft-hover hover:-translate-y-1'}`}
+        >
+            <div className="p-5">
+                <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-neutral-800 text-lg pr-4">{school.name}</h3>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
+                        <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
+                    </div>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Health Score (IA)</p>
+            </div>
+            <div className="px-5 pb-5 mt-2 space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                        <DollarIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-neutral-500">Valor Vencido</p>
+                        <p className="font-semibold text-neutral-800">{formatCurrency(school.totalOverdue)}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <UsersIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-neutral-500">Alunos Inadimplentes</p>
+                        <p className="font-semibold text-neutral-800">{school.defaulterStudentsCount}</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-3 text-sm">
+                    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                        <DollarIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-neutral-500">Total Recuperado</p>
+                        <p className="font-semibold text-neutral-800">{formatCurrency(school.totalRecovered)}</p>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
 };
 
-const itemVariants: Variants = {
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-  hidden: { opacity: 0, y: 20 },
-};
 
 interface SchoolsListProps {
     onSelectSchool: (schoolId: string) => void;
@@ -29,37 +88,32 @@ interface SchoolsListProps {
 
 const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): React.ReactElement => {
     const { user } = useAuth();
-    const [schools, setSchools] = useState<School[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSeeding, setIsSeeding] = useState(false);
 
-    const fetchData = () => {
-        if (!user) {
-            setIsLoading(false);
-            return;
-        }
-        setIsLoading(true);
-        try {
-            // If the user is the specific demo law firm user, show their associated demo schools.
-            // For any other user (e.g., a newly registered one), show an empty list.
-            if (user.email === DEMO_USERS.ESCRITORIO.email) {
-                const userSchools = demoSchools.filter(school => school.officeId === user.id);
-                setSchools(userSchools);
-            } else {
-                // In a real app, this would be a Firestore query. For now, show a blank slate.
-                setSchools([]);
-            }
-        } catch (error) {
-            console.error("Error fetching schools:", error);
-            alert("Não foi possível carregar as escolas.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const enrichedSchools = useMemo(() => {
+        if (user?.email !== DEMO_USERS.ESCRITORIO.email) return [];
+        
+        const userSchools = demoSchools.filter(school => school.officeId === user.id);
 
-    useEffect(() => {
-        fetchData();
+        return userSchools.map(school => {
+            const schoolStudents = demoStudents.filter(s => s.schoolId === school.id);
+            const schoolStudentIds = new Set(schoolStudents.map(s => s.id));
+            const schoolInvoices = demoInvoices.filter(i => schoolStudentIds.has(i.studentId));
+
+            const overdueInvoices = schoolInvoices.filter(i => i.status === InvoiceStatus.VENCIDO);
+            const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + calculateUpdatedInvoiceValues(inv).updatedValue, 0);
+            
+            const defaulterStudentsCount = new Set(overdueInvoices.map(i => i.studentId)).size;
+            
+            const totalRecovered = schoolInvoices.filter(i => i.status === InvoiceStatus.PAGO).reduce((sum, inv) => sum + inv.value, 0);
+
+            return {
+                ...school,
+                totalOverdue,
+                defaulterStudentsCount,
+                totalRecovered
+            };
+        });
     }, [user]);
 
     const handleSaveSchool = (data: any) => {
@@ -67,29 +121,14 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
         setIsModalOpen(false);
     };
 
-    const getHealthIndicator = (score?: number) => {
-        if (score === undefined) return 'bg-gray-400';
-        if (score > 75) return 'bg-green-500';
-        if (score > 40) return 'bg-yellow-500';
-        return 'bg-red-500';
-    };
-
-    const handleSeedData = () => {
-        alert("A funcionalidade de popular o banco de dados foi removida junto com o Firebase.");
-    };
-
     const renderContent = () => {
-        if (isLoading) {
-            return <div className="p-12 text-center text-neutral-500">Carregando escolas...</div>;
-        }
-
-        if (schools.length === 0) {
+        if (enrichedSchools.length === 0) {
             return (
                 <div className="text-center py-12 px-6">
                     <SchoolIcon className="w-12 h-12 mx-auto text-neutral-300" />
                     <h3 className="mt-4 text-lg font-semibold text-neutral-700">Nenhuma escola cadastrada</h3>
                     <p className="mt-1 text-sm text-neutral-500">Adicione sua primeira escola para começar a gerenciar as cobranças.</p>
-                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="mt-6">
                         <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />}>
                             Adicionar Escola
                         </Button>
@@ -99,94 +138,34 @@ const SchoolsList = ({ onSelectSchool, selectedSchoolId }: SchoolsListProps): Re
         }
 
         return (
-            <>
-                {/* Desktop Table */}
-                <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
-                    <thead className="bg-neutral-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Escola</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Saúde do Cliente</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contato</th>
-                            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Ações</span></th>
-                        </tr>
-                    </thead>
-                    <motion.tbody 
-                        className="bg-white divide-y divide-neutral-200"
-                        variants={listVariants}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        {schools.map((school) => {
-                            const isSelected = selectedSchoolId === school.id;
-                            return (
-                                <motion.tr 
-                                    key={school.id} 
-                                    variants={itemVariants} 
-                                    onClick={() => onSelectSchool(school.id)}
-                                    className={`cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-neutral-900">{school.name}</div>
-                                        <div className="text-sm text-neutral-500">{school.cnpj}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
-                                            <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{school.phone}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <span className="text-primary-600 hover:text-primary-900 font-medium">Ver Detalhes</span>
-                                    </td>
-                                </motion.tr>
-                            )
-                        })}
-                    </motion.tbody>
-                </table>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden">
-                     <motion.div variants={listVariants} initial="hidden" animate="visible" className="divide-y divide-neutral-200">
-                        {schools.map(school => {
-                             const isSelected = selectedSchoolId === school.id;
-                            return (
-                            <motion.div
-                                key={school.id}
-                                variants={itemVariants}
-                                onClick={() => onSelectSchool(school.id)}
-                                className={`p-4 cursor-pointer transition-colors ${isSelected ? 'bg-primary-50' : 'hover:bg-neutral-50'}`}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="font-semibold text-neutral-800">{school.name}</p>
-                                        <p className="text-sm text-neutral-500">{school.cnpj}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                        <div className={`w-3 h-3 rounded-full ${getHealthIndicator(school.healthScore)}`}></div>
-                                        <span className="text-sm font-semibold text-neutral-700">{school.healthScore}/100</span>
-                                    </div>
-                                </div>
-                                <div className="text-sm text-neutral-500 mt-2">{school.phone}</div>
-                            </motion.div>
-                        )})}
-                    </motion.div>
-                </div>
-            </>
+            <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                variants={{ visible: { transition: { staggerChildren: 0.05 } }, hidden: {} }}
+                initial="hidden"
+                animate="visible"
+            >
+                {enrichedSchools.map(school => (
+                    <SchoolCard
+                        key={school.id}
+                        school={school}
+                        onSelectSchool={onSelectSchool}
+                        isSelected={selectedSchoolId === school.id}
+                    />
+                ))}
+            </motion.div>
         );
     }
 
     return (
         <>
-            <Card noPadding>
-                <div className="p-4 sm:p-6 flex justify-between items-center">
-                    <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Escolas Clientes</h2>
-                    <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="sm" className="sm:size-md">Nova Escola</Button>
-                </div>
-                <div className="overflow-x-auto">
-                    {renderContent()}
-                </div>
-            </Card>
+            <div className="flex justify-between items-center mb-6">
+                 {/* This h2 is hidden but keeps the layout consistent with other pages that have visible titles here */}
+                <h2 className="text-xl font-semibold text-neutral-800 invisible">Escolas Clientes</h2>
+                <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="md">Nova Escola</Button>
+            </div>
+            
+            {renderContent()}
+
             <AddSchoolModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
