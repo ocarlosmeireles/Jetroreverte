@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AcademicCapIcon, ScaleIcon, CheckCircleIcon } from '../common/icons';
@@ -14,7 +13,7 @@ const Solutions = () => (
     <section id="solutions" className="py-20 sm:py-28 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.7 }} className="text-center">
-                 <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">Uma Solução Completa para:</h2>
+                 <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-900 tracking-tight">Uma Solução Completa para Cada Necessidade</h2>
                  <p className="mt-4 max-w-3xl mx-auto text-lg text-neutral-600">Projetado para fortalecer a parceria entre escolas e escritórios de advocacia, resolvendo as dores de cada um.</p>
             </motion.div>
 
@@ -31,11 +30,12 @@ const Solutions = () => (
                                 <h3 className="text-2xl font-bold text-neutral-900">Foque na educação, nós cuidamos da saúde financeira.</h3>
                             </div>
                         </div>
+                        <p className="text-neutral-600 mb-6">Oferecemos uma suíte de ferramentas que não apenas recupera valores, mas também previne a inadimplência e fortalece o relacionamento com a comunidade escolar.</p>
                         <ul className="mt-6 space-y-4">
-                            <BenefitItem text="Reduza a inadimplência em até 35% com prevenção e automação." />
-                            <BenefitItem text="Preserve o bom relacionamento com pais e responsáveis." />
-                            <BenefitItem text="Tenha total visibilidade do processo de cobrança em tempo real." />
-                            <BenefitItem text="Receba insights de IA para melhorar seus contratos e políticas financeiras." />
+                            <BenefitItem text="Reduza a inadimplência com nosso módulo de prevenção que identifica riscos antes do vencimento." />
+                            <BenefitItem text="Preserve o bom relacionamento com os pais através de um portal de auto-negociação amigável e discreto." />
+                            <BenefitItem text="Tenha total visibilidade do processo de cobrança conduzido pelo escritório, com relatórios em tempo real." />
+                            <BenefitItem text="Utilize nossa IA para auditar seus contratos e fortalecer suas cláusulas financeiras, evitando problemas futuros." />
                         </ul>
                     </div>
                 </motion.div>
@@ -52,11 +52,12 @@ const Solutions = () => (
                                 <h3 className="text-2xl font-bold text-neutral-900">Escale sua operação com automação e IA.</h3>
                             </div>
                         </div>
+                         <p className="text-neutral-600 mb-6">Transforme seu escritório em uma potência de recuperação de crédito educacional com ferramentas que otimizam cada etapa do seu trabalho, da prospecção à petição.</p>
                          <ul className="mt-6 space-y-4">
-                            <BenefitItem text="Automatize até 90% das tarefas manuais de cobrança e negociação." />
-                            <BenefitItem text="Aumente sua receita com ferramentas de IA para marketing e petições." />
-                            <BenefitItem text="Gerencie toda sua carteira de clientes em um único dashboard." />
-                            <BenefitItem text="Ofereça um diferencial competitivo e de alto valor agregado para as escolas." />
+                            <BenefitItem text="Automatize até 90% das tarefas manuais com nosso Workspace IA que prioriza casos e sugere as próximas ações." />
+                            <BenefitItem text="Aumente sua receita com o Hub de Marketing, usando IA para gerar leads, criar personas e produzir conteúdo." />
+                            <BenefitItem text="Gerencie toda sua carteira de clientes em um único dashboard, oferecendo relatórios de performance transparentes." />
+                            <BenefitItem text="Acelere o ajuizamento de ações com o gerador de petições que cria rascunhos completos em segundos." />
                         </ul>
                     </div>
                 </motion.div>
