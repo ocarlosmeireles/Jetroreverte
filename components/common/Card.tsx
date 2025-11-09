@@ -1,8 +1,4 @@
-
-
-
 import React, { ReactNode } from 'react';
-// FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
 
 interface CardProps {
@@ -13,7 +9,6 @@ interface CardProps {
 }
 
 const Card = ({ children, className = '', noPadding = false, delay = 0 }: CardProps): React.ReactElement => {
-    // FIX: Explicitly type cardVariants with the Variants type.
     const cardVariants: Variants = {
         hidden: { opacity: 0, y: 20 },
         visible: { 

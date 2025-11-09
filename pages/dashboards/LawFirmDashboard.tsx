@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 // FIX: Import Transition to fix type error.
 import { AnimatePresence, motion, Transition as MotionTransition } from 'framer-motion';
@@ -14,7 +15,6 @@ import ConsolidatedReports from '../law-firm/ConsolidatedReports';
 import LawFirmInvoiceDetail from '../law-firm/InvoiceDetail';
 import CombinedFinancials from '../law-firm/CombinedFinancials';
 import PetitionList from '../law-firm/PetitionList';
-import MarketingHub from '../law-firm/MarketingHub';
 import JudicialProcessDashboard from '../law-firm/JudicialProcessDashboard';
 import { demoSchools } from '../../services/demoData';
 import { useAuth } from '../../hooks/useAuth';
@@ -81,8 +81,6 @@ const LawFirmDashboard = (): React.ReactElement => {
                 return <PetitionList />;
             case 'processos':
                 return <JudicialProcessDashboard />;
-            case 'marketing':
-                return <MarketingHub />;
             case 'financeiro':
                 return <CombinedFinancials onSelectSchool={handleSelectSchool} />;
             case 'relatorios':

@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -9,7 +10,7 @@ import { demoSchools, demoSubscriptions } from '../../services/demoData';
 import { formatDate } from '../../utils/formatters';
 import { PlanId } from '../../types';
 
-const listVariants = {
+const listVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
@@ -78,20 +79,4 @@ const SchoolsList = (): React.ReactElement => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
                                             {status.text}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{school.phone}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="#" className="text-primary-600 hover:text-primary-900">Gerenciar</a>
-                                    </td>
-                                </motion.tr>
-                            )
-                        })}
-                    </motion.tbody>
-                </table>
-            </div>
-        </Card>
-    );
-};
-
-export default SchoolsList;
+                                        

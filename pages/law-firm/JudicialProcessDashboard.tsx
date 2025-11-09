@@ -23,8 +23,6 @@ const columns: { id: JudicialProcessStatus; title: string }[] = [
 interface ProcessCardProps {
     process: JudicialProcess;
     onClick: () => void;
-    // FIX: Add key to props to allow usage in a list map, resolving a TypeScript error.
-    key?: React.Key;
 }
 
 const ProcessCard = ({ process, onClick }: ProcessCardProps) => (

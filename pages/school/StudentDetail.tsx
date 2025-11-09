@@ -14,7 +14,7 @@ interface StudentDetailProps {
     onBack: () => void;
 }
 
-const listVariants = {
+const listVariants: Variants = {
   visible: { transition: { staggerChildren: 0.05 } },
   hidden: {},
 };
@@ -151,7 +151,7 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
                                                         <span className="font-medium text-neutral-800">{formatCurrency(displayValue)}</span>
                                                     </div>
                                                     <div className="text-sm flex justify-between mt-1">
-                                                        <span className="text-neutral-500">Cobrança:</span>
+                                                        <span className="text-neutral-500">Status da Cobrança:</span>
                                                         <span className="font-medium text-neutral-800">{invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}</span>
                                                     </div>
                                                 </motion.div>
@@ -161,7 +161,7 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
                                 </div>
                             </>
                         ) : (
-                            <p className="p-6 text-center text-neutral-500">Nenhum débito encontrado para este aluno.</p>
+                            <p className="text-center text-neutral-500 p-6">Nenhuma cobrança registrada para este aluno.</p>
                         )}
                     </Card>
                 </div>

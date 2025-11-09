@@ -22,7 +22,6 @@ import {
     PhoneIcon,
     HeartIcon,
     WrenchScrewdriverIcon,
-    MegaphoneIcon,
     DocumentChartBarIcon,
 } from './icons';
 
@@ -66,7 +65,6 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Prevenção (IA)': <ShieldCheckIcon />,
     'Petições (IA)': <ScaleIcon />,
     'Processos Judiciais': <BriefcaseIcon />,
-    'Hub de Marketing': <MegaphoneIcon />,
     'Auditor de Contratos (IA)': <ShieldCheckIcon />,
     'Consultor IA': <ChatBubbleLeftRightIcon />,
     'Configurações': <Cog6ToothIcon />,

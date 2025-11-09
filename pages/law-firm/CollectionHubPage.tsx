@@ -1,3 +1,5 @@
+
+
 import React, { useState, ReactNode, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Type, Blob } from '@google/genai';
@@ -17,7 +19,7 @@ import { demoLiveNegotiationHistories } from '../../services/demoData';
 import { allDemoUsers } from '../../services/superAdminDemoData';
 import { generateAgreementPdf } from '../../utils/agreementPdfGenerator';
 
-function encode(bytes: Uint8Array) {
+function encode(bytes: Uint8Array): string {
   let binary = '';
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
@@ -25,6 +27,36 @@ function encode(bytes: Uint8Array) {
   }
   return btoa(binary);
 }
+
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
 
 const channelInfo: Record<NegotiationChannel, { icon: ReactNode; label: string }> = {
     [NegotiationChannel.PHONE_CALL]: { icon: <PhoneIcon className="w-4 h-4 text-neutral-500" />, label: 'Ligação' },
@@ -220,7 +252,7 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaStreamRef.current = stream;
             
-            const inputAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             audioContextRef.current = inputAudioContext;
 
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -299,6 +331,10 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
                     },
                 },
                 config: {
+                    responseModalities: [Modality.AUDIO],
+                    speechConfig: {
+                      voiceConfig: {prebuiltVoiceConfig: {voiceName: 'Zephyr'}},
+                    },
                     inputAudioTranscription: {},
                     outputAudioTranscription: {}, // Simulates listening to the other party
                     systemInstruction: systemInstruction,

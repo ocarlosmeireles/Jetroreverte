@@ -63,7 +63,6 @@ export const NAVIGATION = {
         { name: 'Gestão de Cobranças', path: 'gestao-cobrancas' },
         { name: 'Petições (IA)', path: 'peticoes' },
         { name: 'Processos Judiciais', path: 'processos' },
-        { name: 'Hub de Marketing', path: 'marketing' },
         { name: 'Financeiro', path: 'financeiro' },
         { name: 'Relatórios Consolidados', path: 'relatorios' },
         { name: 'Configurações', path: 'configuracoes' },

@@ -46,21 +46,4 @@ const AdminDashboard = (): React.ReactElement => {
             pageTitle={pageTitle}
         >
              <div className="flex-1 overflow-y-auto p-6 lg:p-10">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activePage}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
-                        {renderContent()}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-        </AppLayout>
-    );
-};
-
-export default AdminDashboard;
+                <AnimatePresence mode---

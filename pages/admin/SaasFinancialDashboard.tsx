@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -10,7 +11,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { demoSaasInvoices, demoSchools } from '../../services/demoData';
 import { DollarIcon, UsersIcon } from '../../components/common/icons';
 
-const listVariants = {
+const listVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {

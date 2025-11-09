@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
 import Card from '../../components/common/Card';
@@ -7,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { Invoice, InvoiceStatus } from '../../types';
 
-const listVariants = {
+const listVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {

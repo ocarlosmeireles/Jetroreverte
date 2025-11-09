@@ -1,7 +1,7 @@
 
 
-import React, { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import React, { ReactNode, forwardRef } from 'react';
+import { motion, MotionProps } from 'framer-motion';
 
 // FIX: Change props to be compatible with motion.button to avoid type conflicts.
 type ButtonProps = {
@@ -11,9 +11,9 @@ type ButtonProps = {
     isLoading?: boolean;
     icon?: ReactNode;
     className?: string;
-} & React.ComponentProps<typeof motion.button>;
+} & Omit<MotionProps, 'children'> & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-const Button = ({ children, variant = 'primary', size = 'md', isLoading = false, icon, className = '', disabled, ...props }: ButtonProps): React.ReactElement => {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ children, variant = 'primary', size = 'md', isLoading = false, icon, className = '', disabled, ...props }, ref) => {
     const baseClasses = "inline-flex items-center justify-center border border-transparent font-semibold rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed";
 
     const variantClasses = {
@@ -36,6 +36,7 @@ const Button = ({ children, variant = 'primary', size = 'md', isLoading = false,
 
     return (
         <motion.button
+            ref={ref}
             whileHover={{ scale: disabled ? 1 : 1.03, y: disabled ? 0 : -2 }}
             whileTap={{ scale: disabled ? 1 : 0.97, y: 0 }}
             className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
@@ -53,6 +54,8 @@ const Button = ({ children, variant = 'primary', size = 'md', isLoading = false,
             {children}
         </motion.button>
     );
-};
+});
+
+Button.displayName = "Button";
 
 export default Button;

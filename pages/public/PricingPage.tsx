@@ -1,9 +1,4 @@
-
-
-
-
 import React from 'react';
-// FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
 import { PLANS } from '../../constants';
 import PlanCard from '../../components/billing/PlanCard';
@@ -14,7 +9,7 @@ interface PricingPageProps {
 }
 
 const PricingPage = ({ onBackToLogin }: PricingPageProps): React.ReactElement => {
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -58,11 +53,11 @@ const PricingPage = ({ onBackToLogin }: PricingPageProps): React.ReactElement =>
                     </p>
                 </motion.div>
 
-                <div className="mt-16 max-w-lg mx-auto grid gap-8 lg:grid-cols-2 lg:max-w-none">
+                <motion.div className="mt-16 max-w-lg mx-auto grid gap-8 lg:grid-cols-2 lg:max-w-none" variants={containerVariants}>
                     {PLANS.map((plan) => (
                         <PlanCard key={plan.id} plan={plan} isFeatured={plan.id === 'pro'} />
                     ))}
-                </div>
+                </motion.div>
                 
                 <motion.div variants={itemVariants} className="mt-16 text-center">
                      <h3 className="text-2xl font-bold text-neutral-800">Precisa de mais?</h3>

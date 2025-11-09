@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -134,7 +136,7 @@ const SchoolDashboard = (): React.ReactElement => {
                         exit={{ opacity: 0, y: -15 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                     >
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
+                        {/* This h1 was removed because it is now handled by AppLayout and passed via pageTitle prop */}
                         {renderContent()}
                     </motion.div>
                 </AnimatePresence>

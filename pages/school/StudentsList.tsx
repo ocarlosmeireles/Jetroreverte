@@ -8,7 +8,7 @@ import AddStudentModal from '../../components/school/AddStudentModal';
 import { Student, Guardian } from '../../types';
 import { demoStudents, demoGuardians } from '../../services/demoData';
 
-const listVariants = {
+const listVariants: Variants = {
   visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.05 } },
   hidden: { opacity: 0 },
 };

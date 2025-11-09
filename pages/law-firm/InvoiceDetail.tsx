@@ -1,23 +1,20 @@
-
-
-
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { demoInvoices, demoStudents, demoGuardians, demoSchools } from '../../services/demoData';
-import { Invoice, Student, Guardian, InvoiceStatus, CollectionStage, AgreementDetails, School, User } from '../../types';
+import { Invoice, InvoiceStatus, CollectionStage, AgreementDetails, School, User } from '../../types';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, DocumentReportIcon, CheckCircleIcon } from '../../components/common/icons';
+import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, ClipboardIcon, PencilIcon, DocumentReportIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import ContactHistoryModal from '../../components/common/ContactHistoryModal';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import Modal from '../../components/common/Modal';
 import AiCommunicationModal from '../../components/school/AiCommunicationModal';
 import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
-import ContactHistoryModal from '../../components/common/ContactHistoryModal';
-import AgreementModal from '../../components/common/AgreementModal';
+import { Switch } from '../../components/common/Switch';
 import { generateAgreementPdf } from '../../utils/agreementPdfGenerator';
 import { useAuth } from '../../hooks/useAuth';
-import Switch from '../../components/common/Switch';
-import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
-
+import { CheckCircleIcon } from '../../components/common/icons';
+import AgreementModal from '../../components/common/AgreementModal';
 
 interface InvoiceDetailProps {
     invoiceId: string;

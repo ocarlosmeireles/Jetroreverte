@@ -10,7 +10,7 @@ import AddInvoiceModal from '../../components/school/AddInvoiceModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import { PlusIcon } from '../../components/common/icons';
 
-const listVariants = {
+const listVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {

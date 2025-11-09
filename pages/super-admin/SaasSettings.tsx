@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import Switch from '../../components/common/Switch';
+import { Switch } from '../../components/common/Switch';
 import { PLANS } from '../../constants';
 import { formatCurrency } from '../../utils/formatters';
 import { CheckCircleIcon, Bars3Icon } from '../../components/common/icons';
