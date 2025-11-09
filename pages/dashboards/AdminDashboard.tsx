@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -22,7 +23,8 @@ const AdminDashboard = (): React.ReactElement => {
             case 'escolas':
                 return <SchoolsList />;
             case 'negociacoes':
-                return <NegotiationsDashboard />;
+                // FIX: Provide the required onOpenDossier prop.
+                return <NegotiationsDashboard onOpenDossier={() => {}} />;
             case 'financeiro':
                 return <SaasFinancialDashboard />;
             case 'relatorios':

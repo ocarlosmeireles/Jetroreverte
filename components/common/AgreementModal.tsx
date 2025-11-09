@@ -15,7 +15,7 @@ interface AgreementModalProps {
     initialValues?: {
         installments: number;
         totalValue: number;
-    }
+    } | null;
 }
 
 const backdropVariants: Variants = {

@@ -48,6 +48,7 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Alunos Inadimplentes': <UsersIcon />,
     'Responsáveis': <UsersIcon />,
     'Cobranças': <DollarIcon />,
+    'Gestão de Cobranças': <BriefcaseIcon />,
     'Cobranças (Geral)': <DollarIcon />,
     'Histórico de Cobranças': <DollarIcon />,
     'Financeiro': <DollarIcon />,
@@ -106,7 +107,8 @@ const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = fal
                 }`}
             >
                 <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-primary-500' : 'text-neutral-400'}`}>
-                    {icon && React.cloneElement(icon, { className: 'w-6 h-6' })}
+                    {/* FIX: Cast icon to a type that accepts className to resolve TS error. */}
+                    {icon && React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: 'w-6 h-6' })}
                 </span>
                 <span className="text-sm ml-4">{item.name}</span>
             </a>

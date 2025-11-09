@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -53,7 +54,7 @@ const Features = () => {
         ],
         responsaveis: [
             { icon: <ChatBubbleLeftRightIcon />, title: "Portal de Autonegociação", description: "Consulte débitos, simule parcelamentos e aceite acordos 24/7, de forma privada e sem constrangimento.", uiMock: <div className="text-center p-2 bg-white rounded-md shadow-inner"><p className="text-xs text-neutral-400">Simulação de Acordo</p><p className="text-2xl font-bold text-primary-600">6x de R$ 152,50</p><button className="text-xs bg-green-500 text-white px-3 py-1 rounded-full mt-2">Aceitar Acordo</button></div> },
-            { icon: <DocumentChartBarIcon />, title: "Simulador de Orçamento", description: "Ferramenta para ajudar os responsáveis a entenderem como a parcela do acordo impacta seu orçamento.", uiMock: <div className="w-full text-xs p-2 bg-white rounded-md shadow-inner text-left"><p>Renda: <span className="font-bold">R$ 3.500</span></p><p>Despesas: <span className="font-bold">R$ 2.100</span></p><p>Parcela: <span className="font-bold text-red-600">- R$ 152,50</span></p><hr class="my-1"/><p>Sobra: <span className="font-bold text-green-600">R$ 1.247,50</span></p></div> },
+            { icon: <DocumentChartBarIcon />, title: "Simulador de Orçamento", description: "Ferramenta para ajudar os responsáveis a entenderem como a parcela do acordo impacta seu orçamento.", uiMock: <div className="w-full text-xs p-2 bg-white rounded-md shadow-inner text-left"><p>Renda: <span className="font-bold">R$ 3.500</span></p><p>Despesas: <span className="font-bold">R$ 2.100</span></p><p>Parcela: <span className="font-bold text-red-600">- R$ 152,50</span></p><hr className="my-1"/><p>Sobra: <span className="font-bold text-green-600">R$ 1.247,50</span></p></div> },
             { icon: <LightbulbIcon />, title: "Assistente Financeiro IA", description: "Um chatbot amigável que tira dúvidas sobre o débito e guia o responsável para a melhor solução.", uiMock: <div className="w-full text-xs p-2 bg-white rounded-md shadow-inner text-left"><p className="p-1.5 bg-primary-100 rounded-lg">Como funcionam os juros?</p><p className="mt-2 p-1.5 bg-neutral-200 rounded-lg">Os juros são de 1% ao mês sobre o valor original, aplicados após o vencimento...</p></div> },
         ],
     };

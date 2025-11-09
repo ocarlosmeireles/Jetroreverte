@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { motion } from 'framer-motion';
+// FIX: Import Transition type from framer-motion
+import { motion, Transition } from 'framer-motion';
 
 interface SwitchProps {
     checked: boolean;
@@ -8,7 +10,8 @@ interface SwitchProps {
 }
 
 const Switch = ({ checked, onChange, label }: SwitchProps): React.ReactElement => {
-    const spring = {
+    // FIX: Add Transition type to resolve framer-motion type error.
+    const spring: Transition = {
         type: "spring",
         stiffness: 700,
         damping: 30

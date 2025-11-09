@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Button from '../common/Button';
@@ -184,8 +185,8 @@ const Hero = ({ onRegister, onLogin }: HeroProps) => {
                     <DebtSearchCard onLogin={onLogin} />
                 </motion.div>
             </div>
-             <style jsx>{`
-                .bg-grid-neutral-200\/40 {
+             <style>{`
+                .bg-grid-neutral-200\\/40 {
                     background-image:
                         linear-gradient(to right, #e5e7eb 1px, transparent 1px),
                         linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);

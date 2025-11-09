@@ -8,7 +8,8 @@ import Button from '../common/Button';
 interface LeadModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (leadData: Omit<Lead, 'id' | 'status'>, id?: string) => void;
+    // FIX: Update onSave prop to not expect officeId, as it's handled by the parent.
+    onSave: (leadData: Omit<Lead, 'id' | 'status' | 'officeId'>, id?: string) => void;
     lead: Lead | null;
 }
 

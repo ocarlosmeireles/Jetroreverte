@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { motion } from 'framer-motion';
+// FIX: Import Variants from framer-motion.
+import { motion, Variants } from 'framer-motion';
 import { SparklesIcon, ChatBubbleLeftRightIcon, ScaleIcon, ShieldCheckIcon } from '../common/icons';
 
 const HowItWorks = () => {
@@ -15,7 +17,8 @@ const HowItWorks = () => {
         visible: { transition: { staggerChildren: 0.3 } },
     };
 
-    const itemVariants = {
+    // FIX: Add Variants type to resolve framer-motion type error.
+    const itemVariants: Variants = {
         hidden: { opacity: 0, x: -50 },
         visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
     };

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { demoJudicialProcesses } from '../../services/demoData';
@@ -84,7 +85,6 @@ const JudicialProcessDashboard = (): React.ReactElement => {
 
             <AnimatePresence>
                 {selectedProcess && (
-                    // FIX: Renamed `process` prop to `judicialProcess` to avoid variable shadowing in the child component.
                     <ProcessDetailPanel
                         judicialProcess={selectedProcess}
                         onClose={() => setSelectedProcess(null)}

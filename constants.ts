@@ -60,9 +60,7 @@ export const NAVIGATION = {
     [UserRole.ESCRITORIO]: [
         { name: 'Dashboard Geral', path: 'dashboard' },
         { name: 'Gestão de Escolas', path: 'escolas' },
-        { name: 'Negociações', path: 'negociacoes' },
-        { name: 'Negociação "Live" (IA)', path: 'live-negociacao' },
-        { name: 'Cobranças (Geral)', path: 'cobrancas' },
+        { name: 'Gestão de Cobranças', path: 'gestao-cobrancas' },
         { name: 'Petições (IA)', path: 'peticoes' },
         { name: 'Processos Judiciais', path: 'processos' },
         { name: 'Hub de Marketing', path: 'marketing' },
