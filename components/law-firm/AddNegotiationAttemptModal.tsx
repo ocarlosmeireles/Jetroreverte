@@ -103,7 +103,7 @@ const AddNegotiationAttemptModal = ({ isOpen, onClose, onSave }: AddNegotiationA
                                     required 
                                 />
                             </div>
-                             <style>{`.form-input { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; transition: all 0.2s; background-color: #f8fafc; } .form-input:focus { ring: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }`}</style>
+                             <style>{`.form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #334155; margin-bottom: 0.25rem; } .form-input { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; transition: all 0.2s; background-color: #f8fafc; } .form-input:focus { ring: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }`}</style>
                         </form>
                         <footer className="p-6 border-t border-neutral-200 bg-neutral-50 rounded-b-xl flex justify-end gap-3">
                             <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>

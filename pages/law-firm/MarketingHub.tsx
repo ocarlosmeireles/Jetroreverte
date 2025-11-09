@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect, ReactNode } from 'react';
+
+
+import React, { useState, useRef, useEffect, ReactNode, useMemo } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -11,18 +13,17 @@ import CampaignModal from '../../components/law-firm/CampaignModal';
 import { useAuth } from '../../hooks/useAuth';
 import StatCard from '../../components/common/StatCard';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-// FIX: Imported 'GoogleGenAI' and 'Type' to resolve 'Cannot find name' errors.
 import { GoogleGenAI, Type } from '@google/genai';
 
 
 // --- DADOS MOCK ---
 const initialLeads: Lead[] = [
     { id: 'lead-1', officeId: 'user-escritorio-01', schoolName: 'Colégio Alfa', contactName: 'Mariana Silva', contactEmail: 'mariana.s@colegioalfa.com', potentialValue: 15000, lastContactDate: '2024-07-28T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Primeiro contato a ser feito.' },
-    { id: 'lead-2', officeId: 'user-escritorio-01', schoolName: 'Escola Beta Gênesis', contactName: 'Roberto Costa', contactEmail: 'roberto@betagenesis.com', potentialValue: 22000, lastContactDate: '2024-07-25T14:00:00Z', status: LeadStatus.INITIAL_CONTACT, notes: 'Enviado email de apresentação.' },
-    { id: 'lead-3', officeId: 'user-escritorio-01', schoolName: 'Instituto Delta', contactName: 'Fernanda Lima', contactEmail: 'fernanda.lima@institutodelta.org', potentialValue: 18000, lastContactDate: '2024-07-20T11:00:00Z', status: LeadStatus.NEGOTIATION, notes: 'Reunião agendada para 05/08.' },
-    { id: 'lead-4', officeId: 'user-escritorio-01', schoolName: 'Centro Educacional Gama', contactName: 'Carlos Andrade', contactEmail: 'carlos@cegama.edu.br', potentialValue: 25000, lastContactDate: '2024-07-15T09:00:00Z', status: LeadStatus.CLOSED_WON, notes: 'Contrato assinado.' },
-    { id: 'lead-5', officeId: 'user-escritorio-01', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 12000, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.' },
-    { id: 'lead-6', officeId: 'user-escritorio-01', schoolName: 'Escola Zeus', contactName: 'Pedro Ramos', contactEmail: 'pedro@zeus.com', potentialValue: 31000, lastContactDate: '2024-08-01T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Indicação, contato quente.' },
+    { id: 'lead-2', officeId: 'user-escritorio-01', schoolName: 'Escola Beta Gênesis', contactName: 'Roberto Costa', contactEmail: 'roberto@betagenesis.com', potentialValue: 22000, lastContactDate: '2024-07-25T14:00:00Z', status: LeadStatus.INITIAL_CONTACT, notes: 'Enviado email de apresentação.', campaignId: 'camp-02' },
+    { id: 'lead-3', officeId: 'user-escritorio-01', schoolName: 'Instituto Delta', contactName: 'Fernanda Lima', contactEmail: 'fernanda.lima@institutodelta.org', potentialValue: 18000, lastContactDate: '2024-07-20T11:00:00Z', status: LeadStatus.NEGOTIATION, notes: 'Reunião agendada para 05/08.', campaignId: 'camp-02' },
+    { id: 'lead-4', officeId: 'user-escritorio-01', schoolName: 'Centro Educacional Gama', contactName: 'Carlos Andrade', contactEmail: 'carlos@cegama.edu.br', potentialValue: 25000, lastContactDate: '2024-07-15T09:00:00Z', status: LeadStatus.CLOSED_WON, notes: 'Contrato assinado.', campaignId: 'camp-01' },
+    { id: 'lead-5', officeId: 'user-escritorio-01', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 12000, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.', campaignId: 'camp-01' },
+    { id: 'lead-6', officeId: 'user-escritorio-01', schoolName: 'Escola Zeus', contactName: 'Pedro Ramos', contactEmail: 'pedro@zeus.com', potentialValue: 31000, lastContactDate: '2024-08-01T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Indicação, contato quente.', campaignId: 'camp-02' },
 ];
 
 // --- NOVOS COMPONENTES DO HUB ---
@@ -89,7 +90,7 @@ const MarketingDashboard = ({ leads, campaigns, onNavigate }: { leads: Lead[], c
                                 <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                                 <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                                 <Tooltip contentStyle={{ borderRadius: '0.75rem', border: '1px solid #e2e8f0' }} />
-                                <Line type="monotone" dataKey="Novos Leads" stroke="#2A5D8A" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 8 }} />
+                                <Line type="monotone" dataKey="Novos Leads" stroke="#4f46e5" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 8 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -323,12 +324,10 @@ const ContentTools = () => (
 );
 
 // --- PIPELINE DE LEADS (CRM - COM DRAG & DROP) ---
-// FIX: Added an optional `key` prop to the props interface to resolve a TypeScript error when mapping over a list of components.
 interface LeadCardProps {
     lead: Lead;
     onEdit: (lead: Lead) => void;
     onDelete: (id: string) => void;
-    key?: React.Key;
 }
 
 const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
@@ -372,261 +371,233 @@ const LeadCard = ({ lead, onEdit, onDelete }: LeadCardProps) => {
     );
 };
 
-const LeadPipeline = ({ leads, setLeads }: { leads: Lead[], setLeads: React.Dispatch<React.SetStateAction<Lead[]>>}) => {
+const LeadPipeline = ({ leads, setLeads, campaigns }: { leads: Lead[], setLeads: React.Dispatch<React.SetStateAction<Lead[]>>, campaigns: Campaign[] }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLead, setEditingLead] = useState<Lead | null>(null);
-    const { user } = useAuth();
-    
-    const columns = Object.values(LeadStatus);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const columns: { title: LeadStatus, leads: Lead[] }[] = Object.values(LeadStatus).map(status => ({
+        title: status,
+        leads: leads.filter(lead => lead.status === status),
+    }));
 
     const handleSaveLead = (leadData: Omit<Lead, 'id' | 'status' | 'officeId'>, id?: string) => {
-        if (!user) return;
         if (id) {
+            // Edit
             setLeads(prev => prev.map(l => l.id === id ? { ...l, ...leadData } : l));
         } else {
-            const newLead: Lead = { id: `lead-${Date.now()}`, officeId: user.id, ...leadData, status: LeadStatus.PROSPECT };
+            // Create
+            const newLead: Lead = {
+                id: `lead-${Date.now()}`,
+                officeId: 'user-escritorio-01',
+                status: LeadStatus.PROSPECT,
+                ...leadData,
+            };
             setLeads(prev => [newLead, ...prev]);
         }
         setIsModalOpen(false);
     };
 
-    const handleEditLead = (lead: Lead) => { setEditingLead(lead); setIsModalOpen(true); };
-    const handleDeleteLead = (id: string) => { if (window.confirm('Excluir este lead?')) setLeads(prev => prev.filter(l => l.id !== id)); };
-    
-    const handleDragEnd = (status: LeadStatus, newLeadsInColumn: Lead[]) => {
-        const otherLeads = leads.filter(l => l.status !== status);
-        const updatedLeadsInColumn = newLeadsInColumn.map(l => ({ ...l, status }));
-        setLeads([...otherLeads, ...updatedLeadsInColumn]);
+    const handleDeleteLead = (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir este lead?")) {
+            setLeads(prev => prev.filter(l => l.id !== id));
+        }
+    };
+
+    const handleDragEnd = (event: any, info: any) => {
+        setIsDragging(false);
+        const point = { x: info.point.x, y: info.point.y };
+        const draggedElement = document.getElementById(event.target.id);
+        if (!draggedElement) return;
+
+        const leadId = draggedElement.id;
+        const lead = leads.find(l => l.id === leadId);
+        if (!lead) return;
+
+        for (const status of Object.values(LeadStatus)) {
+            const columnEl = document.getElementById(`column-${status}`);
+            if (columnEl) {
+                const rect = columnEl.getBoundingClientRect();
+                if (point.x > rect.left && point.x < rect.right && point.y > rect.top && point.y < rect.bottom) {
+                    if (lead.status !== status) {
+                        setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status, lastContactDate: new Date().toISOString() } : l));
+                    }
+                    break;
+                }
+            }
+        }
     };
 
     return (
-        <>
-            <Card noPadding>
-                <div className="p-4 sm:p-6 flex justify-between items-center border-b">
-                    <h3 className="text-lg font-semibold text-neutral-800">Pipeline de Leads (CRM)</h3>
-                    <Button onClick={() => { setEditingLead(null); setIsModalOpen(true); }} size="sm" icon={<PlusIcon />}>Novo Lead</Button>
+        <div className="h-full flex flex-col">
+            <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                <h3 className="text-xl font-bold text-neutral-800">Pipeline de Vendas (CRM)</h3>
+                <Button onClick={() => { setEditingLead(null); setIsModalOpen(true); }} size="sm" icon={<PlusIcon />}>Novo Lead</Button>
+            </div>
+            <div className="flex-grow overflow-x-auto overflow-y-hidden pb-4">
+                <div className="flex gap-4 min-h-full">
+                    {columns.map(column => (
+                        <div key={column.title} id={`column-${column.title}`} className="w-72 flex-shrink-0 bg-neutral-100/70 rounded-lg p-3">
+                            <h4 className="font-semibold text-sm text-neutral-700 mb-3 px-1">{column.title} ({column.leads.length})</h4>
+                             <Reorder.Group
+                                as="div"
+                                axis="y"
+                                values={column.leads}
+                                onReorder={(newOrder) => {
+                                    const otherLeads = leads.filter(l => l.status !== column.title);
+                                    setLeads([...otherLeads, ...newOrder]);
+                                }}
+                                className="space-y-3 min-h-[100px]"
+                            >
+                                {column.leads.map(lead => (
+                                    <LeadCard 
+                                        key={lead.id} 
+                                        lead={lead} 
+                                        onEdit={l => { setEditingLead(l); setIsModalOpen(true); }}
+                                        onDelete={handleDeleteLead}
+                                    />
+                                ))}
+                            </Reorder.Group>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex overflow-x-auto p-4 space-x-4 bg-neutral-50/70">
-                    {columns.map(status => {
-                        const colLeads = leads.filter(l => l.status === status);
-                        const totalValue = colLeads.reduce((sum, l) => sum + l.potentialValue, 0);
-                        return (
-                            <div key={status} className="w-72 flex-shrink-0">
-                                <div className="font-semibold text-sm text-neutral-700 mb-3 px-2 flex justify-between items-center">
-                                    <span>{status}</span>
-                                    <span className="text-xs text-neutral-400 bg-neutral-200/70 rounded-full px-2 py-0.5">{colLeads.length}</span>
-                                </div>
-                                <Reorder.Group
-                                    axis="y"
-                                    values={colLeads}
-                                    onReorder={(newOrder) => handleDragEnd(status, newOrder)}
-                                    className="p-2 rounded-lg bg-neutral-100/80 min-h-[300px] space-y-2"
-                                >
-                                    <div className="text-center py-1 mb-2 border-b border-dashed">
-                                        <p className="text-xs text-neutral-500">Valor Potencial</p>
-                                        <p className="font-bold text-primary-800">{formatCurrency(totalValue)}</p>
-                                    </div>
-                                    {colLeads.map(lead => (
-                                        <LeadCard key={lead.id} lead={lead} onEdit={handleEditLead} onDelete={handleDeleteLead} />
-                                    ))}
-                                </Reorder.Group>
-                            </div>
-                        );
-                    })}
-                </div>
-            </Card>
-            <LeadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} lead={editingLead} />
-        </>
+            </div>
+            <LeadModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                onSave={handleSaveLead}
+                lead={editingLead}
+                campaigns={campaigns}
+            />
+        </div>
     );
 };
 
-// --- CAMPANHAS (COM INTEGRAÇÃO DE PERSONA) ---
-const CampaignsDashboard = ({ campaigns, setCampaigns, personas }: { campaigns: Campaign[], setCampaigns: React.Dispatch<React.SetStateAction<Campaign[]>>, personas: any[] }) => {
+const Campaigns = ({ campaigns, setCampaigns, personas }: { campaigns: Campaign[], setCampaigns: React.Dispatch<React.SetStateAction<Campaign[]>>, personas: any[] }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
-    const { user } = useAuth();
-    
-    const getStatusChip = (status: Campaign['status']) => {
-        const styles = { 'Ativa': 'bg-green-100 text-green-700', 'Concluída': 'bg-blue-100 text-blue-700', 'Planejada': 'bg-yellow-100 text-yellow-700' };
-        return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${styles[status]}`}>{status}</span>;
-    };
-    
-    const handleSaveCampaign = (data: Omit<Campaign, 'id' | 'status' | 'leadsGenerated' | 'officeId' | 'conversionRate' | 'valueGenerated'>, id?: string) => {
-        if (!user) return;
-        if (id) {
-            setCampaigns(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
-        } else {
-            const newCampaign: Campaign = { id: `camp-${Date.now()}`, officeId: user.id, ...data, status: 'Planejada', leadsGenerated: 0 };
+
+    const handleSaveCampaign = (campaignData: any, id?: string) => {
+        if (id) { // Edit
+            setCampaigns(prev => prev.map(c => c.id === id ? { ...c, ...campaignData } : c));
+        } else { // Create
+            const newCampaign: Campaign = {
+                id: `camp-${Date.now()}`,
+                officeId: 'user-escritorio-01',
+                status: 'Planejada',
+                leadsGenerated: 0,
+                ...campaignData,
+            };
             setCampaigns(prev => [newCampaign, ...prev]);
         }
         setIsModalOpen(false);
     };
 
-    const handleDeleteCampaign = (id: string) => { if (window.confirm('Excluir esta campanha?')) setCampaigns(prev => prev.filter(c => c.id !== id)); };
-
-    return (
-        <>
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-neutral-800">Campanhas de Marketing</h3>
-                <Button onClick={() => { setEditingCampaign(null); setIsModalOpen(true); }} size="sm" icon={<PlusIcon />}>Nova Campanha</Button>
-            </div>
-            {campaigns.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {campaigns.map((c, i) => (
-                        <motion.div key={c.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                            <Card className="flex flex-col h-full">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h4 className="font-bold text-neutral-800">{c.name}</h4>
-                                        <p className="text-xs text-neutral-500 mt-1">Início: {formatDate(c.startDate)}</p>
-                                    </div>
-                                    {getStatusChip(c.status)}
-                                </div>
-                                <p className="text-sm text-neutral-600 mt-3 flex-grow">
-                                    <strong>Alvo:</strong> {(c as any).personaName || c.target}
-                                </p>
-                                <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-2 text-center">
-                                    <div><p className="text-xs text-neutral-500">Leads</p><p className="font-bold text-lg">{c.leadsGenerated}</p></div>
-                                    <div><p className="text-xs text-neutral-500">Conversão</p><p className="font-bold text-lg">{c.conversionRate?.toFixed(1) ?? 0}%</p></div>
-                                    <div><p className="text-xs text-neutral-500">Valor</p><p className="font-bold text-lg text-green-700">{formatCurrency(c.valueGenerated ?? 0)}</p></div>
-                                </div>
-                                <div className="mt-4 pt-4 border-t flex justify-end gap-2">
-                                    <Button size="sm" variant="secondary" icon={<PencilIcon className="w-4 h-4"/>} onClick={() => { setEditingCampaign(c); setIsModalOpen(true); }}>Editar</Button>
-                                    <Button size="sm" variant="secondary" icon={<TrashIcon className="w-4 h-4"/>} onClick={() => handleDeleteCampaign(c.id)} className="!text-red-600 hover:!bg-red-50">Excluir</Button>
-                                </div>
-                            </Card>
-                        </motion.div>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-12 border-2 border-dashed rounded-lg"><p className="text-neutral-500">Nenhuma campanha cadastrada.</p><Button onClick={() => setIsModalOpen(true)} className="mt-4">Criar Primeira Campanha</Button></div>
-            )}
-             <CampaignModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveCampaign} personas={personas} campaign={editingCampaign} />
-        </>
-    );
-};
-
-// --- NOVO MÓDULO: SUCESSO DO CLIENTE ---
-const ClientSuccessDashboard = () => {
-    const { user } = useAuth();
-    const schools = demoSchools.filter(s => s.officeId === user?.id);
-    const [suggestions, setSuggestions] = useState<Record<string, string>>({});
-    const [loadingSuggestion, setLoadingSuggestion] = useState<string | null>(null);
-
-    const handleGenerateSuggestion = async (school: any) => {
-        setLoadingSuggestion(school.id);
-        const prompt = `Aja como um consultor de Customer Success para um escritório de advocacia. A escola cliente "${school.name}" tem um Health Score de ${school.healthScore}/100. Com base nesse score, gere uma sugestão de ação de engajamento concisa e acionável. Se o score for baixo (< 50), sugira uma ação de retenção (ex: reunião de alinhamento). Se for médio (50-75), uma ação de otimização (ex: apresentar novo recurso). Se for alto (> 75), uma ação de expansão (ex: pedir depoimento, sugerir upsell).`;
-        try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
-            setSuggestions(prev => ({ ...prev, [school.id]: response.text }));
-        } catch (err) {
-            console.error(err);
-            setSuggestions(prev => ({ ...prev, [school.id]: 'Erro ao gerar sugestão.' }));
-        } finally {
-            setLoadingSuggestion(null);
+    const handleDeleteCampaign = (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir esta campanha?")) {
+            setCampaigns(prev => prev.filter(c => c.id !== id));
         }
     };
-
-    const getHealthColor = (score: number) => {
-        if (score > 75) return 'text-green-600';
-        if (score > 40) return 'text-yellow-600';
-        return 'text-red-600';
-    }
-
+    
     return (
-        <Card>
-            <h3 className="text-xl font-bold text-neutral-800 mb-4">Saúde dos Clientes</h3>
-            <div className="space-y-4">
-                {schools.map(school => (
-                    <div key={school.id} className="p-4 border rounded-lg bg-neutral-50/70">
-                        <div className="flex flex-col sm:flex-row justify-between items-start">
-                            <h4 className="font-bold text-neutral-800">{school.name}</h4>
-                            <div className="text-right mt-2 sm:mt-0">
-                                <p className={`text-2xl font-bold ${getHealthColor(school.healthScore!)}`}>{school.healthScore}<span className="text-lg text-neutral-400">/100</span></p>
-                                <p className="text-xs text-neutral-500">Health Score (IA)</p>
-                            </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t">
-                            {suggestions[school.id] ? (
-                                <p className="text-sm italic text-primary-700">"{suggestions[school.id]}"</p>
-                            ) : (
-                                <Button size="sm" variant="secondary" icon={<SparklesIcon />} onClick={() => handleGenerateSuggestion(school)} isLoading={loadingSuggestion === school.id}>
-                                    Gerar Sugestão de Engajamento
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </Card>
+        <div>
+            <CampaignsList 
+                campaigns={campaigns}
+                onAdd={() => { setEditingCampaign(null); setIsModalOpen(true); }}
+                onEdit={(c) => { setEditingCampaign(c); setIsModalOpen(true); }}
+                onDelete={handleDeleteCampaign}
+            />
+            <CampaignModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveCampaign}
+                personas={personas}
+                campaign={editingCampaign}
+            />
+        </div>
     );
-};
+}
 
 
-// --- COMPONENTE PRINCIPAL DO HUB ---
+// --- COMPONENTE PRINCIPAL ---
 
 const MarketingHub = (): React.ReactElement => {
     const { user } = useAuth();
-    const [activeView, setActiveView] = useState('dashboard');
-    const [leads, setLeads] = useState<Lead[]>(() => initialLeads.filter(l => l.officeId === user?.id));
-    const [campaigns, setCampaigns] = useState<Campaign[]>(() => demoCampaigns.filter(c => c.officeId === user?.id));
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [leads, setLeads] = useState<Lead[]>([]);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    // FIX: Changed initial state from boolean to an empty array to fix iterator error.
     const [personas, setPersonas] = useState<any[]>([]);
-    
-    const navItems = [
-        { id: 'dashboard', name: 'Dashboard', icon: <DocumentChartBarIcon className="w-5 h-5" /> },
-        { id: 'pipeline', name: 'Pipeline (CRM)', icon: <BriefcaseIcon className="w-5 h-5" /> },
-        { id: 'campaigns', name: 'Campanhas', icon: <MegaphoneIcon className="w-5 h-5" /> },
-        { id: 'personas', name: 'Personas (IA)', icon: <UsersIcon className="w-5 h-5" /> },
-        { id: 'success', name: 'Sucesso do Cliente', icon: <HeartIcon className="w-5 h-5" /> },
-        { id: 'tools', name: 'Ferramentas', icon: <WrenchScrewdriverIcon className="w-5 h-5" /> },
+
+    useEffect(() => {
+        if (user) {
+            // Simulate fetching data scoped to the user's law firm
+            const officeId = 'user-escritorio-01'; // Hardcoded for demo
+            setLeads(initialLeads.filter(l => l.officeId === officeId));
+            setCampaigns(demoCampaigns.filter(c => c.officeId === officeId));
+        }
+    }, [user]);
+
+    const handlePersonaGenerated = (newPersona: any) => {
+        setPersonas(prev => [...prev, newPersona]);
+    };
+
+    const tabs = [
+        { id: 'dashboard', name: 'Dashboard', icon: <DocumentChartBarIcon /> },
+        { id: 'pipeline', name: 'Pipeline (CRM)', icon: <BriefcaseIcon /> },
+        { id: 'campaigns', name: 'Campanhas', icon: <MegaphoneIcon /> },
+        { id: 'personas', name: 'Gerador de Personas', icon: <UsersIcon /> },
+        { id: 'content', name: 'Ferramentas de Conteúdo', icon: <WrenchScrewdriverIcon /> },
     ];
 
     const renderContent = () => {
-        switch(activeView) {
-            case 'dashboard': return <MarketingDashboard leads={leads} campaigns={campaigns} onNavigate={setActiveView} />;
-            case 'pipeline': return <LeadPipeline leads={leads} setLeads={setLeads} />;
-            case 'campaigns': return <CampaignsDashboard campaigns={campaigns} setCampaigns={setCampaigns} personas={personas} />;
-            case 'personas': return <PersonaGenerator onPersonaGenerated={(p) => setPersonas(prev => [...prev, p])}/>;
-            case 'success': return <ClientSuccessDashboard />;
-            case 'tools': return <ContentTools />;
-            default: return null;
+        switch (activeTab) {
+            case 'dashboard':
+                return <MarketingDashboard leads={leads} campaigns={campaigns} onNavigate={setActiveTab} />;
+            case 'pipeline':
+                return <LeadPipeline leads={leads} setLeads={setLeads} campaigns={campaigns} />;
+            case 'campaigns':
+                return <Campaigns campaigns={campaigns} setCampaigns={setCampaigns} personas={personas} />;
+            case 'personas':
+                return <PersonaGenerator onPersonaGenerated={handlePersonaGenerated} />;
+            case 'content':
+                return <ContentTools />;
+            default:
+                return <MarketingDashboard leads={leads} campaigns={campaigns} onNavigate={setActiveTab} />;
         }
-    }
+    };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8">
-            <nav className="w-full lg:w-64 flex-shrink-0">
-                <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Menu de Marketing</h2>
-                <ul className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible -mx-4 px-4 lg:mx-0 lg:px-0 space-x-1.5 lg:space-x-0 lg:space-y-1.5 pb-2 lg:pb-0">
-                    {navItems.map(item => (
-                        <li key={item.id} className="flex-shrink-0">
-                            <button
-                                onClick={() => setActiveView(item.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                                    activeView === item.id 
-                                    ? 'bg-primary-50 text-primary-700 font-semibold' 
-                                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-                                }`}
-                            >
-                                {item.icon}
-                                {item.name}
-                            </button>
-                        </li>
+        <div className="flex flex-col h-full">
+            <div className="flex-shrink-0 border-b border-neutral-200">
+                <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                ${activeTab === tab.id
+                                ? 'border-primary-500 text-primary-600'
+                                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'}`
+                            }
+                        >
+                            {tab.name}
+                        </button>
                     ))}
-                </ul>
-            </nav>
+                </nav>
+            </div>
 
-            <div className="flex-1 min-w-0">
-                <AnimatePresence mode="wait">
-                    <motion.div 
-                        key={activeView} 
-                        initial={{ y: 10, opacity: 0 }} 
-                        animate={{ y: 0, opacity: 1 }} 
-                        exit={{ y: -10, opacity: 0 }} 
+            <div className="flex-grow pt-6 min-h-0">
+                 <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
                         transition={{ duration: 0.2 }}
+                        className="h-full"
                     >
-                        {renderContent()}
+                       {renderContent()}
                     </motion.div>
                 </AnimatePresence>
             </div>

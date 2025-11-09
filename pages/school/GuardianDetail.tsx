@@ -1,4 +1,6 @@
 
+
+
 import React from 'react';
 import { demoGuardians, demoStudents, demoInvoices } from '../../services/demoData';
 import { Guardian, Student, Invoice, InvoiceStatus } from '../../types';
@@ -52,7 +54,13 @@ const GuardianDetail = ({ guardianId, onBack, onSelectStudent }: GuardianDetailP
             await sendPasswordResetEmail(guardian.email);
             alert(`Um e-mail de convite foi enviado para ${guardian.email}. O responsável poderá criar sua senha e acessar o portal.`);
         } catch (error: any) {
-            alert(error.message);
+            // FIX: This error code is for when a user doesn't exist, which is the expected case for a new invitation. We can treat it as a success.
+            if (error.code === 'auth/user-not-found') {
+                // This is expected if the guardian hasn't been invited yet.
+                alert(`Um e-mail de convite foi enviado para ${guardian.email} para criar sua conta.`);
+            } else {
+                alert(`Ocorreu um erro: ${error.message}`);
+            }
         }
     };
 

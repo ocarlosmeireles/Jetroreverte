@@ -1,7 +1,8 @@
 
+
 import React from 'react';
 // FIX: Import Transition to fix type error.
-import { AnimatePresence, motion, Transition } from 'framer-motion';
+import { AnimatePresence, motion, Transition as MotionTransition } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
 import { UserRole, School } from '../../types';
 import AdminDashboardContent from '../admin/AdminDashboardContent';
@@ -107,7 +108,7 @@ const LawFirmDashboard = (): React.ReactElement => {
     
     const pageKey = activePage;
     // FIX: Add Transition type to resolve framer-motion type error.
-    const transition: Transition = { type: 'spring', stiffness: 500, damping: 35, mass: 0.8 };
+    const transition: MotionTransition = { type: 'spring', stiffness: 500, damping: 35, mass: 0.8 };
 
     return (
         <AppLayout

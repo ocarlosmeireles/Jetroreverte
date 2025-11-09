@@ -19,7 +19,7 @@ const Button = ({ children, variant = 'primary', size = 'md', isLoading = false,
     const variantClasses = {
         primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-lg shadow-primary-500/30',
         secondary: 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 focus:ring-primary-500 border border-transparent',
-        danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-lg shadow-red-500/30 hover:shadow-red-500/40',
+        danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-lg shadow-red-500/40',
     };
 
     const sizeClasses = {

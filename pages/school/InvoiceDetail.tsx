@@ -8,6 +8,8 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import ContactHistoryModal from '../../components/common/ContactHistoryModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Modal from '../../components/common/Modal';
+import AiCommunicationModal from '../../components/school/AiCommunicationModal';
+import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
 
 interface InvoiceDetailProps {
     invoiceId: string;
@@ -33,6 +35,8 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
     const [isEditingLink, setIsEditingLink] = useState(false);
     const [linkInputValue, setLinkInputValue] = useState(currentInvoice?.paymentLink || '');
     const [isCopied, setIsCopied] = useState(false);
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     useEffect(() => {
         setLinkInputValue(currentInvoice?.paymentLink || '');
@@ -146,7 +150,7 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                     <div className="flex flex-col sm:flex-row justify-between items-start pb-6 border-b border-neutral-200">
                         <div>
                             <h2 className="text-2xl font-bold text-neutral-800">Detalhes da Cobrança</h2>
-                            <p className="text-sm text-neutral-500 mt-1">ID da Cobrança: ${currentInvoice.id}</p>
+                            <p className="text-sm text-neutral-500 mt-1">ID da Cobrança: {currentInvoice.id}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 text-right">
                             <p className={`text-3xl font-extrabold ${isOverdue ? 'text-red-600' : 'text-neutral-900'}`}>{formatCurrency(displayValue)}</p>
@@ -241,10 +245,10 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                         {currentInvoice.status === InvoiceStatus.PAGO && <Button variant="secondary" onClick={handleViewReceipt}>Ver Recibo</Button>}
                         {currentInvoice.status !== InvoiceStatus.PAGO && (
                             <>
-                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsEmailModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
                                     Enviar Email
                                 </Button>
-                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsAiModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
                                     Gerar Mensagem WhatsApp
                                 </Button>
                                 {currentInvoice.status === InvoiceStatus.VENCIDO && <Button variant="danger" onClick={() => setIsActionRestrictedModalOpen(true)}>Enviar Lembrete de Atraso</Button>}
@@ -254,6 +258,12 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                     </div>
                 </Card>
             </div>
+            {isEmailModalOpen && (
+                <EmailCommunicationModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
+            )}
+            {isAiModalOpen && (
+                <AiCommunicationModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
+            )}
             <ContactHistoryModal
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}

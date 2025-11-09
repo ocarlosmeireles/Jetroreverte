@@ -1,16 +1,18 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import { GoogleGenAI, Type } from '@google/genai';
 import { demoSchools, demoStudents, demoInvoices } from '../../services/demoData';
-import { InvoiceStatus } from '../../types';
+import { InvoiceStatus, School, CollectionRuler, CollectionStep } from '../../types';
 import Button from '../../components/common/Button';
-import { XIcon, DollarIcon, UsersIcon, BillingIcon, SparklesIcon, DocumentReportIcon, TrashIcon } from '../../components/common/icons';
+import { XIcon, DollarIcon, UsersIcon, BillingIcon, SparklesIcon, DocumentReportIcon, TrashIcon, WrenchScrewdriverIcon, WhatsAppIcon, EnvelopeIcon, PhoneIcon, ChatBubbleLeftEllipsisIcon, DocumentTextIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { DEFAULT_COMMISSION_PERCENTAGE } from '../../constants';
 import SchoolReportModal from '../../components/law-firm/SchoolReportModal';
 import { useAuth } from '../../hooks/useAuth';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
+import Card from '../../components/common/Card';
 
 interface SchoolDetailProps {
     schoolId: string;
@@ -64,12 +66,45 @@ const HealthScoreCircle = ({ score }: { score: number | undefined }) => {
     );
 };
 
+const channelIcons: Record<string, ReactNode> = {
+    'WhatsApp': <WhatsAppIcon className="w-5 h-5 text-green-500" />,
+    'Email': <EnvelopeIcon className="w-5 h-5 text-blue-500" />,
+    'Ligação': <PhoneIcon className="w-5 h-5 text-red-500" />,
+    'SMS': <ChatBubbleLeftEllipsisIcon className="w-5 h-5 text-gray-500" />,
+    'Petição': <DocumentTextIcon className="w-5 h-5 text-neutral-600" />,
+};
+
+const RulerColumn = ({ title, steps, color }: { title: string; steps: CollectionStep[]; color: string }) => (
+    <div className="bg-neutral-50 p-4 rounded-lg border">
+        <h4 className={`text-md font-bold text-center mb-4 ${color}`}>{title}</h4>
+        <div className="relative pl-4">
+             <div className="absolute top-2 bottom-2 left-0 w-0.5 bg-neutral-200" />
+             {steps.sort((a, b) => a.day - b.day).map(step => (
+                <div key={step.day} className="relative mb-4 pl-4">
+                     <div className="absolute -left-2 top-1.5 w-4 h-4 bg-white border-2 border-neutral-300 rounded-full z-10" />
+                    <p className="text-xs font-bold text-neutral-500">DIA {step.day}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="flex-shrink-0">{channelIcons[step.channel] || <div className="w-5 h-5"/>}</span>
+                        <p className="text-sm text-neutral-700">{step.action}</p>
+                    </div>
+                </div>
+             ))}
+        </div>
+    </div>
+);
+
+
 const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.ReactElement => {
     const { user } = useAuth();
-    const school = demoSchools.find(s => s.id === schoolId);
-    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const initialSchool = demoSchools.find(s => s.id === schoolId);
     
-    if (!school) {
+    const [schoolData, setSchoolData] = useState<School | undefined>(initialSchool);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isGeneratingRuler, setIsGeneratingRuler] = useState(false);
+    const [rulerError, setRulerError] = useState('');
+    const [isSavingRuler, setIsSavingRuler] = useState(false);
+    
+    if (!schoolData) {
         return (
             <div className="p-6">
                 <div className="bg-white p-6 rounded-xl shadow-card">
@@ -104,88 +139,199 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
         }
     };
 
+    const handleGenerateRuler = async () => {
+        setIsGeneratingRuler(true);
+        setRulerError('');
+    
+        const prompt = `Aja como um especialista em automação de cobrança para o setor educacional. Crie uma "régua de cobrança" personalizada para o '${schoolData.name}'. A régua deve ter 3 níveis de risco: 'lowRisk', 'mediumRisk', e 'highRisk'. O processo de cobrança interno atual da escola é: "${schoolData.internalCollectionProcess || 'Não informado'}". Para cada nível de risco, defina uma série de etapas de contato. Cada etapa deve ser um objeto com 'day' (número de dias após o vencimento), 'action' (descrição da ação, ex: 'Lembrete amigável'), e 'channel' (pode ser 'WhatsApp', 'Email', 'Ligação', ou 'SMS'). Crie entre 3 a 5 etapas para cada nível de risco. A régua para 'highRisk' deve ser mais agressiva e rápida que a 'lowRisk'. O resultado deve ser um objeto JSON válido.`;
+
+        const schema = {
+            type: Type.OBJECT,
+            properties: {
+                lowRisk: {
+                    type: Type.ARRAY,
+                    description: "Etapas para devedores de baixo risco (risk score < 40).",
+                    items: {
+                        type: Type.OBJECT,
+                        properties: { day: { type: Type.NUMBER }, action: { type: Type.STRING }, channel: { type: Type.STRING } },
+                        required: ["day", "action", "channel"]
+                    }
+                },
+                mediumRisk: {
+                    type: Type.ARRAY,
+                    description: "Etapas para devedores de risco médio (risk score 40-75).",
+                    items: {
+                        type: Type.OBJECT,
+                        properties: { day: { type: Type.NUMBER }, action: { type: Type.STRING }, channel: { type: Type.STRING } },
+                        required: ["day", "action", "channel"]
+                    }
+                },
+                highRisk: {
+                    type: Type.ARRAY,
+                    description: "Etapas para devedores de alto risco (risk score > 75).",
+                    items: {
+                        type: Type.OBJECT,
+                        properties: { day: { type: Type.NUMBER }, action: { type: Type.STRING }, channel: { type: Type.STRING } },
+                        required: ["day", "action", "channel"]
+                    }
+                }
+            },
+            required: ["lowRisk", "mediumRisk", "highRisk"]
+        };
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-pro',
+                contents: prompt,
+                config: { responseMimeType: 'application/json', responseSchema: schema }
+            });
+
+            const ruler = JSON.parse(response.text) as CollectionRuler;
+            setSchoolData(prev => prev ? { ...prev, collectionRuler: ruler } : undefined);
+        } catch (e) {
+            console.error(e);
+            setRulerError('Não foi possível gerar a régua de cobrança. Verifique as configurações e tente novamente.');
+        } finally {
+            setIsGeneratingRuler(false);
+        }
+    };
+
+    const handleSaveRuler = () => {
+        setIsSavingRuler(true);
+        // Em um app real, aqui você salvaria schoolData no banco de dados.
+        // Para o demo, vamos apenas simular e mostrar uma confirmação.
+        setTimeout(() => {
+            setIsSavingRuler(false);
+            alert('Régua de cobrança salva e ativada para esta escola!');
+        }, 1000);
+    };
+
+
     return (
         <>
             <div className="px-4 sm:px-6 pb-6 flex-1 flex flex-col min-h-0">
                 <header className="flex justify-between items-start mb-6">
                      <div>
-                        <h2 className="text-xl font-bold text-neutral-800">{school.name}</h2>
-                        <p className="text-sm text-neutral-500">{school.cnpj}</p>
+                        <h2 className="text-xl font-bold text-neutral-800">{schoolData.name}</h2>
+                        <p className="text-sm text-neutral-500">{schoolData.cnpj}</p>
                     </div>
                     <button onClick={onBack} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-100">
                         <XIcon className="w-6 h-6" />
                     </button>
                 </header>
 
-                <div className="mb-6 p-4 bg-gradient-to-br from-primary-50/50 to-white rounded-xl border border-primary-200/50 flex items-center gap-4">
-                    <HealthScoreCircle score={school.healthScore} />
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <SparklesIcon className="w-5 h-5 text-primary-500" />
-                            <h3 className="text-md font-bold text-primary-800">Análise de IA</h3>
+                <div className="flex-1 overflow-y-auto space-y-6">
+                    <div className="p-4 bg-gradient-to-br from-primary-50/50 to-white rounded-xl border border-primary-200/50 flex items-center gap-4">
+                        <HealthScoreCircle score={schoolData.healthScore} />
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <SparklesIcon className="w-5 h-5 text-primary-500" />
+                                <h3 className="text-md font-bold text-primary-800">Análise de IA</h3>
+                            </div>
+                            <p className="text-sm text-neutral-600 mt-1 italic">"{schoolData.healthSummary || 'Análise indisponível.'}"</p>
                         </div>
-                        <p className="text-sm text-neutral-600 mt-1 italic">"{school.healthSummary || 'Análise indisponível.'}"</p>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                     <div className="bg-green-50 border border-green-200/80 rounded-lg p-3 text-center">
-                        <p className="text-xs font-medium text-green-700">Total Recuperado</p>
-                        <p className="text-lg font-bold text-green-800 mt-1">{formatCurrency(totalRecovered)}</p>
-                     </div>
-                     <div className="bg-blue-50 border border-blue-200/80 rounded-lg p-3 text-center">
-                        <p className="text-xs font-medium text-blue-700">Comissão Gerada</p>
-                        <p className="text-lg font-bold text-blue-800 mt-1">{formatCurrency(totalCommission)}</p>
-                     </div>
-                </div>
-                
-                <div className="mb-6">
-                    <Button onClick={() => setIsReportModalOpen(true)} className="w-full" variant="secondary" icon={<DocumentReportIcon className="w-5 h-5"/>}>
-                        Gerar Relatório para Escola
-                    </Button>
-                </div>
-
-                <div className="flex-1 flex flex-col overflow-hidden border border-neutral-200/80 rounded-xl">
-                    <div className="p-4 border-b border-neutral-200/80">
-                        <h3 className="text-base font-semibold text-neutral-800">Histórico de Cobranças ({invoicesForSchool.length})</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-green-50 border border-green-200/80 rounded-lg p-3 text-center">
+                            <p className="text-xs font-medium text-green-700">Total Recuperado</p>
+                            <p className="text-lg font-bold text-green-800 mt-1">{formatCurrency(totalRecovered)}</p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200/80 rounded-lg p-3 text-center">
+                            <p className="text-xs font-medium text-blue-700">Comissão Gerada</p>
+                            <p className="text-lg font-bold text-blue-800 mt-1">{formatCurrency(totalCommission)}</p>
+                        </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto">
-                        {invoicesForSchool.length > 0 ? (
-                            <table className="min-w-full">
-                                <thead className="bg-neutral-50 sticky top-0">
-                                    <tr>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor</th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-neutral-200 bg-white">
-                                    {invoicesForSchool.map(invoice => {
-                                        const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
-                                        return (
-                                            <tr key={invoice.id} className="hover:bg-neutral-50/70 transition-colors">
-                                                <td className="px-4 py-3 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-neutral-900">{invoice.studentName}</div>
-                                                    <div className="text-xs text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-600">{formatCurrency(displayValue)}</td>
-                                                <td className="px-4 py-3 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
+                    
+                     {/* Nova Seção: Régua de Cobrança */}
+                    <Card>
+                        <div className="flex items-center gap-3 mb-4">
+                            <WrenchScrewdriverIcon className="w-6 h-6 text-primary-500" />
+                            <h3 className="text-lg font-bold text-neutral-800">Régua de Cobrança Personalizada</h3>
+                        </div>
+
+                        {isGeneratingRuler ? (
+                            <div className="text-center p-8">
+                                <SparklesIcon className="w-10 h-10 text-primary-400 mx-auto animate-pulse" />
+                                <p className="mt-3 text-neutral-600">Criando uma estratégia de cobrança otimizada...</p>
+                            </div>
+                        ) : rulerError ? (
+                            <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg">
+                                <p>{rulerError}</p>
+                                <Button onClick={handleGenerateRuler} size="sm" variant="secondary" className="mt-3">Tentar Novamente</Button>
+                            </div>
+                        ) : schoolData.collectionRuler ? (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <RulerColumn title="Baixo Risco" steps={schoolData.collectionRuler.lowRisk} color="text-green-600" />
+                                    <RulerColumn title="Médio Risco" steps={schoolData.collectionRuler.mediumRisk} color="text-yellow-600" />
+                                    <RulerColumn title="Alto Risco" steps={schoolData.collectionRuler.highRisk} color="text-red-600" />
+                                </div>
+                                <div className="flex justify-end items-center gap-3 pt-4 border-t">
+                                    <Button onClick={handleGenerateRuler} variant="secondary">Gerar Novamente</Button>
+                                    <Button onClick={handleSaveRuler} isLoading={isSavingRuler}>Salvar e Ativar</Button>
+                                </div>
+                            </div>
                         ) : (
-                            <div className="px-6 py-12 text-center text-neutral-500">
-                                Nenhuma cobrança encontrada.
+                            <div className="text-center p-6 bg-neutral-50/70 rounded-lg border-2 border-dashed">
+                                <p className="text-sm text-neutral-600 mb-4">Esta escola ainda não possui uma régua de cobrança personalizada. Utilize a IA para criar uma estratégia otimizada.</p>
+                                <Button onClick={handleGenerateRuler} icon={<SparklesIcon />} isLoading={isGeneratingRuler}>
+                                    Gerar Régua com IA
+                                </Button>
                             </div>
                         )}
+                    </Card>
+
+                    <div className="mb-6">
+                        <Button onClick={() => setIsReportModalOpen(true)} className="w-full" variant="secondary" icon={<DocumentReportIcon className="w-5 h-5"/>}>
+                            Gerar Relatório para Escola
+                        </Button>
+                    </div>
+
+                    <div className="flex-1 flex flex-col overflow-hidden border border-neutral-200/80 rounded-xl">
+                        <div className="p-4 border-b border-neutral-200/80">
+                            <h3 className="text-base font-semibold text-neutral-800">Histórico de Cobranças ({invoicesForSchool.length})</h3>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            {invoicesForSchool.length > 0 ? (
+                                <table className="min-w-full">
+                                    <thead className="bg-neutral-50 sticky top-0">
+                                        <tr>
+                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
+                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor</th>
+                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-neutral-200 bg-white">
+                                        {invoicesForSchool.map(invoice => {
+                                            const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
+                                            return (
+                                                <tr key={invoice.id} className="hover:bg-neutral-50/70 transition-colors">
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div className="text-sm font-medium text-neutral-900">{invoice.studentName}</div>
+                                                        <div className="text-xs text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-600">{formatCurrency(displayValue)}</td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="px-6 py-12 text-center text-neutral-500">
+                                    Nenhuma cobrança encontrada.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+
 
                 <div className="mt-auto pt-6 border-t border-neutral-200/80">
                     <Button
-                        onClick={() => onDelete(school.id)}
+                        onClick={() => onDelete(schoolData.id)}
                         variant="secondary"
                         className="w-full !text-red-600 hover:!bg-red-50 hover:!border-red-200"
                         icon={<TrashIcon className="w-5 h-5" />}
@@ -198,7 +344,7 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
                  <SchoolReportModal 
                     isOpen={isReportModalOpen}
                     onClose={() => setIsReportModalOpen(false)}
-                    school={school}
+                    school={schoolData}
                     user={user}
                 />
             )}

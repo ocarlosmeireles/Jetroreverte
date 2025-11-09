@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { demoSchools, demoInvoices } from '../../services/demoData';
@@ -44,8 +46,9 @@ const AiStrategyBriefing = ({ stats, chartData }: { stats: any, chartData: any[]
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
-            setBriefing(response.text);
+            const response = await ai.models.generateContent({ model: 'gemini-2.5-pro', contents: prompt });
+            // FIX: The response from the Gemini API is now a function that returns the text.
+            setBriefing(response.text());
         } catch (err) {
             console.error(err);
             setError('Falha ao gerar o briefing. Verifique a chave da API e tente novamente.');
@@ -162,36 +165,4 @@ const AdminDashboardContent = (): React.ReactElement => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard title="Recuperado (Mês)" value={formatCurrency(totalRecoveredThisMonth)} icon={<DollarIcon />} color="green" delay={0.1} />
                 <StatCard title="Comissão Gerada (Mês)" value={formatCurrency(commissionThisMonth)} icon={<BillingIcon />} color="primary" delay={0.2} />
-                <StatCard title="Cobranças Vencidas" value={String(overdueInvoicesCount)} icon={<DocumentReportIcon />} color="red" delay={0.3} />
-            </div>
-            
-            <AiStrategyBriefing 
-                stats={{ totalRecoveredThisMonth, commissionThisMonth, overdueInvoicesCount }}
-                chartData={commissionChartData}
-            />
-
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                 <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-card">
-                     <Chart data={commissionChartData} title="Comissão Mensal Gerada" barKey="Comissão" xAxisKey="month" />
-                </div>
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-card">
-                    <h3 className="text-lg font-semibold text-neutral-800 mb-4">Atividade de Cobrança</h3>
-                     <ul className="space-y-4">
-                        {recentActivities.map((activity, index) => (
-                             <li key={index} className="flex items-center text-sm">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0 font-bold ${activity.type === 'paid' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                    {activity.type === 'paid' ? '$' : '!'}
-                                </div>
-                                <div>{activity.text}</div>
-                                <div className="ml-auto text-neutral-400 text-xs">{activity.time}</div>
-                            </li>
-                        ))}
-                        {recentActivities.length === 0 && <p className="text-neutral-500 text-sm">Nenhuma atividade recente.</p>}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default AdminDashboardContent;
+                <StatCard title

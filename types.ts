@@ -22,6 +22,18 @@ export interface User {
     modulePermissions?: string[];
 }
 
+export interface CollectionStep {
+    day: number;
+    action: string;
+    channel: string;
+}
+
+export interface CollectionRuler {
+    lowRisk: CollectionStep[];
+    mediumRisk: CollectionStep[];
+    highRisk: CollectionStep[];
+}
+
 export interface School {
     id: string;
     name: string;
@@ -31,6 +43,7 @@ export interface School {
     officeId: string; // ID of the law firm that owns this school record
     healthScore?: number; // AI-generated client health score (0-100)
     healthSummary?: string; // AI-generated summary and suggestions
+    collectionRuler?: CollectionRuler;
 
     // Detailed registration fields
     financialContactName?: string;
@@ -241,6 +254,7 @@ export interface Lead {
     lastContactDate: string; // ISO String
     status: LeadStatus;
     notes?: string;
+    campaignId?: string;
 }
 
 export interface Campaign {

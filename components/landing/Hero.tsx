@@ -1,6 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Button from '../common/Button';
+import { demoGuardians } from '../../services/demoData';
+import { MagnifyingGlassIcon } from '../common/icons';
 
 interface HeroProps {
     onRegister: () => void;
@@ -8,6 +10,10 @@ interface HeroProps {
 }
 
 const Hero = ({ onRegister, onLogin }: HeroProps) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchMessage, setSearchMessage] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+
     const handleScroll = (targetId: string) => {
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
@@ -21,14 +27,106 @@ const Hero = ({ onRegister, onLogin }: HeroProps) => {
             });
         }
     };
+    
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+
+        setIsSearching(true);
+        setSearchMessage('');
+
+        // Simulate API call
+        setTimeout(() => {
+            const foundGuardian = demoGuardians.find(
+                g => g.name.toLowerCase() === searchQuery.toLowerCase().trim() || g.cpf === searchQuery.trim()
+            );
+            if (foundGuardian) {
+                setSearchMessage('Responsável encontrado. Faça o login para ver os débitos.');
+                onLogin(); // Open the login modal
+            } else {
+                setSearchMessage('CPF ou nome não encontrado. Verifique os dados ou entre em contato com a escola.');
+            }
+            setIsSearching(false);
+        }, 1000);
+    };
+
+    // Parallax effect hooks
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+      const { clientX, clientY, currentTarget } = e;
+      const { left, top, width, height } = currentTarget.getBoundingClientRect();
+      const x = (clientX - left) / width - 0.5;
+      const y = (clientY - top) / height - 0.5;
+      mouseX.set(x * 30);
+      mouseY.set(y * 30);
+    };
+
+    const x1 = useTransform(mouseX, val => val * 0.8);
+    const y1 = useTransform(mouseY, val => val * 0.8);
+    const x2 = useTransform(mouseX, val => -val * 0.5);
+    const y2 = useTransform(mouseY, val => -val * 0.5);
 
     return (
-        <section className="relative pt-24 pb-28 sm:pt-32 sm:pb-36 lg:pt-40 lg:pb-48 bg-neutral-50 overflow-hidden">
-             <div className="absolute inset-0 bg-grid-neutral-200/40 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
-            <div className="absolute top-0 left-0 -translate-x-1/4 w-96 h-96 bg-primary-100/50 rounded-full blur-3xl opacity-60 animate-pulse"></div>
-            <div className="absolute bottom-0 right-0 translate-x-1/4 w-96 h-96 bg-secondary-100/50 rounded-full blur-3xl opacity-60 animate-pulse [animation-delay:2s]"></div>
+        <section
+            onMouseMove={handleMouseMove}
+            className="relative pt-24 pb-28 sm:pt-32 sm:pb-36 lg:pt-40 lg:pb-48 bg-neutral-50 overflow-hidden"
+        >
+            {/* Animated Background */}
+            <div className="absolute inset-0 -z-10">
+              <motion.div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-100/30 rounded-full blur-3xl"
+                animate={{ scale: [1, 1.05, 1], rotate: [0, 5, 0] }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div 
+                className="absolute top-1/4 left-1/4 w-72 h-72 bg-secondary-100/30 rounded-full blur-3xl opacity-70"
+                style={{ x: x1, y: y1 }}
+                animate={{ x: [0, -20, 0, 20, 0], y: [0, 30, -10, 30, 0] }}
+                transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut', repeatType: 'mirror' }}
+              />
+              <motion.div 
+                className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary-100/20 rounded-full blur-2xl opacity-80"
+                style={{ x: x2, y: y2 }}
+                animate={{ x: [0, 40, -20, 40, 0], y: [0, -10, 30, -10, 0] }}
+                transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut', repeatType: 'mirror' }}
+              />
+              {[...Array(15)].map((_, i) => {
+                const size = Math.random() * 8 + 4;
+                const duration = Math.random() * 20 + 15;
+                const delay = Math.random() * 10;
+                return (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                      width: size,
+                      height: size,
+                      top: `${Math.random() * 100}%`,
+                      left: `${Math.random() * 100}%`,
+                      backgroundColor: i % 3 === 0 ? 'rgba(181, 142, 79, 0.2)' : 'rgba(42, 93, 138, 0.2)',
+                      x: useTransform(mouseX, val => val * (Math.random() - 0.5) * (i % 5 + 1) * 0.5),
+                      y: useTransform(mouseY, val => val * (Math.random() - 0.5) * (i % 5 + 1) * 0.5),
+                    }}
+                    animate={{
+                      x: `+=${(Math.random() - 0.5) * 80}`,
+                      y: `+=${(Math.random() - 0.5) * 80}`,
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{
+                      duration,
+                      delay,
+                      repeat: Infinity,
+                      repeatType: 'mirror',
+                      ease: 'easeInOut',
+                    }}
+                  />
+                );
+              })}
+            </div>
             
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="max-w-3xl mx-auto text-center">
                      <motion.h1 
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -52,15 +150,38 @@ const Hero = ({ onRegister, onLogin }: HeroProps) => {
                     <Button onClick={() => handleScroll('escolas')} size="lg" variant="primary">Soluções para Escolas</Button>
                     <Button onClick={() => handleScroll('escritorios')} size="lg" variant="secondary">Soluções para Escritórios</Button>
                 </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.5, ease: 'easeOut' }}
+                    className="mt-12 max-w-xl mx-auto"
+                >
+                    <div className="bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-soft border border-neutral-200/60">
+                         <h3 className="font-bold text-center text-neutral-800">Já é responsável? Consulte seus débitos.</h3>
+                        <form onSubmit={handleSearch} className="mt-4 flex flex-col sm:flex-row gap-3">
+                            <div className="relative flex-grow">
+                                <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Digite seu CPF ou nome completo"
+                                    className="w-full pl-11 pr-4 py-3 border border-neutral-300 rounded-full shadow-sm focus:ring-2 focus:ring-primary-300 transition"
+                                />
+                            </div>
+                            <Button type="submit" isLoading={isSearching} className="flex-shrink-0">
+                                {isSearching ? 'Buscando...' : 'Buscar'}
+                            </Button>
+                        </form>
+                        {searchMessage && (
+                            <p className={`mt-3 text-center text-sm ${searchMessage.includes('encontrado') && !searchMessage.includes('não') ? 'text-green-700' : 'text-red-600'}`}>
+                                {searchMessage}
+                            </p>
+                        )}
+                    </div>
+                </motion.div>
             </div>
-             <style>{`
-                .bg-grid-neutral-200\\/40 {
-                    background-image:
-                        linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-                        linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
-                    background-size: 40px 40px;
-                }
-            `}</style>
         </section>
     );
 }

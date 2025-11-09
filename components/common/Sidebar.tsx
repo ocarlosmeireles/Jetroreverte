@@ -1,5 +1,4 @@
 
-
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,6 +21,9 @@ import {
     ChatBubbleLeftRightIcon,
     PhoneIcon,
     HeartIcon,
+    WrenchScrewdriverIcon,
+    MegaphoneIcon,
+    DocumentChartBarIcon,
 } from './icons';
 
 interface NavItem {
@@ -64,7 +66,7 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Prevenção (IA)': <ShieldCheckIcon />,
     'Petições (IA)': <ScaleIcon />,
     'Processos Judiciais': <BriefcaseIcon />,
-    'Hub de Marketing': <SparklesIcon />,
+    'Hub de Marketing': <MegaphoneIcon />,
     'Auditor de Contratos (IA)': <ShieldCheckIcon />,
     'Consultor IA': <ChatBubbleLeftRightIcon />,
     'Configurações': <Cog6ToothIcon />,
@@ -73,9 +75,7 @@ const iconMap: { [key: string]: React.ReactElement } = {
     'Configurações SaaS': <Cog6ToothIcon />,
 };
 
-// FIX: Added an optional `key` property to the `NavLinkProps` interface to resolve the TypeScript error when rendering a list of NavLink components.
 interface NavLinkProps {
-    key?: React.Key;
     item: NavItem;
     activePage: string;
     setActivePage: (page: string) => void;
@@ -107,7 +107,6 @@ const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = fal
                 }`}
             >
                 <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-primary-500' : 'text-neutral-400'}`}>
-                    {/* FIX: Cast icon to a type that accepts className to resolve TS error. */}
                     {icon && React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: 'w-6 h-6' })}
                 </span>
                 <span className="text-sm ml-4">{item.name}</span>

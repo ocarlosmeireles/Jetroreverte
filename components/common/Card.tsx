@@ -1,4 +1,5 @@
 
+
 import React, { ReactNode } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -8,7 +9,6 @@ interface CardProps {
     className?: string;
     noPadding?: boolean;
     delay?: number;
-    key?: React.Key;
 }
 
 const Card = ({ children, className = '', noPadding = false, delay = 0 }: CardProps): React.ReactElement => {

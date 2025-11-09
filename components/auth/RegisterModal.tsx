@@ -1,8 +1,10 @@
 
+
 import React, { useState } from 'react';
 // FIX: Imported motion and Variants for self-contained animation.
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import Button from '../common/Button';
 // FIX: Imported XIcon for the close button.
 import { XIcon } from '../common/icons';
 

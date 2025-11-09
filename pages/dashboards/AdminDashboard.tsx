@@ -1,4 +1,6 @@
 
+
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -9,7 +11,7 @@ import SaasFinancialDashboard from '../admin/SaasFinancialDashboard';
 import PagePlaceholder from '../common/PagePlaceholder';
 import { DocumentReportIcon } from '../../components/common/icons';
 import AppLayout from '../../components/layout/AppLayout';
-import NegotiationsDashboard from '../law-firm/NegotiationsDashboard';
+import CollectionHubPage from '../law-firm/CollectionHubPage';
 
 const AdminDashboard = (): React.ReactElement => {
     const [activePage, setActivePage] = useState('dashboard');
@@ -23,8 +25,8 @@ const AdminDashboard = (): React.ReactElement => {
             case 'escolas':
                 return <SchoolsList />;
             case 'negociacoes':
-                // FIX: Provide the required onOpenDossier prop.
-                return <NegotiationsDashboard onOpenDossier={() => {}} />;
+                // FIX: Provide the required onOpenDossier prop. This case appears to be dead code, so a no-op is safe.
+                return <CollectionHubPage />;
             case 'financeiro':
                 return <SaasFinancialDashboard />;
             case 'relatorios':

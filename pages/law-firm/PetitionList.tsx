@@ -1,6 +1,7 @@
 
 
-import React, { useMemo, useState, useEffect } from 'react';
+
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { GoogleGenAI } from '@google/genai';
 import { demoPetitions, demoInvoices, demoSchools } from '../../services/demoData';
@@ -91,7 +92,7 @@ const PetitionEditorModal = ({ petition, onClose, user }: { petition: Petition; 
                         <h2 className="text-lg font-bold text-neutral-800">Editor de Petição</h2>
                         <p className="text-sm text-neutral-500">Caso: {petition.studentName} vs. {petition.guardianName}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-full text-neutral-500 hover:bg-neutral-200/60">
+                    <button onClick={onClose} className="p-2 -mr-2 rounded-full text-neutral-500 hover:bg-neutral-200/60">
                         <XIcon className="w-6 h-6" />
                     </button>
                 </header>
@@ -140,7 +141,7 @@ const PetitionEditorModal = ({ petition, onClose, user }: { petition: Petition; 
 };
 
 
-const PetitionsPage = (): React.ReactElement => {
+const PetitionList = (): React.ReactElement => {
     const { user } = useAuth();
     const [selectedPetition, setSelectedPetition] = useState<Petition | null>(null);
     
@@ -168,8 +169,6 @@ const PetitionsPage = (): React.ReactElement => {
 
     return (
         <>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">Petições Geradas por IA</h1>
-            
             {petitions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {petitions.map((petition, index) => (
@@ -201,11 +200,11 @@ const PetitionsPage = (): React.ReactElement => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                <Card className="text-center py-16">
                     <DocumentPlusIcon className="w-12 h-12 mx-auto text-neutral-300" />
                     <h3 className="mt-4 text-lg font-semibold text-neutral-700">Nenhuma petição gerada</h3>
-                    <p className="mt-1 text-sm text-neutral-500">Gere petições automaticamente na tela de 'Negociações' para casos em preparação judicial.</p>
-                </div>
+                    <p className="mt-1 text-sm text-neutral-500">Gere petições automaticamente na tela de 'Gestão de Cobranças' para casos em preparação judicial.</p>
+                </Card>
             )}
 
             <AnimatePresence>
@@ -221,4 +220,4 @@ const PetitionsPage = (): React.ReactElement => {
     );
 };
 
-export default PetitionsPage;
+export default PetitionList;

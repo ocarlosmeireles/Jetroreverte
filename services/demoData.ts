@@ -1,4 +1,4 @@
-import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus, LiveNegotiationHistory, ProcessEvent } from '../types';
+import { User, School, Guardian, Student, Invoice, Subscription, SaasInvoice, Notification, NegotiationAttempt, Petition, UserRole, InvoiceStatus, CollectionStage, PlanId, NotificationType, NegotiationAttemptType, NegotiationChannel, Campaign, JudicialProcess, JudicialProcessStatus, LiveNegotiationHistory, ProcessEvent, Lead, LeadStatus } from '../types';
 
 // ############### AVISO ###############
 // Estes dados são usados para popular o banco de dados Firebase
@@ -26,6 +26,25 @@ export const demoSchools: School[] = [
         averageTuition: 850,
         currentDefaultRate: 5,
         internalCollectionProcess: 'Envio de 2 emails de lembrete e uma ligação após 15 dias de vencido.',
+        collectionRuler: {
+            lowRisk: [
+                { day: 3, action: 'Lembrete amigável via WhatsApp', channel: 'WhatsApp' },
+                { day: 10, action: 'Segundo lembrete por e-mail', channel: 'Email' },
+                { day: 25, action: 'Contato telefônico de cortesia', channel: 'Ligação' },
+            ],
+            mediumRisk: [
+                { day: 2, action: 'Notificação de vencimento via SMS', channel: 'SMS' },
+                { day: 7, action: 'Email formal de cobrança', channel: 'Email' },
+                { day: 15, action: 'Ligação de negociação inicial', channel: 'Ligação' },
+                { day: 30, action: 'Último aviso por e-mail antes de medidas adicionais', channel: 'Email' },
+            ],
+            highRisk: [
+                { day: 1, action: 'Contato imediato por telefone', channel: 'Ligação' },
+                { day: 5, action: 'Envio de SMS e Email com ultimato de 48h', channel: 'SMS' },
+                { day: 10, action: 'Notificação extrajudicial por e-mail', channel: 'Email' },
+                { day: 20, action: 'Análise para preparação de ação judicial', channel: 'Petição' },
+            ]
+        }
     },
     { 
         id: 'school-02', 
@@ -183,6 +202,15 @@ export const demoCampaigns: Campaign[] = [
     { id: 'camp-01', officeId: 'user-escritorio-01', name: 'Volta às Aulas 2024', status: 'Concluída', target: 'Escolas de Ensino Fundamental', startDate: '2024-07-15T00:00:00Z', leadsGenerated: 8, conversionRate: 25, valueGenerated: 1980 },
     { id: 'camp-02', officeId: 'user-escritorio-01', name: 'Check-up Financeiro Meio de Ano', status: 'Ativa', target: 'Todas as escolas da base', startDate: '2024-08-01T00:00:00Z', leadsGenerated: 3, conversionRate: 33.3, valueGenerated: 1490 },
     { id: 'camp-03', officeId: 'user-escritorio-01', name: 'Expansão RJ', status: 'Planejada', target: 'Escolas de Ensino Médio (RJ)', startDate: '2024-09-01T00:00:00Z', leadsGenerated: 0, conversionRate: 0, valueGenerated: 0 },
+];
+
+export const demoLeads: Lead[] = [
+    { id: 'lead-1', officeId: 'user-escritorio-01', schoolName: 'Colégio Alfa', contactName: 'Mariana Silva', contactEmail: 'mariana.s@colegioalfa.com', potentialValue: 15000, lastContactDate: '2024-07-28T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Primeiro contato a ser feito.' },
+    { id: 'lead-2', officeId: 'user-escritorio-01', schoolName: 'Escola Beta Gênesis', contactName: 'Roberto Costa', contactEmail: 'roberto@betagenesis.com', potentialValue: 22000, lastContactDate: '2024-07-25T14:00:00Z', status: LeadStatus.INITIAL_CONTACT, notes: 'Enviado email de apresentação.', campaignId: 'camp-02' },
+    { id: 'lead-3', officeId: 'user-escritorio-01', schoolName: 'Instituto Delta', contactName: 'Fernanda Lima', contactEmail: 'fernanda.lima@institutodelta.org', potentialValue: 18000, lastContactDate: '2024-07-20T11:00:00Z', status: LeadStatus.NEGOTIATION, notes: 'Reunião agendada para 05/08.', campaignId: 'camp-02' },
+    { id: 'lead-4', officeId: 'user-escritorio-01', schoolName: 'Centro Educacional Gama', contactName: 'Carlos Andrade', contactEmail: 'carlos@cegama.edu.br', potentialValue: 25000, lastContactDate: '2024-07-15T09:00:00Z', status: LeadStatus.CLOSED_WON, notes: 'Contrato assinado.', campaignId: 'camp-01' },
+    { id: 'lead-5', officeId: 'user-escritorio-01', schoolName: 'Escola Ômega', contactName: 'Juliana Paes', contactEmail: 'juliana@escolaomega.com', potentialValue: 12000, lastContactDate: '2024-07-18T16:00:00Z', status: LeadStatus.CLOSED_LOST, notes: 'Optaram por solução interna.', campaignId: 'camp-01' },
+    { id: 'lead-6', officeId: 'user-escritorio-01', schoolName: 'Escola Zeus', contactName: 'Pedro Ramos', contactEmail: 'pedro@zeus.com', potentialValue: 31000, lastContactDate: '2024-08-01T10:00:00Z', status: LeadStatus.PROSPECT, notes: 'Indicação, contato quente.', campaignId: 'camp-02' },
 ];
 
 const processEvents: ProcessEvent[] = [

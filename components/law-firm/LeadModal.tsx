@@ -1,16 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { Lead } from '../../types';
+import { Lead, Campaign } from '../../types';
 import { XIcon } from '../common/icons';
 import Button from '../common/Button';
 
 interface LeadModalProps {
     isOpen: boolean;
     onClose: () => void;
-    // FIX: Update onSave prop to not expect officeId, as it's handled by the parent.
     onSave: (leadData: Omit<Lead, 'id' | 'status' | 'officeId'>, id?: string) => void;
     lead: Lead | null;
+    campaigns: Campaign[];
 }
 
 const backdropVariants: Variants = {
@@ -24,7 +23,7 @@ const modalVariants: Variants = {
     exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: 0.2 } },
 };
 
-const LeadModal = ({ isOpen, onClose, onSave, lead }: LeadModalProps): React.ReactElement => {
+const LeadModal = ({ isOpen, onClose, onSave, lead, campaigns }: LeadModalProps): React.ReactElement => {
     const [formData, setFormData] = useState({
         schoolName: '',
         contactName: '',
@@ -32,6 +31,7 @@ const LeadModal = ({ isOpen, onClose, onSave, lead }: LeadModalProps): React.Rea
         potentialValue: '0',
         lastContactDate: new Date().toISOString().split('T')[0],
         notes: '',
+        campaignId: '',
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -45,6 +45,7 @@ const LeadModal = ({ isOpen, onClose, onSave, lead }: LeadModalProps): React.Rea
                     potentialValue: String(lead.potentialValue),
                     lastContactDate: new Date(lead.lastContactDate).toISOString().split('T')[0],
                     notes: lead.notes || '',
+                    campaignId: lead.campaignId || '',
                 });
             } else { // Creating mode
                 setFormData({
@@ -54,12 +55,13 @@ const LeadModal = ({ isOpen, onClose, onSave, lead }: LeadModalProps): React.Rea
                     potentialValue: '0',
                     lastContactDate: new Date().toISOString().split('T')[0],
                     notes: '',
+                    campaignId: '',
                 });
             }
         }
     }, [isOpen, lead]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -109,6 +111,13 @@ const LeadModal = ({ isOpen, onClose, onSave, lead }: LeadModalProps): React.Rea
                                 <div><label className="form-label">Nome do Contato *</label><input type="text" name="contactName" value={formData.contactName} onChange={handleChange} className="w-full form-input" required /></div>
                             </div>
                             <div><label className="form-label">Email do Contato</label><input type="email" name="contactEmail" value={formData.contactEmail} onChange={handleChange} className="w-full form-input" /></div>
+                            <div>
+                                <label className="form-label">Campanha</label>
+                                <select name="campaignId" value={formData.campaignId} onChange={handleChange} className="w-full form-input">
+                                    <option value="">Nenhuma</option>
+                                    {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                             </div>
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div><label className="form-label">Valor Potencial (R$)</label><input type="number" name="potentialValue" value={formData.potentialValue} onChange={handleChange} className="w-full form-input" /></div>
                                 <div><label className="form-label">Data do Último Contato</label><input type="date" name="lastContactDate" value={formData.lastContactDate} onChange={handleChange} className="w-full form-input" /></div>

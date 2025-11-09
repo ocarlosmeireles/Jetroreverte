@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plan } from '../../types';
@@ -8,8 +9,6 @@ import { CheckCircleIcon } from '../common/icons';
 interface PlanCardProps {
     plan: Plan;
     isFeatured?: boolean;
-    // FIX: Added optional key to props to allow passing it when mapping over a list, resolving a TypeScript error in PricingPage.
-    key?: React.Key;
 }
 
 const PlanCard = ({ plan, isFeatured = false }: PlanCardProps): React.ReactElement => {

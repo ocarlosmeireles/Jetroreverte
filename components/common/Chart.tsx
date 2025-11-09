@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from './Card';
@@ -47,7 +48,7 @@ const Chart = ({ data, title, barKey, xAxisKey, delay = 0 }: ChartProps): React.
                             formatter={(value: number) => [formatCurrency(value), "Valor"]}
                         />
                         <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}/>
-                        <Bar dataKey={barKey} fill="#607dff" name="Valor" radius={[8, 8, 0, 0]} barSize={20} />
+                        <Bar dataKey={barKey} fill="#4f46e5" name="Valor" radius={[8, 8, 0, 0]} barSize={20} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>

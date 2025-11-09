@@ -13,6 +13,8 @@ import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 interface PriorityCaseCardProps {
     caseData: NegotiationCase & { criticality: number, nextAction?: string };
     onOpenDossier: (caseData: NegotiationCase) => void;
+    // FIX: Add key to props to allow usage in a list map, resolving a TypeScript error.
+    key?: React.Key;
 }
 
 const PriorityCaseCard = ({ caseData, onOpenDossier }: PriorityCaseCardProps) => {

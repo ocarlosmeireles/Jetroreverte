@@ -9,15 +9,9 @@ interface State {
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
-  // FIX: Explicitly declaring the 'state' property resolves TypeScript errors where 'state' and 'props'
-  // were not being found on the component instance. In some strict configurations, class properties 
-  // that are initialized in the constructor must also be declared at the class level.
-  state: State;
-
-  // FIX: To resolve "Property 'props' does not exist", 'props' is also explicitly declared,
-  // following the same pattern as 'state' above for this component's specific configuration.
-  props: ErrorBoundaryProps;
-
+  // FIX: Replaced class property initializer with a constructor to ensure compatibility
+  // with various TypeScript configurations, which can resolve issues where `this.props`
+  // is not correctly inferred.
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };

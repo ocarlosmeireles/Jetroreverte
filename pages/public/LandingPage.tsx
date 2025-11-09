@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/landing/Header';
 import Hero from '../../components/landing/Hero';
 import Solutions from '../../components/landing/Solutions';
@@ -67,22 +67,65 @@ const WhatsNew = () => {
     );
 };
 
+const componentMap: { [key: string]: React.ComponentType<any> } = {
+    hero: Hero,
+    trustedBy: TrustedBy,
+    whatsNew: WhatsNew,
+    solutions: Solutions,
+    howItWorks: HowItWorks,
+    stats: Stats,
+    features: Features,
+    testimonials: Testimonials,
+    cta: CTA,
+};
+
+const initialSections = [
+    { id: 'hero', name: 'Seção Principal (Hero)', visible: true },
+    { id: 'trustedBy', name: '"Nossos Clientes"', visible: true },
+    { id: 'whatsNew', name: '"Últimas Inovações"', visible: true },
+    { id: 'solutions', name: '"Soluções"', visible: true },
+    { id: 'howItWorks', name: '"Como Funciona"', visible: true },
+    { id: 'stats', name: '"Estatísticas"', visible: true },
+    { id: 'features', name: '"Funcionalidades"', visible: true },
+    { id: 'testimonials', name: '"Depoimentos"', visible: true },
+    { id: 'cta', name: '"Chamada para Ação (CTA)"', visible: true },
+];
+
 
 const LandingPage = ({ onLogin, onRegister }: LandingPageProps): React.ReactElement => {
+    const [sections, setSections] = useState(initialSections);
+
+    useEffect(() => {
+        try {
+            const savedSectionsRaw = localStorage.getItem('landingPageSections');
+            if (savedSectionsRaw) {
+                const savedSections = JSON.parse(savedSectionsRaw);
+                // Basic validation
+                if (Array.isArray(savedSections) && savedSections.every(s => s.id && s.name && typeof s.visible === 'boolean')) {
+                    setSections(savedSections);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to parse landing page sections from localStorage", error);
+        }
+    }, []);
+
     return (
         <div className="bg-white">
             <Header onLogin={onLogin} onRegister={onRegister} />
 
             <main>
-                <Hero onRegister={onRegister} onLogin={onLogin} />
-                <TrustedBy />
-                <WhatsNew />
-                <Solutions />
-                <HowItWorks />
-                <Stats />
-                <Features />
-                <Testimonials />
-                <CTA onRegister={onRegister} />
+                {sections
+                    .filter(section => section.visible)
+                    .map(section => {
+                        const Component = componentMap[section.id];
+                        if (!Component) return null;
+                        
+                        const props = { onRegister, onLogin };
+                        
+                        return <Component key={section.id} {...props} />;
+                    })
+                }
             </main>
 
             <Footer />

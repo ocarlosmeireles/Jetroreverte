@@ -268,12 +268,7 @@ export const ChevronRightIcon = ({ className = 'w-5 h-5' }: IconProps) => (
 
 export const GavelIcon = ({ className = 'w-6 h-6' }: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5-7.5-7.5 7.5-7.5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 4.5l-7.5 7.5 7.5 7.5 7.5-7.5-7.5-7.5zm0 0l7.5 7.5m-7.5-7.5L3.75 12m7.5-7.5l7.5 7.5M3.75 12l7.5 7.5m-7.5-7.5h15" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12l-7.5-7.5" />
-        <path d="M17.02 4.31L7.53 13.8m9.49-9.49l-9.49 9.49m0-9.49l9.49 9.49" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M6 18h12" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 18v-6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6.262l1.638-1.092a1.875 1.875 0 012.374.225l1.5 2.25a1.875 1.875 0 01-.225 2.374L17.25 11.25m-6-4.988l-1.638 1.092a1.875 1.875 0 00-.225 2.374l1.5 2.25a1.875 1.875 0 002.374.225L10.5 8.75m-3.332-2.526C4.832 7.82 3 10.69 3 14.25a8.25 8.25 0 0014.193 5.421 8.25 8.25 0 00-8.483-13.185z" />
     </svg>
 );
 
@@ -304,5 +299,17 @@ export const ArrowsUpDownIcon = ({ className = 'w-6 h-6' }: IconProps) => (
 export const WhatsAppIcon = ({ className = 'w-6 h-6' }: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="currentColor" viewBox="0 0 16 16">
         <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.068-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+    </svg>
+);
+
+export const MagnifyingGlassIcon = ({ className = 'w-6 h-6' }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+);
+
+export const Bars3Icon = ({ className = "w-6 h-6" }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
 );
