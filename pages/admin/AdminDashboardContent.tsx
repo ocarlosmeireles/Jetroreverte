@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { demoSchools, demoInvoices } from '../../services/demoData';
@@ -47,8 +44,7 @@ const AiStrategyBriefing = ({ stats, chartData }: { stats: any, chartData: any[]
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({ model: 'gemini-2.5-pro', contents: prompt });
-            // FIX: The response from the Gemini API is now a function that returns the text.
-            setBriefing(response.text());
+            setBriefing(response.text);
         } catch (err) {
             console.error(err);
             setError('Falha ao gerar o briefing. Verifique a chave da API e tente novamente.');
@@ -165,4 +161,19 @@ const AdminDashboardContent = (): React.ReactElement => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard title="Recuperado (Mês)" value={formatCurrency(totalRecoveredThisMonth)} icon={<DollarIcon />} color="green" delay={0.1} />
                 <StatCard title="Comissão Gerada (Mês)" value={formatCurrency(commissionThisMonth)} icon={<BillingIcon />} color="primary" delay={0.2} />
-                <StatCard title
+                <StatCard title="Cobranças Vencidas" value={String(overdueInvoicesCount)} icon={<DocumentReportIcon />} color="red" delay={0.3} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div className="lg:col-span-3">
+                    <Chart data={commissionChartData} title="Comissão Gerada por Mês" barKey="Comissão" xAxisKey="month" delay={0.4} />
+                </div>
+                <div className="lg:col-span-2">
+                    <AiStrategyBriefing stats={{ totalRecoveredThisMonth, commissionThisMonth, overdueInvoicesCount }} chartData={commissionChartData} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AdminDashboardContent;

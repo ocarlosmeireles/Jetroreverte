@@ -1,5 +1,6 @@
 
 
+
 import React, { ReactNode } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -44,11 +45,11 @@ const StatCard = ({ title, value, icon, color, delay = 0 }: StatCardProps): Reac
         >
              <div className="flex items-start justify-between">
                 <div className="min-w-0">
-                    <p className="text-sm font-medium text-neutral-500 truncate">{title}</p>
-                    <p className="text-2xl font-bold mt-1 text-neutral-800 truncate">{value}</p>
+                    <p className="text-sm font-medium text-neutral-600 truncate">{title}</p>
+                    <p className="mt-1 text-2xl font-bold text-neutral-900 truncate">{value}</p>
                 </div>
-                <div className={`flex-shrink-0 rounded-lg p-2 ${colorClasses[color].bg} ${colorClasses[color].iconText}`}>
-                    {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-5 h-5' })}
+                <div className={`flex-shrink-0 p-3 rounded-full ${colorClasses[color].bg}`}>
+                    {React.cloneElement(icon as React.ReactElement, { className: `w-6 h-6 ${colorClasses[color].iconText}` })}
                 </div>
             </div>
         </motion.div>

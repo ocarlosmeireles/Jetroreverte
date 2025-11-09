@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -24,7 +25,7 @@ const AdminDashboard = (): React.ReactElement => {
                 return <AdminDashboardContent />;
             case 'escolas':
                 return <SchoolsList />;
-            case 'negociacoes':
+            case 'gestao-cobrancas':
                 // FIX: Provide the required onOpenDossier prop. This case appears to be dead code, so a no-op is safe.
                 return <CollectionHubPage />;
             case 'financeiro':
@@ -61,7 +62,3 @@ const AdminDashboard = (): React.ReactElement => {
                 </AnimatePresence>
              </div>
         </AppLayout>
-    );
-};
-
-export default AdminDashboard;

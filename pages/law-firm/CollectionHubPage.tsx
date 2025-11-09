@@ -61,15 +61,21 @@ const DossierModal = ({ caseData, onClose, onUpdateCase }: { caseData: Negotiati
     const [isAgreementLoading, setIsAgreementLoading] = useState(true);
     const [selectedAgreementOption, setSelectedAgreementOption] = useState<{ installments: number; totalValue: number; } | null>(null);
 
-    const [isSessionStarting, setIsSessionStarting] = useState(false);
     const [sessionStatus, setSessionStatus] = useState<'idle' | 'connecting' | 'active' | 'error'>('idle');
     const [liveTranscript, setLiveTranscript] = useState<{ speaker: string, text: string }[]>([]);
     const [liveSuggestions, setLiveSuggestions] = useState<string[]>([]);
-    
+    const [currentInputText, setCurrentInputText] = useState('');
+    const [currentOutputText, setCurrentOutputText] = useState('');
+
     const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
     const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
+    const transcriptEndRef = useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+        transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [liveTranscript, currentInputText, currentOutputText]);
 
     useEffect(() => {
         const generateAiData = async () => {
@@ -154,7 +160,6 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
             handleStartSession();
         }
         
-        // Cleanup on component unmount or when modal closes
         return () => {
            stopSession(false);
         };
@@ -162,7 +167,12 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
     
     const stopSession = async (saveHistory = true) => {
         if (sessionPromiseRef.current) {
-            sessionPromiseRef.current.then(s => s.close()).catch(e => console.error("Error closing session:", e));
+            try {
+                const session = await sessionPromiseRef.current;
+                session.close();
+            } catch (e) {
+                console.error("Error closing session:", e);
+            }
             sessionPromiseRef.current = null;
         }
         if (scriptProcessorRef.current) {
@@ -171,23 +181,30 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
         }
         mediaStreamRef.current?.getTracks().forEach(track => track.stop());
         mediaStreamRef.current = null;
-        audioContextRef.current?.close().catch(e => console.error("Error closing AudioContext:", e));
+        
+        if(audioContextRef.current && audioContextRef.current.state !== 'closed') {
+            audioContextRef.current.close().catch(e => console.error("Error closing AudioContext:", e));
+        }
         audioContextRef.current = null;
 
         if (saveHistory && caseData) {
-            const transcriptText = liveTranscript.map(t => `${t.speaker}: ${t.text}`).join('\n');
+            const transcriptText = [...liveTranscript, {speaker: 'Advogado', text: currentInputText}, {speaker: 'Responsável', text: currentOutputText}]
+                                .filter(t => t.text.trim())
+                                .map(t => `${t.speaker}: ${t.text}`).join('\n');
             const finalSuggestion = liveSuggestions.join(' | ');
              demoLiveNegotiationHistories.unshift({
                 id: `live-hist-${Date.now()}`, studentId: caseData.student!.id, studentName: caseData.student!.name, guardianName: caseData.guardian!.name, schoolName: caseData.school!.name,
                 date: new Date().toISOString(), transcript: transcriptText, finalSuggestion,
             });
+            handleLogContact(NegotiationChannel.PHONE_CALL, `Sessão Live IA realizada. Transcrição e sugestões salvas no histórico.`)
         }
         
-        setIsSessionStarting(false);
         setSessionStatus('idle');
-        setDossierView('details'); // Go back to details view
+        setDossierView('details'); 
         setLiveTranscript([]);
         setLiveSuggestions([]);
+        setCurrentInputText('');
+        setCurrentOutputText('');
     };
 
     const handleStartSession = async () => {
@@ -238,13 +255,37 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
                         scriptProcessor.connect(inputAudioContext.destination);
                     },
                     onmessage: (message: LiveServerMessage) => {
-                        if (message.serverContent?.inputTranscription) {
-                            setLiveTranscript(prev => [...prev, { speaker: 'Advogado', text: message.serverContent.inputTranscription.text! }])
+                         if (message.serverContent?.inputTranscription) {
+                            const text = message.serverContent.inputTranscription.text || '';
+                            setCurrentInputText(prev => prev + text);
                         }
                         if (message.serverContent?.outputTranscription) {
-                             setLiveTranscript(prev => [...prev, { speaker: 'Responsável', text: message.serverContent.outputTranscription.text! }])
+                            const text = message.serverContent.outputTranscription.text || '';
+                            setCurrentOutputText(prev => prev + text);
                         }
-                        // This model doesn't output audio, so we don't process it.
+                        if (message.serverContent?.modelTurn) {
+                            const modelText = message.serverContent.modelTurn.parts
+                                .map(part => part.text)
+                                .filter(Boolean)
+                                .join(' ');
+                            if (modelText) {
+                                setLiveSuggestions(prev => [...prev, modelText].slice(-3)); // Keep last 3 suggestions
+                            }
+                        }
+                        if (message.serverContent?.turnComplete) {
+                            setLiveTranscript(prev => {
+                                const newEntries = [...prev];
+                                if (currentInputText.trim()) {
+                                    newEntries.push({ speaker: 'Advogado', text: currentInputText.trim() });
+                                }
+                                if (currentOutputText.trim()) {
+                                    newEntries.push({ speaker: 'Responsável', text: currentOutputText.trim() });
+                                }
+                                return newEntries;
+                            });
+                            setCurrentInputText('');
+                            setCurrentOutputText('');
+                        }
                     },
                     onerror: (e: ErrorEvent) => {
                         console.error('Live Session Error:', e);
@@ -252,14 +293,14 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
                     },
                     onclose: () => {
                         console.log('Live Session Closed');
-                        if (sessionStatus !== 'idle') { // Avoid resetting state if we closed it manually
+                        if (sessionStatus !== 'idle') {
                             setSessionStatus('idle');
                         }
                     },
                 },
                 config: {
                     inputAudioTranscription: {},
-                    outputAudioTranscription: {},
+                    outputAudioTranscription: {}, // Simulates listening to the other party
                     systemInstruction: systemInstruction,
                 },
             });
@@ -267,6 +308,7 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
             
         } catch (error) {
             console.error('Failed to start audio session:', error);
+            alert("Não foi possível iniciar a sessão de áudio. Verifique as permissões do microfone.");
             setSessionStatus('error');
         }
     };
@@ -443,9 +485,9 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
                                 <footer className="p-3 border-t border-neutral-200/80 bg-white/50 backdrop-blur-xl flex-shrink-0 flex items-center justify-center gap-2 sm:gap-3 flex-wrap rounded-b-2xl">
                                     <Button size="sm" onClick={() => alert('Função indisponível')} icon={<WhatsAppIcon />}>WhatsApp</Button>
                                     <Button size="sm" variant="secondary" onClick={() => setModalState({ type: 'addAttempt' })}>Registrar Contato</Button>
-                                    <Button size="sm" variant="secondary" onClick={() => setModalState({ type: 'createAgreement' })}>Criar Acordo</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => setModalState({ type: 'createAgreement' })} disabled={!!invoice.agreement}>Criar Acordo</Button>
                                     <Button size="sm" variant="secondary" onClick={() => setModalState({ type: 'generatePetition' })}>Gerar Petição</Button>
-                                    <Button size="sm" variant="primary" onClick={() => setDossierView('liveSession')} icon={<MicrophoneIcon />} isLoading={isSessionStarting}>Sessão Live (IA)</Button>
+                                    <Button size="sm" variant="primary" onClick={() => setDossierView('liveSession')} icon={<MicrophoneIcon />} disabled={sessionStatus !== 'idle'}>Sessão Live (IA)</Button>
                                 </footer>
                             </motion.div>
                         ) : (
@@ -470,11 +512,24 @@ Responda com um único objeto JSON com duas chaves principais: "analysis" e "agr
                                             {sessionStatus === 'connecting' && <p className="text-yellow-400 animate-pulse">Conectando e ativando microfone...</p>}
                                             {sessionStatus === 'error' && <p className="text-red-400">Erro de conexão. Por favor, encerre e tente novamente.</p>}
                                             {liveTranscript.map((item, index) => (
-                                                <div key={index}>
+                                                <div key={`final-${index}`}>
                                                     <p className={`font-bold text-sm ${item.speaker === 'Advogado' ? 'text-blue-300' : 'text-green-300'}`}>{item.speaker}</p>
-                                                    <p className="text-neutral-200">{item.text}</p>
+                                                    <p className="text-neutral-200 whitespace-pre-wrap">{item.text}</p>
                                                 </div>
                                             ))}
+                                            {currentInputText && (
+                                                <div className="opacity-70">
+                                                    <p className="font-bold text-sm text-blue-300">Advogado</p>
+                                                    <p className="text-neutral-200 whitespace-pre-wrap">{currentInputText}</p>
+                                                </div>
+                                            )}
+                                             {currentOutputText && (
+                                                <div className="opacity-70">
+                                                    <p className="font-bold text-sm text-green-300">Responsável</p>
+                                                    <p className="text-neutral-200 whitespace-pre-wrap">{currentOutputText}</p>
+                                                </div>
+                                            )}
+                                            <div ref={transcriptEndRef} />
                                         </div>
                                     </div>
                                     <div className="col-span-1 flex flex-col bg-black/20 rounded-lg p-4">

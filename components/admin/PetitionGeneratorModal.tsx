@@ -1,13 +1,13 @@
 
 
 import React, { useState } from 'react';
-// FIX: Import Variants type from framer-motion.
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { GoogleGenAI } from '@google/genai';
 import { Invoice, Student, Guardian, School, NegotiationAttempt, NegotiationAttemptType } from '../../types';
 import { XIcon, SparklesIcon } from '../common/icons';
 import Button from '../common/Button';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 
 interface PetitionGeneratorModalProps {
     isOpen: boolean;
@@ -21,12 +21,11 @@ interface PetitionGeneratorModalProps {
     };
 }
 
-const backdropVariants = {
+const backdropVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
 };
 
-// FIX: Explicitly type modalVariants with the Variants type.
 const modalVariants: Variants = {
     hidden: { opacity: 0, y: 50, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 30 } },
@@ -39,6 +38,7 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
     const [error, setError] = useState('');
 
     const { invoice, student, guardian, school, attempts } = negotiationCase;
+    const { updatedValue } = calculateUpdatedInvoiceValues(invoice);
 
     const handleGeneratePetition = async () => {
         if (!student || !guardian || !school) {
@@ -56,7 +56,7 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
 
         const prompt = `
             **CONTEXTO:**
-            Você é um assistente jurídico especialista em direito civil e educacional, trabalhando para o escritório de advocacia "Advocacia Foco". Sua tarefa é redigir o rascunho de uma petição inicial para uma ação de cobrança de mensalidades escolares.
+            Você é um assistente jurídico especialista em direito civil e educacional no Brasil. Sua tarefa é redigir o rascunho de uma petição inicial para uma ação de cobrança de mensalidades escolares para o escritório "Advocacia Foco".
 
             **DADOS DO CLIENTE (ESCOLA CREDORA):**
             - Nome: ${school.name}
@@ -66,9 +66,7 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
             **DADOS DO DEVEDOR (RESPONSÁVEL FINANCEIRO):**
             - Nome: ${guardian.name}
             - CPF: ${guardian.cpf || 'Não informado'}
-            - Email: ${guardian.email}
-            - Telefone: ${guardian.phone}
-            - Endereço: (Utilizar o mesmo da escola para fins de exemplo, se não houver um específico)
+            - Endereço: ${guardian.address || 'Não informado'}
 
             **DADOS DO ALUNO VINCULADO AO CONTRATO:**
             - Nome: ${student.name}
@@ -77,15 +75,17 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
             - Descrição: ${invoice.notes || `Mensalidade escolar referente ao aluno ${student.name}`}
             - Valor Original: ${formatCurrency(invoice.value)}
             - Data de Vencimento: ${formatDate(invoice.dueDate)}
+            - Valor Atualizado (com juros e multa): ${formatCurrency(updatedValue)}
 
             **HISTÓRICO DE TENTATIVAS DE COBRANÇA EXTRAJUDICIAL:**
             ${historySummary}
 
             **TAREFA:**
-            Com base em todas as informações fornecidas, elabore uma petição inicial de ação de cobrança completa, seguindo a estrutura jurídica adequada (Endereçamento ao Juizado Especial Cível da comarca correspondente, qualificação completa das partes, nome da ação, fatos, fundamentos jurídicos, pedidos e valor da causa). 
+            Elabore uma petição inicial de ação de cobrança completa, seguindo a estrutura jurídica adequada (Endereçamento ao Juizado Especial Cível da comarca correspondente, qualificação completa das partes, nome da ação, fatos, fundamentos jurídicos, pedidos e valor da causa). 
             A petição deve ser formal, clara e pronta para ser protocolada após revisão de um advogado. 
-            Na seção "DOS FATOS", narre a relação contratual, o inadimplemento e mencione explicitamente que as tentativas de cobrança amigável restaram infrutíferas, citando o histórico fornecido.
-            Nos "PEDIDOS", solicite a citação do réu e a condenação ao pagamento do valor principal, acrescido de juros e correção monetária desde o vencimento.
+            Na seção "DOS FATOS", narre a relação contratual, o inadimplemento e mencione que as tentativas de cobrança amigável restaram infrutíferas, citando o histórico fornecido.
+            Nos "PEDIDOS", solicite a citação do réu e a condenação ao pagamento do valor principal atualizado de ${formatCurrency(updatedValue)}, acrescido de juros e correção monetária até a data do efetivo pagamento.
+            O valor da causa deve ser o valor atualizado: ${formatCurrency(updatedValue)}.
         `;
 
         try {
@@ -146,7 +146,7 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
                                    <p><strong>Escola:</strong> {school?.name}</p>
                                    <p><strong>Responsável:</strong> {guardian?.name}</p>
                                    <p><strong>Aluno:</strong> {student?.name}</p>
-                                   <p><strong>Dívida:</strong> {formatCurrency(invoice.value)}</p>
+                                   <p><strong>Dívida:</strong> {formatCurrency(updatedValue)}</p>
                                    <p><strong>Vencimento:</strong> {formatDate(invoice.dueDate)}</p>
                                </div>
                                 <Button onClick={handleGeneratePetition} isLoading={isLoading} className="w-full">
@@ -162,7 +162,7 @@ const PetitionGeneratorModal = ({ isOpen, onClose, negotiationCase }: PetitionGe
                                     id="petition" 
                                     readOnly 
                                     value={isLoading ? "Aguarde, a IA está elaborando o documento..." : generatedPetition}
-                                    className="w-full h-full min-h-[400px] p-3 border border-neutral-300 rounded-md bg-neutral-50 focus:ring-primary-500 focus:border-primary-500 transition"
+                                    className="w-full h-full min-h-[400px] p-3 border border-neutral-300 rounded-md bg-neutral-50 focus:ring-primary-500 focus:border-primary-500 transition resize-none"
                                  />
                             </div>
                         </div>

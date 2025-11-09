@@ -526,7 +526,6 @@ const MarketingHub = (): React.ReactElement => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [leads, setLeads] = useState<Lead[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-    // FIX: Changed initial state from boolean to an empty array to fix iterator error.
     const [personas, setPersonas] = useState<any[]>([]);
 
     useEffect(() => {

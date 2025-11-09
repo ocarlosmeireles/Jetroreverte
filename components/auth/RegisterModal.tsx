@@ -1,11 +1,8 @@
 
-
 import React, { useState } from 'react';
-// FIX: Imported motion and Variants for self-contained animation.
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../common/Button';
-// FIX: Imported XIcon for the close button.
 import { XIcon } from '../common/icons';
 
 interface RegisterModalProps {
@@ -13,7 +10,6 @@ interface RegisterModalProps {
     onSwitchToLogin: () => void;
 }
 
-// FIX: Added animation variants for the modal.
 const modalVariants: Variants = {
     hidden: { opacity: 0, y: 30, scale: 0.98 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 30 } },
@@ -27,7 +23,8 @@ const RegisterModal = ({ onClose, onSwitchToLogin }: RegisterModalProps) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
-    const { register, loading } = useAuth();
+    const { register } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,6 +33,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }: RegisterModalProps) => {
             setError('As senhas não coincidem.');
             return;
         }
+        setIsLoading(true);
         try {
             const user = await register(personName, officeName, email, password);
             if (user) {
@@ -46,11 +44,12 @@ const RegisterModal = ({ onClose, onSwitchToLogin }: RegisterModalProps) => {
                 ? 'Este e-mail já está em uso.'
                 : 'Falha no cadastro. Tente novamente.';
             setError(friendlyMessage);
+        } finally {
+            setIsLoading(false);
         }
     };
     
     return (
-        // FIX: Replaced Modal component with a self-contained motion.div to work directly with App.tsx's AnimatePresence.
         <motion.div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col"
             variants={modalVariants}
@@ -73,9 +72,9 @@ const RegisterModal = ({ onClose, onSwitchToLogin }: RegisterModalProps) => {
                     
                     {error && <p className="text-red-500 text-sm text-center pt-2">{error}</p>}
 
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading} className="w-full bg-primary-600 text-white font-semibold py-3 px-4 rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all shadow-md shadow-primary-500/20 disabled:bg-primary-400/50 mt-2">
-                        {loading ? 'Criando...' : 'Criar Conta'}
-                    </motion.button>
+                    <Button type="submit" disabled={isLoading} className="w-full !py-3 !text-base">
+                        {isLoading ? 'Criando...' : 'Criar Conta'}
+                    </Button>
                 </form>
                  <div className="text-center mt-6 text-sm">
                     <p className="text-neutral-500">Já tem uma conta? <button onClick={onSwitchToLogin} className="font-semibold text-primary-600 hover:underline">Entre aqui</button></p>
