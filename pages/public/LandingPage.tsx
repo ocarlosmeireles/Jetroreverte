@@ -94,8 +94,7 @@ const LandingPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setAuthView(null)}
+                        className="fixed inset-0 bg-neutral-50 z-50 flex items-center justify-center"
                     >
                         <motion.div
                             initial={{ scale: 0.95, y: 20 }}
@@ -108,7 +107,7 @@ const LandingPage = () => {
                            <AuthPortal initialView={authView} />
                            <button 
                                 onClick={() => setAuthView(null)} 
-                                className="absolute top-4 right-4 p-2 rounded-full bg-white/50 hover:bg-white transition-colors"
+                                className="absolute top-6 right-6 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-10"
                                 aria-label="Close authentication"
                            >
                                <XIcon className="w-6 h-6 text-neutral-700" />

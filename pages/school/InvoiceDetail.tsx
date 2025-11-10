@@ -3,13 +3,11 @@ import { demoInvoices, demoStudents, demoGuardians } from '../../services/demoDa
 import { Invoice, InvoiceStatus, CollectionStage } from '../../types';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, ClipboardIcon, PencilIcon } from '../../components/common/icons';
+import { ArrowLeftIcon, SparklesIcon, EnvelopeIcon, ClipboardIcon } from '../../components/common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import ContactHistoryModal from '../../components/common/ContactHistoryModal';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Modal from '../../components/common/Modal';
-import AiCommunicationModal from '../../components/school/AiCommunicationModal';
-import EmailCommunicationModal from '../../components/school/EmailCommunicationModal';
 
 interface InvoiceDetailProps {
     invoiceId: string;
@@ -32,16 +30,8 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
     const initialInvoice = demoInvoices.find(i => i.id === invoiceId);
     const [currentInvoice, setCurrentInvoice] = useState(initialInvoice);
 
-    const [isEditingLink, setIsEditingLink] = useState(false);
-    const [linkInputValue, setLinkInputValue] = useState(currentInvoice?.paymentLink || '');
     const [isCopied, setIsCopied] = useState(false);
-    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-
-    useEffect(() => {
-        setLinkInputValue(currentInvoice?.paymentLink || '');
-    }, [currentInvoice]);
-
+    
     const student = demoStudents.find(s => s.id === currentInvoice?.studentId);
     const guardian = demoGuardians.find(g => g.id === student?.guardianId);
     
@@ -76,11 +66,6 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
         });
-    };
-
-    const handleSaveLink = () => {
-        setCurrentInvoice(prev => prev ? { ...prev, paymentLink: linkInputValue } : undefined);
-        setIsEditingLink(false);
     };
 
     const handleViewReceipt = () => {
@@ -204,40 +189,20 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
 
                     <div className="mt-6 pt-6 border-t border-neutral-200">
                         <h3 className="text-lg font-semibold text-neutral-700 mb-3">Link de Pagamento</h3>
-                        {isEditingLink ? (
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={linkInputValue}
-                                    onChange={(e) => setLinkInputValue(e.target.value)}
-                                    className="w-full px-3 py-2 border border-primary-300 bg-white rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition"
-                                    placeholder="https://seu-link-de-pagamento.com"
-                                />
-                                <Button size="sm" onClick={handleSaveLink}>Salvar</Button>
-                                <Button size="sm" variant="secondary" onClick={() => setIsEditingLink(false)}>Cancelar</Button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
-                                {currentInvoice.paymentLink ? (
-                                    <>
-                                        <span className="text-sm text-neutral-600 truncate">{currentInvoice.paymentLink}</span>
-                                        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                                            <button onClick={handleCopyLink} className="p-2 rounded-full hover:bg-neutral-200 transition-colors" title="Copiar Link">
-                                                <ClipboardIcon className="w-4 h-4 text-neutral-600" />
-                                            </button>
-                                            <button onClick={() => setIsEditingLink(true)} className="p-2 rounded-full hover:bg-neutral-200 transition-colors" title="Editar Link">
-                                                <PencilIcon className="w-4 h-4 text-neutral-600" />
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                       <span className="text-sm text-neutral-500">Nenhum link cadastrado.</span>
-                                       <Button size="sm" variant="secondary" onClick={() => setIsEditingLink(true)}>Adicionar Link</Button>
-                                    </>
-                                )}
-                            </div>
-                        )}
+                        <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                            {currentInvoice.paymentLink && currentInvoice.paymentLink !== '#' ? (
+                                <>
+                                    <span className="text-sm text-neutral-600 truncate">{currentInvoice.paymentLink}</span>
+                                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                                        <button onClick={handleCopyLink} className="p-2 rounded-full hover:bg-neutral-200 transition-colors" title="Copiar Link">
+                                            <ClipboardIcon className="w-4 h-4 text-neutral-600" />
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                               <span className="text-sm text-neutral-500">Este link é de acesso exclusivo do escritório.</span>
+                            )}
+                        </div>
                         {isCopied && <p className="text-xs text-green-600 mt-1 animate-fade-in">Link copiado!</p>}
                     </div>
 
@@ -245,10 +210,10 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                         {currentInvoice.status === InvoiceStatus.PAGO && <Button variant="secondary" onClick={handleViewReceipt}>Ver Recibo</Button>}
                         {currentInvoice.status !== InvoiceStatus.PAGO && (
                             <>
-                                <Button variant="secondary" onClick={() => setIsEmailModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<EnvelopeIcon className="w-5 h-5" />}>
                                     Enviar Email
                                 </Button>
-                                <Button variant="secondary" onClick={() => setIsAiModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
+                                <Button variant="secondary" onClick={() => setIsActionRestrictedModalOpen(true)} icon={<SparklesIcon className="w-5 h-5" />}>
                                     Gerar Mensagem WhatsApp
                                 </Button>
                                 {currentInvoice.status === InvoiceStatus.VENCIDO && <Button variant="danger" onClick={() => setIsActionRestrictedModalOpen(true)}>Enviar Lembrete de Atraso</Button>}
@@ -258,12 +223,6 @@ const InvoiceDetail = ({ invoiceId, onBack }: InvoiceDetailProps): React.ReactEl
                     </div>
                 </Card>
             </div>
-            {isEmailModalOpen && (
-                <EmailCommunicationModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
-            )}
-            {isAiModalOpen && (
-                <AiCommunicationModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} invoice={currentInvoice} student={student} guardian={guardian} />
-            )}
             <ContactHistoryModal
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}

@@ -8,6 +8,7 @@ import LawFirmDashboard from './pages/dashboards/LawFirmDashboard';
 import SchoolDashboard from './pages/dashboards/SchoolDashboard';
 import GuardianDashboard from './pages/dashboards/GuardianDashboard';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import LiveSessionPage from './pages/law-firm/LiveSessionPage';
 
 const App = (): React.ReactElement => {
   return (
@@ -21,6 +22,14 @@ const App = (): React.ReactElement => {
 
 const Main = (): React.ReactElement => {
     const { user, loading } = useAuth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isLiveSession = urlParams.get('liveSession');
+    const caseId = urlParams.get('caseId');
+
+    if (isLiveSession && caseId) {
+        return <LiveSessionPage caseId={caseId} />;
+    }
 
     if (loading) {
         return (

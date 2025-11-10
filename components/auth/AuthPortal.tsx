@@ -35,7 +35,7 @@ const RoleSelectionView = ({ onSelectRole, onRegister }: { onSelectRole: (role: 
         animate={{ opacity: 1, scale: 1 }} 
         exit={{ opacity: 0, scale: 0.98 }} 
         transition={{ duration: 0.3 }}
-        className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8"
+        className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8 sm:p-12"
     >
         <div className="text-center mb-8">
             <Logo className="mx-auto h-12" />
@@ -45,12 +45,12 @@ const RoleSelectionView = ({ onSelectRole, onRegister }: { onSelectRole: (role: 
             <p className="mt-2 text-md text-neutral-600">Selecione seu perfil para continuar.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {([UserRole.ESCRITORIO, UserRole.ESCOLA, UserRole.RESPONSAVEL] as RoleSelection[]).map((role) => (
                 <motion.button
                     key={role}
                     onClick={() => onSelectRole(role)}
-                    className="text-left bg-neutral-50 p-4 rounded-xl border border-neutral-200 hover:border-primary-400 hover:shadow-soft-hover transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    className="text-left bg-neutral-50 p-6 rounded-xl border border-neutral-200 hover:border-primary-400 hover:shadow-soft-hover transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                     whileHover={{ y: -4 }}
                     whileTap={{ scale: 0.97 }}
                 >
@@ -81,7 +81,7 @@ const FormContainer = ({ children, onBack, title, subtitle }: { children?: React
         animate={{ opacity: 1, x: 0 }} 
         exit={{ opacity: 0, x: -30 }} 
         transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-        className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-xl"
+        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl"
     >
         <div className="flex justify-start mb-6">
              <button onClick={onBack} className="flex items-center text-sm text-neutral-600 hover:text-neutral-900 font-medium">
@@ -268,7 +268,7 @@ const AuthPortal = ({ initialView }: { initialView: 'login' | 'register' | 'sele
     };
     
     return (
-        <div className="w-full max-w-lg">
+        <div className="w-full">
             <AnimatePresence mode="wait">
                 {renderCurrentView()}
             </AnimatePresence>

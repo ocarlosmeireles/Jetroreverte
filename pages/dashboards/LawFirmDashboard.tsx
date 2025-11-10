@@ -1,8 +1,9 @@
 
+
 import React from 'react';
 import { AnimatePresence, motion, Transition } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
-import { UserRole, School } from '../../types';
+import { UserRole, School, NegotiationCase } from '../../types';
 import AdminDashboardContent from '../admin/AdminDashboardContent';
 import SchoolsList from '../law-firm/SchoolsList';
 import AppLayout from '../../components/layout/AppLayout';
@@ -13,11 +14,12 @@ import LawFirmInvoiceDetail from '../law-firm/InvoiceDetail';
 import CombinedFinancials from '../law-firm/CombinedFinancials';
 import PetitionList from '../law-firm/PetitionList';
 import JudicialProcessDashboard from '../law-firm/JudicialProcessDashboard';
-import { demoSchools } from '../../services/demoData';
+import { demoSchools, demoInvoices, demoStudents, demoGuardians, demoNegotiationAttempts } from '../../services/demoData';
 import { useAuth } from '../../hooks/useAuth';
 import { DEMO_USERS } from '../../constants';
 import { useState } from 'react';
 import CollectionHubPage from '../law-firm/CollectionHubPage';
+import DossierModal from '../../components/law-firm/DossierModal';
 
 
 interface DetailViewState {
@@ -29,6 +31,7 @@ const LawFirmDashboard = (): React.ReactElement => {
     const { user } = useAuth();
     const [activePage, setActivePage] = useState('dashboard');
     const [detailView, setDetailView] = useState<DetailViewState>({ type: null, id: null });
+    const [dossierCase, setDossierCase] = useState<NegotiationCase | null>(null);
     const [schools, setSchools] = useState<School[]>(() => {
         if (user?.email === DEMO_USERS.ESCRITORIO.email) {
             // Make sure to filter based on the correct user ID for the demo
@@ -54,6 +57,25 @@ const LawFirmDashboard = (): React.ReactElement => {
     const handleSelectSchool = (schoolId: string) => {
         setDetailView({ type: 'school', id: schoolId });
     };
+    
+    const handleOpenDossierFromInvoice = (invoiceId: string) => {
+        const invoice = demoInvoices.find(i => i.id === invoiceId);
+        if (!invoice) return;
+
+        const student = demoStudents.find(s => s.id === invoice.studentId);
+        const guardian = demoGuardians.find(g => g.id === student?.guardianId);
+        const school = demoSchools.find(s => s.id === invoice.schoolId);
+        const attempts = demoNegotiationAttempts.filter(a => a.invoiceId === invoice.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        if (student && guardian && school) {
+            setDossierCase({ invoice, student, guardian, school, attempts });
+        }
+    };
+
+    const handleUpdateDossierCase = (updatedCase: NegotiationCase) => {
+        setDossierCase(updatedCase);
+    };
+
 
     const handleCloseDetail = () => {
         setDetailView({ type: null, id: null });
@@ -94,7 +116,7 @@ const LawFirmDashboard = (): React.ReactElement => {
         if (!detailView.id) return null;
         switch (detailView.type) {
             case 'school':
-                return <SchoolDetail schoolId={detailView.id} onBack={handleCloseDetail} onDelete={handleDeleteSchool} />;
+                return <SchoolDetail schoolId={detailView.id} onBack={handleCloseDetail} onDelete={handleDeleteSchool} onSelectInvoice={handleOpenDossierFromInvoice} />;
             case 'invoice':
                 return <LawFirmInvoiceDetail invoiceId={detailView.id} onBack={handleCloseDetail} />;
             default:
@@ -160,12 +182,22 @@ const LawFirmDashboard = (): React.ReactElement => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{ scale: 0.9, opacity: 0 }}
                                     transition={transition}
-                                    className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden"
+                                    className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl max-h-[90vh] flex flex-col pointer-events-auto overflow-hidden"
                                 >
                                     {renderDetailContent()}
                                 </motion.div>
                             </div>
                         </div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {dossierCase && (
+                        <DossierModal
+                            caseData={dossierCase}
+                            onClose={() => setDossierCase(null)}
+                            onUpdateCase={handleUpdateDossierCase}
+                        />
                     )}
                 </AnimatePresence>
             </div>

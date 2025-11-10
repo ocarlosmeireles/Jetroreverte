@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import Button from '../common/Button';
-import { demoGuardians } from '../../services/demoData';
+import { demoGuardians, demoStudents, demoInvoices } from '../../services/demoData';
+import { InvoiceStatus } from '../../types';
+import { formatCurrency } from '../../utils/formatters';
+import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import { MagnifyingGlassIcon } from '../common/icons';
 
 interface HeroProps {
@@ -11,7 +14,7 @@ interface HeroProps {
 
 const Hero = ({ onRegister, onLogin }: HeroProps) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchMessage, setSearchMessage] = useState('');
+    const [searchResult, setSearchResult] = useState<{ status: 'not_found' | 'no_debt' | 'has_debt'; value?: number; message: string } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
 
     const handleScroll = (targetId: string) => {
@@ -33,22 +36,48 @@ const Hero = ({ onRegister, onLogin }: HeroProps) => {
         if (!searchQuery.trim()) return;
 
         setIsSearching(true);
-        setSearchMessage('');
+        setSearchResult(null);
 
         // Simulate API call
         setTimeout(() => {
             const foundGuardian = demoGuardians.find(
                 g => g.name.toLowerCase() === searchQuery.toLowerCase().trim() || g.cpf === searchQuery.trim()
             );
+
             if (foundGuardian) {
-                setSearchMessage('Responsável encontrado. Faça o login para ver os débitos.');
-                onLogin(); // Open the login modal
+                const studentsOfGuardian = demoStudents.filter(s => s.guardianId === foundGuardian.id);
+                const studentIds = studentsOfGuardian.map(s => s.id);
+                const unpaidInvoices = demoInvoices.filter(
+                    i => studentIds.includes(i.studentId) && (i.status === InvoiceStatus.VENCIDO || i.status === InvoiceStatus.PENDENTE)
+                );
+
+                if (unpaidInvoices.length === 0) {
+                    setSearchResult({
+                        status: 'no_debt',
+                        message: `Ótimas notícias, ${foundGuardian.name}! Não encontramos débitos pendentes em seu nome.`
+                    });
+                } else {
+                    const totalDebt = unpaidInvoices.reduce((acc, inv) => {
+                        return acc + calculateUpdatedInvoiceValues(inv).updatedValue;
+                    }, 0);
+                    
+                    setSearchResult({
+                        status: 'has_debt',
+                        value: totalDebt,
+                        message: `Olá, ${foundGuardian.name}. Identificamos um valor em aberto. Negociar agora é a melhor forma de resolver pendências e garantir tranquilidade. Faça o login e veja as condições especiais que preparamos para você.`
+                    });
+                    
+                }
             } else {
-                setSearchMessage('CPF ou nome não encontrado. Verifique os dados ou entre em contato com a escola.');
+                setSearchResult({
+                    status: 'not_found',
+                    message: 'CPF ou nome não encontrado. Verifique os dados ou entre em contato com a escola.'
+                });
             }
             setIsSearching(false);
-        }, 1000);
+        }, 1500);
     };
+
 
     // Parallax effect hooks
     const mouseX = useMotionValue(0);
@@ -174,10 +203,32 @@ const Hero = ({ onRegister, onLogin }: HeroProps) => {
                                 {isSearching ? 'Buscando...' : 'Buscar'}
                             </Button>
                         </form>
-                        {searchMessage && (
-                            <p className={`mt-3 text-center text-sm ${searchMessage.includes('encontrado') && !searchMessage.includes('não') ? 'text-green-700' : 'text-red-600'}`}>
-                                {searchMessage}
-                            </p>
+                        {searchResult && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 text-center text-sm"
+                            >
+                                {searchResult.status === 'no_debt' && (
+                                    <div className="bg-green-50 text-green-800 border border-green-200 p-4 rounded-lg">
+                                        <p>{searchResult.message}</p>
+                                    </div>
+                                )}
+                                {searchResult.status === 'has_debt' && (
+                                    <div className="bg-yellow-50 text-yellow-900 border border-yellow-200 p-4 rounded-lg">
+                                        <p className="font-bold text-lg">{formatCurrency(searchResult.value || 0)} em aberto</p>
+                                        <p className="mt-2">{searchResult.message}</p>
+                                        <Button onClick={onLogin} className="mt-4">
+                                            Ir para o Acordo
+                                        </Button>
+                                    </div>
+                                )}
+                                {searchResult.status === 'not_found' && (
+                                    <div className="bg-red-50 text-red-800 border border-red-200 p-4 rounded-lg">
+                                        <p>{searchResult.message}</p>
+                                    </div>
+                                )}
+                            </motion.div>
                         )}
                     </div>
                 </motion.div>

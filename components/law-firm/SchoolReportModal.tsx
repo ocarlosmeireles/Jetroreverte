@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { GoogleGenAI } from '@google/genai';
@@ -115,32 +117,36 @@ O tom deve ser profissional, direto e focado em resultados.`;
         if (!reportData) return;
         if (typeof window.jspdf === 'undefined') {
             alert("A biblioteca para gerar PDF não foi carregada. Tente recarregar a página.");
-            console.error("jsPDF is not available on window object.");
             return;
         }
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.width;
         const margin = 15;
         let y = 0;
 
-        // --- PDF Helper Functions ---
+        // Colors
+        const primaryColor = '#1a5d8a';
+        const textColor = '#334155';
+        const lightTextColor = '#64748b';
+        const borderColor = '#e2e8f0';
+
         const drawHeader = () => {
             y = margin;
             if (user.officeLogoUrl) {
                 try { doc.addImage(user.officeLogoUrl, 'PNG', margin, y, 30, 15); } catch (e) { console.error("PDF logo error:", e); }
             }
-            doc.setFontSize(10); doc.setTextColor(100);
+            doc.setFontSize(9); doc.setTextColor(lightTextColor);
             doc.text(user.officeName || '', pageWidth - margin, y + 5, { align: 'right' });
-            doc.text(user.officeAddress || '', pageWidth - margin, y + 10, { align: 'right' });
-            y += 25;
-            doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(40);
+            doc.text(user.officeAddress || '', pageWidth - margin, y + 9, { align: 'right' });
+            y += 20;
+            doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor(primaryColor);
             doc.text('Relatório de Performance de Cobranças', margin, y);
-            y += 7;
-            doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
-            doc.text(`${school.name} - Período: Últimos 30 dias`, margin, y);
+            y += 8;
+            doc.setFontSize(12); doc.setFont('helvetica', 'normal'); doc.setTextColor(textColor);
+            doc.text(`${school.name} | Período: Últimos 30 dias`, margin, y);
             y += 10;
-            doc.setDrawColor(220); doc.setLineWidth(0.5); doc.line(margin, y, pageWidth - margin, y); y += 10;
+            doc.setDrawColor(borderColor); doc.setLineWidth(0.5); doc.line(margin, y, pageWidth - margin, y); y += 10;
         };
 
         const drawStatCards = () => {
@@ -153,92 +159,152 @@ O tom deve ser profissional, direto e focado em resultados.`;
             const cardHeight = 25;
             stats.forEach((stat, i) => {
                 const x = margin + i * (cardWidth + 5);
-                doc.setFillColor(248, 250, 252);
-                doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'F');
-                doc.setFontSize(9); doc.setTextColor(100); doc.text(stat.title, x + 5, y + 7);
-                doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(stat.color); doc.text(stat.value, x + 5, y + 17);
+                doc.setFillColor(248, 250, 252); doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'F');
+                doc.setFontSize(10); doc.setTextColor(lightTextColor); doc.text(stat.title, x + 5, y + 8);
+                doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(stat.color); doc.text(stat.value, x + 5, y + 18);
             });
-            y += cardHeight + 10;
+            y += cardHeight + 12;
         };
 
-        const drawSection = (title: string, body: () => void) => {
-            if (y > doc.internal.pageSize.height - 40) { doc.addPage(); drawHeader(); }
-            doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(40);
-            doc.text(title, margin, y); y += 8;
+        const drawSection = (title: string, body: () => void, newPage = false) => {
+            if (newPage || y > doc.internal.pageSize.height - 60) {
+                doc.addPage();
+                drawHeader();
+            }
+            doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(primaryColor);
+            doc.text(title, margin, y);
+            y += 8;
             body();
-            y += 10;
-        };
-        
-        const drawChart = () => {
-            const chartData = reportData.topDebtors.slice().reverse(); // Reverse for bottom-up drawing
-            const chartX = margin + 30, chartY = y, chartWidth = pageWidth - margin * 2 - 35, chartHeight = 50;
-            const maxVal = Math.max(...chartData.map(d => d.value), 1);
-            
-            doc.setDrawColor(200); doc.setLineWidth(0.2);
-            doc.line(chartX, chartY, chartX, chartY + chartHeight + 2); // Y-axis
-            doc.line(chartX, chartY + chartHeight, chartX + chartWidth, chartY + chartHeight); // X-axis
-
-            chartData.forEach((item, i) => {
-                const barHeight = (item.value / maxVal) * chartHeight;
-                const barWidth = 15;
-                const barX = chartX + 10 + (i * (chartWidth / chartData.length));
-                doc.setFillColor(42, 93, 138);
-                doc.rect(barX, chartY + chartHeight - barHeight, barWidth, barHeight, 'F');
-                doc.setFontSize(7); doc.setTextColor(100);
-                const nameParts = item.name.split(' ');
-                const label = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[1].charAt(0)}.` : nameParts[0];
-                doc.text(label, barX + barWidth/2, chartY + chartHeight + 5, { align: 'center' });
-            });
-            y += chartHeight + 15;
+            y += 12;
         };
 
-        const drawTable = (headers: string[], data: string[][]) => {
-            const rowHeight = 7;
-            const colWidths = [70, 20, 90]; // Manual widths
-            // Draw header
-            doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setFillColor(243, 244, 246);
-            let currentX = margin;
-            headers.forEach((header, i) => {
-                doc.rect(currentX, y, colWidths[i], rowHeight, 'F');
-                doc.text(header, currentX + 2, y + 5);
-                currentX += colWidths[i];
-            });
-            y += rowHeight;
-
-            // Draw rows
-            doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-            data.forEach((row) => {
-                currentX = margin;
-                doc.setDrawColor(229, 231, 235);
-                row.forEach((cell, i) => {
-                    doc.rect(currentX, y, colWidths[i], rowHeight, 'D');
-                    const textLines = doc.splitTextToSize(cell, colWidths[i] - 4);
-                    doc.text(textLines, currentX + 2, y + 4.5);
-                    currentX += colWidths[i];
-                });
-                y += rowHeight;
-            });
-        };
-
-        // --- Assemble PDF ---
-        drawHeader();
-        drawStatCards();
-        drawSection('Análise Estratégica (IA)', () => {
-            doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(80);
-            doc.setFillColor(249, 250, 251);
+        const drawAiAnalysis = () => {
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(textColor);
+            doc.setFillColor(241, 245, 249);
             const lines = doc.splitTextToSize(analysis || "Análise indisponível.", pageWidth - margin * 2 - 10);
             doc.roundedRect(margin, y, pageWidth - margin * 2, lines.length * 5 + 10, 3, 3, 'F');
             doc.text(lines, margin + 5, y + 8);
             y += lines.length * 5 + 10;
-        });
-        drawSection('Top 5 Maiores Débitos', drawChart);
+        };
 
-        const activityData = reportData.recentActivities.map(act => [
-            formatDate(act.date),
-            demoInvoices.find(i => i.id === act.invoiceId)?.studentName || 'N/A',
-            act.notes
-        ]);
-        drawSection('Atividades Recentes', () => drawTable(['Data', 'Aluno', 'Anotação'], activityData));
+        const drawDebtorsChart = () => {
+            const chartData = reportData.topDebtors;
+            const chartX = margin + 40, chartY = y, chartWidth = pageWidth - margin * 2 - 45, chartHeight = 50;
+            const maxVal = Math.max(...chartData.map(d => d.value), 1);
+            
+            chartData.forEach((item, i) => {
+                const barWidth = (item.value / maxVal) * chartWidth;
+                const barY = chartY + (i * 10);
+                doc.setFontSize(9); doc.setTextColor(textColor);
+                doc.text(item.name, chartX - 2, barY + 3.5, { align: 'right' });
+                doc.setFillColor(primaryColor);
+                doc.rect(chartX, barY, barWidth, 5, 'F');
+                doc.setFontSize(8); doc.setTextColor(lightTextColor);
+                doc.text(formatCurrency(item.value), chartX + barWidth + 2, barY + 3.5);
+            });
+            y += chartHeight + 5;
+        };
+
+        const drawActivityTable = () => {
+            const tableData = reportData.recentActivities.map(act => [
+                formatDate(act.date),
+                demoInvoices.find(i => i.id === act.invoiceId)?.studentName || 'N/A',
+                act.notes
+            ]);
+
+            const tableHeaders = ['Data', 'Aluno', 'Anotação'];
+            const colWidths = [25, 40, pageWidth - margin * 2 - 25 - 40];
+            const headerHeight = 7;
+            let tableY = y;
+            let startY = y;
+
+            if (tableY + headerHeight > doc.internal.pageSize.height - margin) {
+                doc.addPage();
+                drawHeader();
+                tableY = y;
+                startY = y;
+            }
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setFillColor(primaryColor);
+            doc.setTextColor(255, 255, 255);
+            doc.rect(margin, tableY, colWidths.reduce((a, b) => a + b), headerHeight, 'F');
+            let currentX = margin;
+            tableHeaders.forEach((header, i) => {
+                doc.text(header, currentX + 2, tableY + 5);
+                currentX += colWidths[i];
+            });
+            tableY += headerHeight;
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(textColor);
+
+            tableData.forEach((row, rowIndex) => {
+                const notesLines = doc.splitTextToSize(row[2], colWidths[2] - 4);
+                const requiredHeight = Math.max(headerHeight, (notesLines.length * 4) + 4);
+
+                if (tableY + requiredHeight > doc.internal.pageSize.height - margin) {
+                    doc.setDrawColor(borderColor);
+                    currentX = margin;
+                    doc.line(currentX, startY, currentX, tableY);
+                    colWidths.forEach(width => {
+                        currentX += width;
+                        doc.line(currentX, startY, currentX, tableY);
+                    });
+                    doc.addPage();
+                    drawHeader();
+                    tableY = y;
+                    startY = y;
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFillColor(primaryColor);
+                    doc.setTextColor(255, 255, 255);
+                    doc.rect(margin, tableY, colWidths.reduce((a, b) => a + b), headerHeight, 'F');
+                    currentX = margin;
+                    tableHeaders.forEach((header, i) => {
+                        doc.text(header, currentX + 2, tableY + 5);
+                        currentX += colWidths[i];
+                    });
+                    tableY += headerHeight;
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(textColor);
+                }
+
+                if (rowIndex % 2 !== 0) {
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(margin, tableY, colWidths.reduce((a, b) => a + b), requiredHeight, 'F');
+                }
+
+                const textY = tableY + 5;
+                doc.text(row[0], margin + 2, textY);
+                doc.text(row[1], margin + colWidths[0] + 2, textY);
+                doc.text(notesLines, margin + colWidths[0] + colWidths[1] + 2, textY);
+                
+                doc.setDrawColor(borderColor);
+                doc.line(margin, tableY + requiredHeight, pageWidth - margin, tableY + requiredHeight);
+
+                tableY += requiredHeight;
+            });
+
+            doc.setDrawColor(borderColor);
+            currentX = margin;
+            doc.line(currentX, startY, currentX, tableY);
+            colWidths.forEach(width => {
+                currentX += width;
+                doc.line(currentX, startY, currentX, tableY);
+            });
+
+            y = tableY;
+        };
+        
+        drawHeader();
+        drawStatCards();
+        drawSection('Análise Estratégica (IA)', drawAiAnalysis);
+        drawSection('Top 5 Maiores Débitos', drawDebtorsChart);
+        drawSection('Atividades Recentes', drawActivityTable, true);
 
         doc.save(`Relatorio_${school.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
     };

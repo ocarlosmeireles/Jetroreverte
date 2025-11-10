@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
@@ -47,6 +48,10 @@ const SchoolNegotiations = (): React.ReactElement => {
             };
         }).sort((a,b) => new Date(b.invoice.dueDate).getTime() - new Date(a.invoice.dueDate).getTime());
     }, [user]);
+    
+    const totalValue = useMemo(() => {
+        return negotiationCases.reduce((acc, { invoice }) => acc + (invoice.updatedValue || invoice.value), 0);
+    }, [negotiationCases]);
 
     const getStatusInfo = (invoice: typeof demoInvoices[0]) => {
         if (invoice.agreement?.isApproved) {
@@ -74,7 +79,7 @@ const SchoolNegotiations = (): React.ReactElement => {
                         <thead className="bg-neutral-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Aluno</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor do Débito</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor Atualizado</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Última Atividade</th>
                             </tr>
@@ -101,6 +106,12 @@ const SchoolNegotiations = (): React.ReactElement => {
                                 )
                             })}
                         </tbody>
+                        <tfoot>
+                            <tr className="bg-neutral-100 font-bold border-t-2 border-neutral-200">
+                                <td className="px-6 py-3 text-right text-sm text-neutral-800" colSpan={1}>Total</td>
+                                <td className="px-6 py-3 text-left text-sm text-neutral-800" colSpan={3}>{formatCurrency(totalValue)}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                      {/* Mobile Cards */}
                     <div className="md:hidden divide-y divide-neutral-200">
@@ -124,6 +135,10 @@ const SchoolNegotiations = (): React.ReactElement => {
                                 </div>
                              )
                         })}
+                         <div className="p-4 font-bold bg-neutral-100 flex justify-between">
+                            <span>Total</span>
+                            <span>{formatCurrency(totalValue)}</span>
+                        </div>
                     </div>
                 </div>
             ) : (

@@ -18,6 +18,7 @@ interface SchoolDetailProps {
     schoolId: string;
     onBack: () => void;
     onDelete: (schoolId: string) => void;
+    onSelectInvoice: (invoiceId: string) => void;
 }
 
 const HealthScoreCircle = ({ score }: { score: number | undefined }) => {
@@ -75,16 +76,18 @@ const channelIcons: Record<string, ReactNode> = {
 };
 
 const RulerColumn = ({ title, steps, color }: { title: string; steps: CollectionStep[]; color: string }) => (
-    <div className="bg-neutral-50 p-4 rounded-lg border">
-        <h4 className={`text-md font-bold text-center mb-4 ${color}`}>{title}</h4>
-        <div className="relative pl-4">
-             <div className="absolute top-2 bottom-2 left-0 w-0.5 bg-neutral-200" />
+    <div className="bg-neutral-50/70 p-4 rounded-xl border border-neutral-200/70 h-full">
+        <h4 className={`text-md font-bold text-center mb-6 ${color}`}>{title}</h4>
+        <div className="relative pl-6">
+             <div className="absolute top-2 bottom-2 left-3 w-1 bg-neutral-200 rounded-full" />
              {steps.sort((a, b) => a.day - b.day).map(step => (
-                <div key={step.day} className="relative mb-4 pl-4">
-                     <div className="absolute -left-2 top-1.5 w-4 h-4 bg-white border-2 border-neutral-300 rounded-full z-10" />
-                    <p className="text-xs font-bold text-neutral-500">DIA {step.day}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="flex-shrink-0">{channelIcons[step.channel] || <div className="w-5 h-5"/>}</span>
+                <div key={step.day} className="relative mb-6 pl-4">
+                     <div className="absolute -left-[1.3rem] top-1.5 w-6 h-6 bg-white border-2 border-neutral-300 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-neutral-400 rounded-full"/>
+                     </div>
+                    <p className="text-xs font-bold text-neutral-500 -mt-1">DIA {step.day}</p>
+                    <div className="flex items-start gap-2 mt-1">
+                        <span className="flex-shrink-0 pt-0.5">{channelIcons[step.channel] || <div className="w-5 h-5"/>}</span>
                         <p className="text-sm text-neutral-700">{step.action}</p>
                     </div>
                 </div>
@@ -94,7 +97,7 @@ const RulerColumn = ({ title, steps, color }: { title: string; steps: Collection
 );
 
 
-const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.ReactElement => {
+const SchoolDetail = ({ schoolId, onBack, onDelete, onSelectInvoice }: SchoolDetailProps): React.ReactElement => {
     const { user } = useAuth();
     const initialSchool = demoSchools.find(s => s.id === schoolId);
     
@@ -126,10 +129,6 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
         .reduce((acc, i) => acc + i.value, 0);
         
     const totalCommission = totalRecovered * (commissionPercentage / 100);
-
-    const defaulterStudentsCount = new Set(
-        invoicesForSchool.filter(i => i.status !== InvoiceStatus.PAGO).map(i => i.studentId)
-    ).size;
 
     const getStatusChip = (status: InvoiceStatus) => {
         switch (status) {
@@ -199,8 +198,6 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
 
     const handleSaveRuler = () => {
         setIsSavingRuler(true);
-        // Em um app real, aqui você salvaria schoolData no banco de dados.
-        // Para o demo, vamos apenas simular e mostrar uma confirmação.
         setTimeout(() => {
             setIsSavingRuler(false);
             alert('Régua de cobrança salva e ativada para esta escola!');
@@ -221,7 +218,7 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
                     </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto space-y-6">
+                <div className="flex-1 overflow-y-auto space-y-6 pr-2">
                     <div className="p-4 bg-gradient-to-br from-primary-50/50 to-white rounded-xl border border-primary-200/50 flex items-center gap-4">
                         <HealthScoreCircle score={schoolData.healthScore} />
                         <div className="flex-1">
@@ -244,7 +241,18 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
                         </div>
                     </div>
                     
-                     {/* Nova Seção: Régua de Cobrança */}
+                    <Card>
+                        <h3 className="text-lg font-bold text-neutral-800">Detalhes da Escola</h3>
+                        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                            <div className="sm:col-span-2"><dt className="font-semibold text-neutral-600">Endereço</dt><dd className="text-neutral-800">{schoolData.address}</dd></div>
+                            <div><dt className="font-semibold text-neutral-600">Telefone</dt><dd className="text-neutral-800">{schoolData.phone}</dd></div>
+                            <div><dt className="font-semibold text-neutral-600">Total de Alunos</dt><dd className="text-neutral-800">{schoolData.totalStudents}</dd></div>
+                            <div className="sm:col-span-2 pt-2 mt-2 border-t"><dt className="font-semibold text-neutral-600">Contato Financeiro</dt><dd className="text-neutral-800">{schoolData.financialContactName} ({schoolData.financialContactEmail})</dd></div>
+                            <div className="sm:col-span-2"><dt className="font-semibold text-neutral-600">Representante Legal</dt><dd className="text-neutral-800">{schoolData.legalRepresentativeName} (CPF: {schoolData.legalRepresentativeCpf})</dd></div>
+                            <div className="sm:col-span-2 pt-2 mt-2 border-t"><dt className="font-semibold text-neutral-600">Processo Interno de Cobrança</dt><dd className="text-neutral-800 italic">"{schoolData.internalCollectionProcess || 'Não informado'}"</dd></div>
+                        </dl>
+                    </Card>
+
                     <Card>
                         <div className="flex items-center gap-3 mb-4">
                             <WrenchScrewdriverIcon className="w-6 h-6 text-primary-500" />
@@ -307,7 +315,7 @@ const SchoolDetail = ({ schoolId, onBack, onDelete }: SchoolDetailProps): React.
                                         {invoicesForSchool.map(invoice => {
                                             const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                             return (
-                                                <tr key={invoice.id} className="hover:bg-neutral-50/70 transition-colors">
+                                                <tr key={invoice.id} onClick={() => onSelectInvoice(invoice.id)} className="hover:bg-primary-50/50 transition-colors cursor-pointer">
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         <div className="text-sm font-medium text-neutral-900">{invoice.studentName}</div>
                                                         <div className="text-xs text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</div>
