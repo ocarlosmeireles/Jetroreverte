@@ -14,7 +14,6 @@ declare global {
     jspdf: any;
   }
 }
-const { jsPDF } = window.jspdf;
 
 interface SchoolReportModalProps {
     isOpen: boolean;
@@ -114,6 +113,12 @@ O tom deve ser profissional, direto e focado em resultados.`;
 
     const handleGeneratePdf = () => {
         if (!reportData) return;
+        if (typeof window.jspdf === 'undefined') {
+            alert("A biblioteca para gerar PDF não foi carregada. Tente recarregar a página.");
+            console.error("jsPDF is not available on window object.");
+            return;
+        }
+        const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.width;
         const margin = 15;

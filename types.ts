@@ -8,40 +8,27 @@ export enum UserRole {
 export interface User {
     id: string;
     name: string;
-    officeName?: string;
     email: string;
     role: UserRole;
-    schoolId?: string; 
+    officeName?: string;
     officeAddress?: string;
     officePhone?: string;
     oabNumber?: string;
-    officeLogoUrl?: string;
     profilePictureUrl?: string;
+    officeLogoUrl?: string;
+    schoolId?: string;
     modulePermissions?: string[];
-}
-
-export interface CollectionStep {
-    day: number;
-    action: string;
-    channel: string;
-}
-
-export interface CollectionRuler {
-    lowRisk: CollectionStep[];
-    mediumRisk: CollectionStep[];
-    highRisk: CollectionStep[];
 }
 
 export interface School {
     id: string;
+    officeId: string;
     name: string;
     cnpj: string;
     address: string;
     phone: string;
-    officeId: string;
     healthScore?: number;
     healthSummary?: string;
-    collectionRuler?: CollectionRuler;
     financialContactName?: string;
     financialContactEmail?: string;
     financialContactPhone?: string;
@@ -51,6 +38,18 @@ export interface School {
     averageTuition?: number;
     currentDefaultRate?: number;
     internalCollectionProcess?: string;
+    collectionRuler?: CollectionRuler;
+}
+
+export interface CollectionStep {
+    day: number;
+    action: string;
+    channel: string; // 'WhatsApp', 'Email', 'Ligação', 'SMS', 'Petição'
+}
+export interface CollectionRuler {
+    lowRisk: CollectionStep[];
+    mediumRisk: CollectionStep[];
+    highRisk: CollectionStep[];
 }
 
 export interface Guardian {
@@ -62,17 +61,17 @@ export interface Guardian {
     cpf?: string;
     rg?: string;
     address?: string;
-    relationship?: string;
+    relationship?: string; // Pai, Mãe, Tutor
 }
 
 export interface Student {
     id: string;
     name: string;
     class: string;
-    registrationCode?: string;
     guardianId: string;
-    schoolId:string;
+    schoolId: string;
     guardianName?: string;
+    registrationCode?: string;
     futureRiskScore?: number;
     riskPattern?: string;
 }
@@ -87,66 +86,138 @@ export enum CollectionStage {
     AGUARDANDO_CONTATO = 'AGUARDANDO_CONTATO',
     EM_NEGOCIACAO = 'EM_NEGOCIACAO',
     ACORDO_FEITO = 'ACORDO_FEITO',
-    PREPARACAO_JUDICIAL = 'PREPARACAO_JUDICIAL',
     PAGAMENTO_RECUSADO = 'PAGAMENTO_RECUSADO',
-}
-
-export interface AgreementDetails {
-    installments: number;
-    installmentValue: number;
-    paymentMethod: 'Boleto' | 'Pix' | 'Cartão de Crédito';
-    firstDueDate: string;
-    createdAt: string;
-    protocolNumber: string;
-    isApproved?: boolean;
+    PREPARACAO_JUDICIAL = 'PREPARACAO_JUDICIAL'
 }
 
 export interface Invoice {
     id: string;
     studentId: string;
     schoolId: string;
-    studentName?: string;
+    studentName: string;
     value: number;
-    updatedValue?: number;
     dueDate: string;
     status: InvoiceStatus;
     notes?: string;
     paymentLink?: string;
     receiptUrl?: string;
-    commission?: number;
-    collectionStage?: CollectionStage;
-    agreement?: AgreementDetails;
-    overdueInstallments?: number;
-    lastPaymentDate?: string;
-    originalPaymentMethod?: string;
-    schoolContactHistory?: string;
-    contractUrl?: string;
-    policyUrl?: string;
-    unpaidBillsUrl?: string;
     riskScore?: number;
+    collectionStage?: CollectionStage;
     isAutomationActive?: boolean;
-    isCollectionAutomated?: boolean;
     nextAutomatedAction?: {
         date: string;
         action: string;
     };
+    // Detailed fields from student registration
+    updatedValue?: number;
+    overdueInstallments?: number;
+    lastPaymentDate?: string;
+    originalPaymentMethod?: string;
+    schoolContactHistory?: string;
+    commission?: number;
+    agreement?: AgreementDetails;
 }
 
-export interface CollectionHistory {
+export interface AgreementDetails {
+    protocolNumber: string;
+    installments: number;
+    installmentValue: number;
+    paymentMethod: 'Boleto' | 'Pix' | 'Cartão de Crédito';
+    firstDueDate: string;
+    createdAt: string;
+    isApproved?: boolean;
+}
+
+export enum NegotiationAttemptType {
+    ADMINISTRATIVE = 'ADMINISTRATIVE',
+    JUDICIAL_PREPARATION = 'JUDICIAL_PREPARATION',
+}
+
+export enum NegotiationChannel {
+    EMAIL = 'Email',
+    WHATSAPP = 'WhatsApp',
+    PHONE_CALL = 'Ligação',
+    PETITION_GENERATED = 'Petição',
+    SMS = 'SMS',
+}
+
+export interface NegotiationAttempt {
+    id: string;
+    invoiceId: string;
+    date: string;
+    type: NegotiationAttemptType;
+    channel: NegotiationChannel;
+    notes: string;
+    author: string; // 'Sistema', 'Assistente Virtual', Nome do Advogado
+}
+
+export interface Petition {
+    id: string;
+    invoiceId: string;
+    studentName: string;
+    guardianName: string;
+    schoolName: string;
+    generatedAt: string;
+    status: 'draft' | 'filed';
+    content: string;
+}
+
+export interface NegotiationCase {
+    invoice: Invoice;
+    student: Student | undefined;
+    guardian: Guardian | undefined;
+    school: School | undefined;
+    attempts: NegotiationAttempt[];
+}
+
+export interface LiveNegotiationHistory {
     id: string;
     studentId: string;
+    studentName: string;
+    guardianName: string;
+    schoolName: string;
     date: string;
-    message: string;
-    status: 'ENVIADO' | 'FALHOU';
+    transcript: string;
+    finalSuggestion: string;
 }
 
+export enum JudicialProcessStatus {
+    PROTOCOLADO = 'Protocolado',
+    AGUARDANDO_CITACAO = 'Aguardando Citação',
+    CONTESTACAO = 'Contestação',
+    SENTENCA = 'Sentença',
+    RECURSO = 'Recurso',
+}
+
+export interface ProcessEvent {
+    id: string;
+    date: string;
+    type: 'FILING' | 'DECISION' | 'HEARING' | 'UPDATE';
+    title: string;
+    description: string;
+    documents?: { name: string; url: string }[];
+}
+
+export interface JudicialProcess {
+    id: string;
+    officeId: string;
+    petitionId: string;
+    studentName: string;
+    schoolName: string;
+    processNumber: string;
+    status: JudicialProcessStatus;
+    lastUpdate: string;
+    events: ProcessEvent[];
+}
+
+// SaaS-related types
 export enum PlanId {
     BASIC = 'basic',
     PRO = 'pro',
 }
 
 export interface Plan {
-    id: PlanId | string;
+    id: PlanId;
     name: string;
     price: {
         monthly: number;
@@ -196,85 +267,18 @@ export interface Notification {
     createdAt: string;
 }
 
-export enum NegotiationAttemptType {
-    ADMINISTRATIVE = 'ADMINISTRATIVE',
-    JUDICIAL_PREPARATION = 'JUDICIAL_PREPARATION',
-}
-
-export enum NegotiationChannel {
-    EMAIL = 'EMAIL',
-    WHATSAPP = 'WHATSAPP',
-    PHONE_CALL = 'PHONE_CALL',
-    PETITION_GENERATED = 'PETITION_GENERATED',
-}
-
-export interface NegotiationAttempt {
-    id: string;
-    invoiceId: string;
-    date: string;
-    type: NegotiationAttemptType;
-    channel: NegotiationChannel;
-    notes: string;
-    author: string;
-}
-
-export interface Petition {
-    id: string;
-    invoiceId: string;
-    studentName: string;
-    guardianName: string;
-    schoolName: string;
-    generatedAt: string;
-    status: 'draft' | 'filed';
-    content: string;
-}
-
-export enum JudicialProcessStatus {
-    PROTOCOLADO = 'PROTOCOLADO',
-    AGUARDANDO_CITACAO = 'AGUARDANDO_CITACAO',
-    CONTESTACAO = 'CONTESTAÇÃO',
-    SENTENCA = 'SENTENÇA',
-    RECURSO = 'RECURSO',
-}
-
-export interface ProcessEvent {
-    id: string;
-    date: string;
-    type: 'FILING' | 'DECISION' | 'HEARING' | 'UPDATE';
-    title: string;
-    description: string;
-    documents?: { name: string, url: string }[];
-}
-
-export interface JudicialProcess {
+// Marketing Hub Types
+export interface Lead {
     id: string;
     officeId: string;
-    petitionId: string;
-    studentName: string;
     schoolName: string;
-    processNumber: string;
-    status: JudicialProcessStatus;
-    lastUpdate: string;
-    events: ProcessEvent[];
-}
-
-export interface LiveNegotiationHistory {
-    id: string;
-    studentId: string;
-    studentName: string;
-    guardianName: string;
-    schoolName: string;
-    date: string;
-    transcript: string;
-    finalSuggestion: string;
-}
-
-export interface NegotiationCase {
-    invoice: Invoice;
-    student?: Student;
-    guardian?: Guardian;
-    school?: School;
-    attempts: NegotiationAttempt[];
+    contactName: string;
+    contactEmail: string;
+    potentialValue: number;
+    status: 'Prospect' | 'Contato' | 'Negociação' | 'Ganha' | 'Perdida';
+    lastContactDate: string;
+    notes?: string;
+    campaignId?: string;
 }
 
 export interface Campaign {
@@ -284,20 +288,7 @@ export interface Campaign {
     target: string;
     startDate: string;
     status: 'Planejada' | 'Ativa' | 'Concluída';
-    leadsGenerated: number;
+    leadsGenerated?: number;
     conversionRate?: number;
     valueGenerated?: number;
-}
-
-export interface Lead {
-    id: string;
-    officeId: string;
-    campaignId?: string;
-    schoolName: string;
-    contactName: string;
-    contactEmail: string;
-    status: 'Novo' | 'Contatado' | 'Qualificado' | 'Perdido' | 'Convertido';
-    potentialValue: number;
-    lastContactDate: string;
-    notes?: string;
 }

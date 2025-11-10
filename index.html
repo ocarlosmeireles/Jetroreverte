@@ -1,11 +1,33 @@
-
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="pt-BR">
+<head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jetro Reverte - Cobrança Educacional</title>
+    <style>
+        body, html, #root {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc; /* neutral-50 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Simple shimmer animation for loading states */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background-color: #e5e7eb;
+            background-image: linear-gradient(to right, #f3f4f6 0%, #e5e7eb 20%, #f3f4f6 40%, #f3f4f6 100%);
+            background-repeat: no-repeat;
+            background-size: 2000px 104px;
+        }
+    </style>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -13,118 +35,77 @@
           extend: {
             colors: {
               primary: {
-                50: '#eef2f6',
-                100: '#dce4ed',
-                200: '#b9c9db',
-                300: '#96adca',
-                400: '#7391b8',
-                500: '#5075a6',
-                600: '#3c5a8a',
-                700: '#2d466f',
-                800: '#1e3253',
-                900: '#142540',
-                DEFAULT: '#3c5a8a',
+                50: '#f2f7fb',
+                100: '#e3eff6',
+                200: '#cce1ee',
+                300: '#a6cde2',
+                400: '#7eb3d3',
+                500: '#5d9bc3',
+                600: '#1a5d8a',
+                700: '#17537b',
+                800: '#134466',
+                900: '#103753',
               },
               secondary: {
-                50: '#fbf6eb',
-                100: '#f7edd8',
-                200: '#eddab0',
-                300: '#e3c689',
-                400: '#d9b361',
-                500: '#B58E4F',
-                600: '#a07d47',
-                700: '#8b6c3f',
-                800: '#765b37',
-                900: '#614a2f',
-                DEFAULT: '#B58E4F',
+                50: '#f9f5f0',
+                100: '#f2ecde',
+                200: '#e5d8bd',
+                300: '#d7c199',
+                400: '#c7a772',
+                500: '#b58e4f',
+                600: '#a37c44',
+                700: '#86633b',
+                800: '#6e5135',
+                900: '#5b442f',
               },
               neutral: {
-                50: '#FAF9F6',
-                100: '#F5F3EF',
-                200: '#EAE8E1',
-                300: '#DCD9CF',
-                400: '#B7B3A9',
-                500: '#928E83',
-                600: '#767269',
-                700: '#5A574F',
-                800: '#3E3C36',
-                900: '#22211E',
-                DEFAULT: '#928E83',
-              },
-              background: '#F9FAFB',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-            borderRadius: {
-              'lg': '0.5rem',
-              'xl': '0.75rem',
-              '2xl': '1rem',
-              '3xl': '1.25rem',
-              'full': '9999px',
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+              }
             },
             boxShadow: {
-              'soft': '0 1px 3px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.05)',
-              'soft-hover': '0 2px 5px rgba(0,0,0,0.06), 0 5px 10px rgba(0,0,0,0.06)',
-              'card': 'var(--shadow-soft)',
-              'card-hover': 'var(--shadow-soft-hover)',
-              'glow-primary': '0 0 15px 0 rgba(60, 90, 138, 0.2), 0 0 5px 0 rgba(60, 90, 138, 0.1)',
+              'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
+              'soft-hover': '0 8px 20px rgba(0, 0, 0, 0.07)',
+              'glow-primary': '0 0 20px rgba(26, 93, 138, 0.3)',
+            },
+             animation: {
+                'fade-in': 'fadeIn 0.5s ease-out',
             },
             keyframes: {
-              'fade-in': {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              'slide-in-up': {
-                '0%': { transform: 'translateY(32px)', opacity: '0' },
-                '100%': { transform: 'translateY(0)', opacity: '1' },
-              },
-              'shimmer': {
-                '0%': { backgroundPosition: '-1000px 0' },
-                '100%': { backgroundPosition: '1000px 0' },
-              },
-            },
-            animation: {
-              'fade-in': 'fade-in 0.5s ease-out forwards',
-              'slide-in-up': 'slide-in-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
-              'shimmer': 'shimmer 2s infinite linear',
+                fadeIn: {
+                    '0%': { opacity: 0 },
+                    '100%': { opacity: 1 },
+                },
             },
           }
         }
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.umd.js"></script>
-    <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
-    "@heroicons/react/": "https://aistudiocdn.com/@heroicons/react@^2.2.0/"
-  }
-}
-</script>
-<style>
-  :root {
-    --shadow-soft: 0 1px 3px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.05);
-    --shadow-soft-hover: 0 2px 5px rgba(0,0,0,0.06), 0 5px 10px rgba(0,0,0,0.06);
-  }
-</style>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-  <body class="bg-neutral-50 text-neutral-700 font-sans antialiased">
+<body>
     <div id="root"></div>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+        "recharts": "https://aistudiocdn.com/recharts@^3.3.0",
+        "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
+        "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+      }
+    }
+    </script>
     <script type="module" src="/index.tsx"></script>
-  </body>
+</body>
 </html>

@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { NegotiationCase, NegotiationChannel } from '../../types';
-import { XIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon } from '../common/icons';
+// FIX: Add WhatsAppIcon to imports
+import { XIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, DocumentPlusIcon, WhatsAppIcon } from '../common/icons';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 import Button from '../common/Button';
@@ -23,11 +24,13 @@ const modalVariants: Variants = {
     exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: 0.2 } },
 };
 
+// FIX: Add SMS entry and use correct icon for WhatsApp to satisfy the Record type
 const channelInfo: Record<NegotiationChannel, { icon: ReactNode; label: string }> = {
     [NegotiationChannel.PHONE_CALL]: { icon: <PhoneIcon className="w-4 h-4 text-neutral-500" />, label: 'Ligação' },
     [NegotiationChannel.EMAIL]: { icon: <EnvelopeIcon className="w-4 h-4 text-neutral-500" />, label: 'E-mail' },
-    [NegotiationChannel.WHATSAPP]: { icon: <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-neutral-500" />, label: 'WhatsApp' },
-    [NegotiationChannel.PETITION_GENERATED]: { icon: <DocumentPlusIcon className="w-4 h-4 text-neutral-500" />, label: 'Petição Gerada' }
+    [NegotiationChannel.WHATSAPP]: { icon: <WhatsAppIcon className="w-4 h-4 text-neutral-500" />, label: 'WhatsApp' },
+    [NegotiationChannel.PETITION_GENERATED]: { icon: <DocumentPlusIcon className="w-4 h-4 text-neutral-500" />, label: 'Petição Gerada' },
+    [NegotiationChannel.SMS]: { icon: <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-neutral-500" />, label: 'SMS' }
 };
 
 const NegotiationDetailModal = ({ isOpen, onClose, caseData }: NegotiationDetailModalProps): React.ReactElement => {

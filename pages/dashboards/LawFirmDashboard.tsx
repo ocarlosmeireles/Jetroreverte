@@ -1,9 +1,6 @@
 
-
-
 import React from 'react';
-// FIX: Import Transition to fix type error.
-import { AnimatePresence, motion, Transition as MotionTransition } from 'framer-motion';
+import { AnimatePresence, motion, Transition } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
 import { UserRole, School } from '../../types';
 import AdminDashboardContent from '../admin/AdminDashboardContent';
@@ -40,7 +37,8 @@ const LawFirmDashboard = (): React.ReactElement => {
         return [];
     });
     
-    const navItems = NAVIGATION[UserRole.ESCRITORIO];
+    // Updated navItems to remove 'Marketing'
+    const navItems = NAVIGATION[UserRole.ESCRITORIO].filter(item => item.path !== 'marketing');
     
     let pageTitle = navItems.find(p => p.path === activePage)?.name || 'Dashboard';
     if (detailView.id) {
@@ -105,8 +103,7 @@ const LawFirmDashboard = (): React.ReactElement => {
     };
     
     const pageKey = activePage;
-    // FIX: Add Transition type to resolve framer-motion type error.
-    const transition: MotionTransition = { type: 'spring', stiffness: 500, damping: 35, mass: 0.8 };
+    const transition: Transition = { type: 'spring', stiffness: 500, damping: 35, mass: 0.8 };
 
     return (
         <AppLayout
@@ -122,7 +119,7 @@ const LawFirmDashboard = (): React.ReactElement => {
                         borderRadius: detailView.id ? '1.5rem' : '0rem'
                     }}
                     transition={transition}
-                    className="flex-1 flex flex-col overflow-hidden bg-neutral-50 will-change-transform origin-center"
+                    className="flex-1 flex flex-col overflow-hidden bg-neutral-100 will-change-transform origin-center"
                 >
                     <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 flex flex-col">
                         <AnimatePresence mode="wait">
@@ -134,7 +131,6 @@ const LawFirmDashboard = (): React.ReactElement => {
                                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                                 className="w-full h-full flex flex-col"
                             >
-                                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
                                 <div className="flex-grow h-full">
                                     {renderContent()}
                                 </div>

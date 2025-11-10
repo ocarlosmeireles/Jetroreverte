@@ -1,13 +1,12 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { UserRole } from './types';
 import LandingPage from './pages/public/LandingPage';
+import SuperAdminDashboard from './pages/dashboards/SuperAdminDashboard';
 import LawFirmDashboard from './pages/dashboards/LawFirmDashboard';
 import SchoolDashboard from './pages/dashboards/SchoolDashboard';
 import GuardianDashboard from './pages/dashboards/GuardianDashboard';
-import SuperAdminDashboard from './pages/dashboards/SuperAdminDashboard';
-import { UserRole } from './types';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
 const App = (): React.ReactElement => {
@@ -19,35 +18,6 @@ const App = (): React.ReactElement => {
     </AuthProvider>
   );
 };
-
-// This component now manages the flow for unauthenticated users.
-// The new LandingPage component handles all auth UI internally.
-const AuthFlow = (): React.ReactElement => {
-    return <LandingPage />;
-};
-
-const DashboardRouter = (): React.ReactElement => {
-    const { user } = useAuth();
-
-    if (!user) {
-        return <div>Usuário não encontrado.</div>;
-    }
-
-    switch (user.role) {
-        case UserRole.ESCRITORIO:
-            return <LawFirmDashboard />;
-        case UserRole.ESCOLA:
-            return <SchoolDashboard />;
-        case UserRole.RESPONSAVEL:
-            return <GuardianDashboard />;
-        case UserRole.SUPER_ADMIN:
-            return <SuperAdminDashboard />;
-        default:
-            // Could also redirect to login or show an error page
-            return <div>Dashboard não disponível para este perfil.</div>;
-    }
-}
-
 
 const Main = (): React.ReactElement => {
     const { user, loading } = useAuth();
@@ -73,10 +43,34 @@ const Main = (): React.ReactElement => {
         );
     }
 
+    const renderDashboard = () => {
+        if (!user) return null;
+        switch (user.role) {
+            case UserRole.SUPER_ADMIN:
+                return <SuperAdminDashboard />;
+            case UserRole.ESCRITORIO:
+                return <LawFirmDashboard />;
+            case UserRole.ESCOLA:
+                return <SchoolDashboard />;
+            case UserRole.RESPONSAVEL:
+                return <GuardianDashboard />;
+            default:
+                return <LandingPage />;
+        }
+    };
+
     return (
         <AnimatePresence mode="wait">
             {!user ? (
-                <AuthFlow />
+                <motion.div
+                    key="landing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <LandingPage />
+                </motion.div>
             ) : (
                 <motion.div
                     key="dashboard"
@@ -86,7 +80,7 @@ const Main = (): React.ReactElement => {
                     transition={{ duration: 0.4, ease: 'easeInOut' }}
                     className="w-full h-full"
                 >
-                    <DashboardRouter />
+                    {renderDashboard()}
                 </motion.div>
             )}
         </AnimatePresence>

@@ -1,9 +1,11 @@
 
+
 import React, { useMemo, ReactNode } from 'react';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { NegotiationAttempt, NegotiationChannel, NegotiationAttemptType } from '../../types';
 import { demoNegotiationAttempts } from '../../services/demoData';
-import { XIcon, DocumentPlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon } from './icons';
+// FIX: Add WhatsAppIcon to imports
+import { XIcon, DocumentPlusIcon, PhoneIcon, EnvelopeIcon, ChatBubbleLeftEllipsisIcon, WhatsAppIcon } from './icons';
 import Button from './Button';
 import { formatDate } from '../../utils/formatters';
 
@@ -39,11 +41,13 @@ const getRelativeTime = (dateString: string) => {
 };
 
 const ChannelIcon = ({ channel }: { channel: NegotiationChannel }) => {
+    // FIX: Add SMS to the map and use the correct WhatsApp icon to satisfy the Record type.
     const iconMap: Record<NegotiationChannel, ReactNode> = {
         [NegotiationChannel.EMAIL]: <EnvelopeIcon className="w-5 h-5 text-neutral-500" />,
-        [NegotiationChannel.WHATSAPP]: <ChatBubbleLeftEllipsisIcon className="w-5 h-5 text-neutral-500" />,
+        [NegotiationChannel.WHATSAPP]: <WhatsAppIcon className="w-5 h-5 text-neutral-500" />,
         [NegotiationChannel.PHONE_CALL]: <PhoneIcon className="w-5 h-5 text-neutral-500" />,
         [NegotiationChannel.PETITION_GENERATED]: <DocumentPlusIcon className="w-5 h-5 text-neutral-500" />,
+        [NegotiationChannel.SMS]: <ChatBubbleLeftEllipsisIcon className="w-5 h-5 text-neutral-500" />,
     };
     return <div className="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-100 ring-4 ring-white">{iconMap[channel]}</div>;
 };

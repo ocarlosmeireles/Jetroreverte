@@ -1,6 +1,6 @@
 
+
 import React, { useMemo } from 'react';
-// FIX: Imported Tooltip component from recharts.
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { demoSchools, demoSubscriptions, demoSaasInvoices } from '../../services/demoData';
 import { allDemoUsers } from '../../services/superAdminDemoData';
@@ -76,7 +76,8 @@ const PlatformOverview = (): React.ReactElement => {
                                     outerRadius={80}
                                     fill="#8884d8"
                                     dataKey="value"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    // FIX: The 'percent' prop can be undefined. Using nullish coalescing operator (??) to provide a fallback.
+                                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                 >
                                     {planDistribution.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -302,12 +302,17 @@ const GuardianFinancials = ({ onStartNegotiation }: GuardianFinancialsProps): Re
                 />
             )}
 
-             <div className="fixed bottom-6 right-6 z-40">
+             <div className="fixed bottom-6 right-6">
                 <Button onClick={() => setIsChatOpen(true)} className="rounded-full !p-4 shadow-lg" aria-label="Abrir chat de ajuda">
-                    <ChatBubbleLeftEllipsisIcon className="w-8 h-8"/>
+                    <ChatBubbleLeftEllipsisIcon className="w-6 h-6"/>
                 </Button>
             </div>
-            <AiChatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} systemInstruction={chatSystemInstruction} />
+            
+            <AiChatbot
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                systemInstruction={chatSystemInstruction}
+            />
         </>
     );
 };

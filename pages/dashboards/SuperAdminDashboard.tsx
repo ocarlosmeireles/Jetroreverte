@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -42,7 +43,6 @@ const SuperAdminDashboard = (): React.ReactElement => {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                     >
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 mb-6 sm:mb-8">{pageTitle}</h1>
                         {renderContent()}
                     </motion.div>
                 </AnimatePresence>

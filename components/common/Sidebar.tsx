@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import Logo from './Logo';
 import {
     DashboardIcon,
     SchoolIcon,
@@ -79,6 +80,8 @@ interface NavLinkProps {
     setActivePage: (page: string) => void;
     closeSidebar: () => void;
     isMobile?: boolean;
+    // FIX: Add key to props to allow usage in a list map
+    key?: React.Key;
 }
 
 const NavLink = ({ item, activePage, setActivePage, closeSidebar, isMobile = false }: NavLinkProps) => {
@@ -129,7 +132,7 @@ const SidebarContent = ({ navItems, activePage, setActivePage, notificationCount
     return (
         <div className="bg-white text-neutral-800 flex flex-col h-full border-r border-neutral-200/80">
             <div className="p-4 border-b border-neutral-200/80 flex items-center justify-between lg:justify-start h-20">
-                <span className="text-xl font-extrabold tracking-tight text-neutral-800">Jetro Reverte</span>
+                <Logo />
                  <button onClick={closeSidebar} className="p-1 text-neutral-500 hover:text-neutral-900 lg:hidden">
                     <XIcon className="w-6 h-6" />
                 </button>

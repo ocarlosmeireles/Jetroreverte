@@ -9,6 +9,8 @@ import { CheckCircleIcon } from '../common/icons';
 interface PlanCardProps {
     plan: Plan;
     isFeatured?: boolean;
+    // FIX: Add key to props to allow usage in a list map
+    key?: React.Key;
 }
 
 const PlanCard = ({ plan, isFeatured = false }: PlanCardProps): React.ReactElement => {

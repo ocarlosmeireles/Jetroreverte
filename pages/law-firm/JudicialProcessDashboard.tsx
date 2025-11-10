@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { demoJudicialProcesses } from '../../services/demoData';
@@ -21,11 +18,13 @@ const columns: { id: JudicialProcessStatus; title: string }[] = [
 ];
 
 interface ProcessCardProps {
-    process: JudicialProcess;
+    judicialProcess: JudicialProcess;
     onClick: () => void;
+    // FIX: Add key to props to allow usage in a list map
+    key?: React.Key;
 }
 
-const ProcessCard = ({ process, onClick }: ProcessCardProps) => (
+const ProcessCard = ({ judicialProcess, onClick }: ProcessCardProps) => (
     <motion.div
         layout
         initial={{ opacity: 0, y: 10 }}
@@ -39,10 +38,10 @@ const ProcessCard = ({ process, onClick }: ProcessCardProps) => (
                  <BriefcaseIcon className="w-5 h-5" />
             </div>
             <div>
-                <h4 className="font-bold text-sm text-neutral-800">{process.studentName}</h4>
-                <p className="text-xs text-neutral-500">{process.schoolName}</p>
-                <p className="text-xs text-neutral-400 font-mono mt-1">{process.processNumber}</p>
-                <p className="text-xs text-neutral-500 mt-2">Última att: {formatDate(process.lastUpdate)}</p>
+                <h4 className="font-bold text-sm text-neutral-800">{judicialProcess.studentName}</h4>
+                <p className="text-xs text-neutral-500">{judicialProcess.schoolName}</p>
+                <p className="text-xs text-neutral-400 font-mono mt-1">{judicialProcess.processNumber}</p>
+                <p className="text-xs text-neutral-500 mt-2">Última att: {formatDate(judicialProcess.lastUpdate)}</p>
             </div>
         </div>
     </motion.div>
@@ -71,7 +70,7 @@ const JudicialProcessDashboard = (): React.ReactElement => {
                             <div className="space-y-2 h-full bg-neutral-100/60 p-2 rounded-lg min-h-[200px]">
                                 <AnimatePresence>
                                     {columnProcesses.map(process => (
-                                        <ProcessCard key={process.id} process={process} onClick={() => setSelectedProcess(process)} />
+                                        <ProcessCard key={process.id} judicialProcess={process} onClick={() => setSelectedProcess(process)} />
                                     ))}
                                 </AnimatePresence>
                                  {columnProcesses.length === 0 && <div className="text-center pt-10 text-xs text-neutral-400">Nenhum processo nesta fase.</div>}

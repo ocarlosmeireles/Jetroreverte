@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { demoNotifications } from '../../services/demoData';
 import { Notification } from '../../types';
 import NotificationPanel from '../notifications/NotificationPanel';
+import Logo from '../common/Logo';
 
 interface NavItem {
     name: string;
@@ -14,7 +15,6 @@ interface NavItem {
 }
 
 interface AppLayoutProps {
-    // FIX: Made children optional to resolve TypeScript errors where the prop was not being detected.
     children?: ReactNode;
     navItems: NavItem[];
     activePage: string;
@@ -60,7 +60,7 @@ const AppLayout = ({ children, navItems, activePage, setActivePage, pageTitle }:
     };
 
     return (
-        <div className="min-h-screen font-sans flex w-full h-screen overflow-hidden bg-neutral-50">
+        <div className="min-h-screen font-sans flex w-full h-screen overflow-hidden bg-neutral-100">
             <Sidebar
                 navItems={navItems}
                 activePage={activePage}
@@ -75,7 +75,6 @@ const AppLayout = ({ children, navItems, activePage, setActivePage, pageTitle }:
                     pageTitle={pageTitle}
                     onMenuClick={() => setSidebarOpen(true)}
                 />
-                {/* FIX: Corrected the layout structure to fix flexbox behavior and resolve TypeScript errors. */}
                 {children}
             </div>
             

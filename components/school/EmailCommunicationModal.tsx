@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { AnimatePresence, motion, Variants } from 'framer-motion';
@@ -134,54 +133,50 @@ const EmailCommunicationModal = ({ isOpen, onClose, invoice, student, guardian }
                         onClick={(e) => e.stopPropagation()}
                     >
                         <header className="p-6 border-b border-neutral-200 flex justify-between items-center flex-shrink-0">
-                            <h2 className="text-xl font-bold text-neutral-800">Enviar Email de Cobrança</h2>
+                            <h2 className="text-xl font-bold text-neutral-800">Enviar Email</h2>
                             <button onClick={onClose} className="p-1 rounded-full text-neutral-500 hover:bg-neutral-100">
                                 <XIcon className="w-6 h-6" />
                             </button>
                         </header>
-                        <div className="overflow-y-auto flex-grow p-6 space-y-4">
-                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-1">Para</label>
-                                <input type="email" value={guardian.email} readOnly className="w-full form-input bg-neutral-100 cursor-not-allowed" />
-                            </div>
-                            <div>
-                                <label htmlFor="subject" className="block text-sm font-medium text-neutral-700 mb-1">Assunto</label>
-                                <input type="text" id="subject" value={subject} onChange={e => setSubject(e.target.value)} className="w-full form-input" />
-                            </div>
-                             <div>
-                                <label htmlFor="body" className="block text-sm font-medium text-neutral-700 mb-1">Mensagem</label>
-                                <textarea id="body" value={body} onChange={e => setBody(e.target.value)} rows={8} className="w-full form-input" />
-                            </div>
-
-                            <div className="p-4 bg-primary-50/50 rounded-lg border border-primary-200">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <SparklesIcon className="w-5 h-5 text-primary-500" />
-                                    <h3 className="font-semibold text-primary-800">Gerar conteúdo com IA</h3>
-                                </div>
-                                <div className="flex items-center gap-4">
+                        <div className="flex-grow p-6 overflow-y-auto space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="flex-grow">
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Tom da mensagem</label>
                                     <div className="flex gap-2">
                                         {(['Amigável', 'Formal', 'Urgente'] as Tone[]).map(t => (
                                             <button
                                                 key={t}
                                                 onClick={() => setTone(t)}
-                                                className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${tone === t ? 'bg-primary-600 text-white' : 'bg-white hover:bg-neutral-100 border'}`}
+                                                className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-colors ${tone === t ? 'bg-primary-600 text-white' : 'bg-neutral-200 hover:bg-neutral-300'}`}
                                             >
                                                 {t}
                                             </button>
                                         ))}
                                     </div>
-                                    <Button onClick={handleGenerateContent} isLoading={isGenerating} size="sm" variant="secondary">
-                                        Gerar Assunto e Mensagem
-                                    </Button>
                                 </div>
+                                <Button onClick={handleGenerateContent} isLoading={isGenerating} icon={<SparklesIcon />}>
+                                    Gerar com IA
+                                </Button>
                             </div>
-                            
+
                             {error && <p className="text-sm text-red-600">{error}</p>}
-                             <style>{`.form-input { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; transition: all 0.2s; background-color: #f8fafc; } .form-input:focus { ring: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }`}</style>
+
+                            <div>
+                                <label htmlFor="subject" className="block text-sm font-medium text-neutral-700 mb-1">Assunto</label>
+                                <input type="text" id="subject" value={subject} onChange={e => setSubject(e.target.value)} className="w-full form-input" />
+                            </div>
+                            <div>
+                                <label htmlFor="body" className="block text-sm font-medium text-neutral-700 mb-1">Corpo do Email</label>
+                                <textarea id="body" value={body} onChange={e => setBody(e.target.value)} rows={10} className="w-full form-input" />
+                            </div>
+                            <style>{`.form-input { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; transition: all 0.2s; background-color: #f8fafc; } .form-input:focus { ring: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }`}</style>
+
                         </div>
                         <footer className="p-6 border-t border-neutral-200 flex-shrink-0 bg-neutral-50 rounded-b-2xl flex justify-end gap-3">
                             <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-                            <Button type="button" onClick={handleSendEmail} isLoading={isSending} disabled={!subject || !body}>Enviar Email</Button>
+                            <Button type="button" onClick={handleSendEmail} isLoading={isSending} disabled={!subject || !body || isSending}>
+                                {isSending ? 'Enviando...' : 'Enviar Email'}
+                            </Button>
                         </footer>
                     </motion.div>
                 </motion.div>

@@ -6,6 +6,8 @@ interface CardProps {
     className?: string;
     noPadding?: boolean;
     delay?: number;
+    // FIX: Add key to props to allow usage in a list map
+    key?: React.Key;
 }
 
 const Card = ({ children, className = '', noPadding = false, delay = 0 }: CardProps): React.ReactElement => {

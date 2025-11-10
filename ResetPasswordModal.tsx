@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
-import { XIcon } from '../common/icons';
-import Button from '../common/Button';
+import { useAuth } from './hooks/useAuth';
+import { XIcon } from './components/common/icons';
+import Button from './components/common/Button';
 
 interface ResetPasswordModalProps {
     onClose: () => void;

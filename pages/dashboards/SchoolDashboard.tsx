@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
@@ -76,6 +71,7 @@ const SchoolDashboard = (): React.ReactElement => {
                     return <StudentDetail 
                         studentId={studentViewState.id} 
                         onBack={() => setStudentViewState({ view: 'list', id: null })} 
+                        onSelectInvoice={handleSelectInvoice}
                     />;
                 }
                 return <StudentsList onSelectStudent={handleSelectStudent} />;
@@ -89,7 +85,6 @@ const SchoolDashboard = (): React.ReactElement => {
                         onSelectStudent={handleSelectStudent}
                     />;
                  }
-                 // FIX: Pass onSelectGuardian prop to GuardiansList.
                  return <GuardiansList onSelectGuardian={handleSelectGuardian} />;
             case 'cobrancas':
                  if (invoiceViewState.view === 'detail' && invoiceViewState.id) {
@@ -98,7 +93,6 @@ const SchoolDashboard = (): React.ReactElement => {
                         onBack={() => setInvoiceViewState({ view: 'list', id: null })}
                     />;
                  }
-                // FIX: Pass onSelectInvoice prop to InvoicesList.
                  return <InvoicesList onSelectInvoice={handleSelectInvoice} />;
             case 'negociacoes':
                 return <SchoolNegotiations />;
@@ -126,8 +120,7 @@ const SchoolDashboard = (): React.ReactElement => {
             setActivePage={handleSetActivePage}
             pageTitle={pageTitle}
         >
-            {/* FIX: Wrapped content in a div to provide consistent padding and scrolling. */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 bg-neutral-100">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={animationKey}
@@ -136,7 +129,6 @@ const SchoolDashboard = (): React.ReactElement => {
                         exit={{ opacity: 0, y: -15 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                     >
-                        {/* This h1 was removed because it is now handled by AppLayout and passed via pageTitle prop */}
                         {renderContent()}
                     </motion.div>
                 </AnimatePresence>

@@ -1,8 +1,9 @@
 
+
 import React, { useState, useEffect } from 'react';
 // FIX: Import Variants type from framer-motion.
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { Guardian, InvoiceStatus } from '../../types';
+import { Guardian, Invoice, InvoiceStatus } from '../../types';
 import { XIcon, SparklesIcon } from '../common/icons';
 import Button from '../common/Button';
 import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
@@ -73,8 +74,10 @@ const AddStudentModal = ({ isOpen, onClose, onSave, existingGuardians }: AddStud
 
     useEffect(() => {
         if (formData.invoiceValue && formData.invoiceDueDate) {
-            const tempInvoiceForCalc = {
+            // FIX: Added missing 'studentName' property to satisfy the Invoice type for calculation.
+            const tempInvoiceForCalc: Invoice = {
                 id: '', studentId: '', schoolId: '',
+                studentName: '',
                 value: parseFloat(formData.invoiceValue),
                 dueDate: formData.invoiceDueDate,
                 status: InvoiceStatus.VENCIDO, // Assume overdue for calculation purposes

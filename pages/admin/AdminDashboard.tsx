@@ -5,12 +5,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { NAVIGATION } from '../../constants';
 import { UserRole } from '../../types';
 import AdminDashboardContent from '../admin/AdminDashboardContent';
-import SchoolsList from '../admin/SchoolsList';
+import SchoolsList from '../law-firm/SchoolsList';
 import SaasFinancialDashboard from '../admin/SaasFinancialDashboard';
 import PagePlaceholder from '../common/PagePlaceholder';
 import { DocumentReportIcon } from '../../components/common/icons';
 import AppLayout from '../../components/layout/AppLayout';
 import CollectionHubPage from '../law-firm/CollectionHubPage';
+import PetitionList from '../law-firm/PetitionList';
+import JudicialProcessDashboard from '../law-firm/JudicialProcessDashboard';
+import SettingsPage from '../law-firm/SettingsPage';
+
 
 const AdminDashboard = (): React.ReactElement => {
     const [activePage, setActivePage] = useState('dashboard');
@@ -22,9 +26,13 @@ const AdminDashboard = (): React.ReactElement => {
             case 'dashboard':
                 return <AdminDashboardContent />;
             case 'escolas':
-                return <SchoolsList />;
+                return <SchoolsList schools={[]} onSelectSchool={() => {}} selectedSchoolId={null} />;
             case 'gestao-cobrancas':
                 return <CollectionHubPage />;
+            case 'peticoes':
+                return <PetitionList />;
+            case 'processos':
+                return <JudicialProcessDashboard />;
             case 'financeiro':
                 return <SaasFinancialDashboard />;
             case 'relatorios':
@@ -33,6 +41,8 @@ const AdminDashboard = (): React.ReactElement => {
                             title="Relatórios Avançados"
                             message="Em breve, você terá acesso a relatórios detalhados sobre crescimento, churn e muito mais."
                         />;
+            case 'configuracoes':
+                return <SettingsPage />;
             default:
                 return <AdminDashboardContent />;
         }
@@ -45,5 +55,21 @@ const AdminDashboard = (): React.ReactElement => {
             setActivePage={setActivePage}
             pageTitle={pageTitle}
         >
-             <div className="flex-1 overflow-y-auto p-6 lg:p-10">
-                <AnimatePresence mode---
+             <div className="flex-1 overflow-y-auto p-6 lg:p-10 bg-neutral-100">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activePage}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {renderContent()}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        </AppLayout>
+    );
+};
+
+export default AdminDashboard;

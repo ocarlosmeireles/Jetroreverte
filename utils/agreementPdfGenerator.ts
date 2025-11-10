@@ -7,7 +7,6 @@ declare global {
     jspdf: any;
   }
 }
-const { jsPDF } = window.jspdf;
 
 // Helper to convert numbers to Portuguese words (for 1-12) to ensure cross-browser compatibility.
 const numberToWord = (num: number): string => {
@@ -20,6 +19,13 @@ const numberToWord = (num: number): string => {
 
 
 export const generateAgreementPdf = (invoice: Invoice, student: Student, guardian: Guardian, school: School, lawFirm: User) => {
+    if (typeof window.jspdf === 'undefined') {
+        alert("A biblioteca para gerar PDF não foi carregada. Tente recarregar a página.");
+        console.error("jsPDF is not available on window object.");
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    
     if (!invoice.agreement) {
         alert("Dados do acordo não encontrados para gerar o PDF.");
         return;

@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from 'react';
 import { motion, Variants } from 'framer-motion';
 
@@ -34,7 +35,8 @@ const StatCard = ({ title, value, icon, color, delay = 0 }: StatCardProps): Reac
             animate="visible"
         >
             <div className={`p-3 rounded-full ${colorClasses[color].bg}`}>
-                {React.cloneElement(icon as React.ReactElement, { className: `w-6 h-6 ${colorClasses[color].iconText}` })}
+                {/* FIX: Add generic type to React.cloneElement to specify that the cloned element accepts a className prop. */}
+                {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: `w-6 h-6 ${colorClasses[color].iconText}` })}
             </div>
             <div className="ml-4">
                 <p className="text-sm text-neutral-500">{title}</p>

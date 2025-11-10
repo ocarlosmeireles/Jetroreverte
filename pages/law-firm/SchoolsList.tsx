@@ -1,5 +1,4 @@
 
-
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Button from '../../components/common/Button';
@@ -151,8 +150,7 @@ const SchoolsList = ({ schools, onSelectSchool, selectedSchoolId }: SchoolsListP
 
     return (
         <>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-neutral-800 invisible">Escolas Clientes</h2>
+            <div className="flex justify-end items-center mb-6">
                 <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="md">Nova Escola</Button>
             </div>
             

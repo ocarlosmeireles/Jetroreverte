@@ -6,9 +6,14 @@ declare global {
     jspdf: any;
   }
 }
-const { jsPDF } = window.jspdf;
 
 export const generatePetitionPdf = (petition: Petition, user: User) => {
+    if (typeof window.jspdf === 'undefined') {
+        alert("A biblioteca para gerar PDF não foi carregada. Tente recarregar a página.");
+        console.error("jsPDF is not available on window object.");
+        return;
+    }
+    const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;

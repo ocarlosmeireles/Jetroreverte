@@ -12,6 +12,7 @@ import { calculateUpdatedInvoiceValues } from '../../utils/calculations';
 interface StudentDetailProps {
     studentId: string;
     onBack: () => void;
+    onSelectInvoice: (invoiceId: string) => void;
 }
 
 const listVariants: Variants = {
@@ -24,7 +25,6 @@ const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
 };
 
-// FIX: Added missing PREPARACAO_JUDICIAL key to satisfy the Record<CollectionStage, string> type.
 const collectionStageLabels: Record<CollectionStage, string> = {
     [CollectionStage.AGUARDANDO_CONTATO]: 'Aguardando Contato',
     [CollectionStage.EM_NEGOCIACAO]: 'Em Negociação',
@@ -33,7 +33,7 @@ const collectionStageLabels: Record<CollectionStage, string> = {
     [CollectionStage.PAGAMENTO_RECUSADO]: 'Pagamento Recusado',
 };
 
-const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactElement => {
+const StudentDetail = ({ studentId, onBack, onSelectInvoice }: StudentDetailProps): React.ReactElement => {
     const student = demoStudents.find(s => s.id === studentId);
     const guardian = demoGuardians.find(g => g.id === student?.guardianId);
     const [invoices, setInvoices] = useState<Invoice[]>(() => demoInvoices.filter(i => i.studentId === studentId));
@@ -75,96 +75,84 @@ const StudentDetail = ({ studentId, onBack }: StudentDetailProps): React.ReactEl
 
     return (
         <>
-        <div>
-            <div className="mb-6">
+        <div className="space-y-6">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+            >
                 <Button onClick={onBack} variant="secondary" icon={<ArrowLeftIcon className="w-4 h-4" />}>
-                    Voltar
+                    Voltar para a lista
                 </Button>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
+                <motion.div
+                    className="lg:col-span-1 space-y-6"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                >
                     <Card>
-                        <h3 className="text-lg font-bold text-neutral-800">{student.name}</h3>
-                        <p className="text-neutral-600">Turma: {student.class}</p>
+                        <h3 className="text-xl font-bold text-neutral-800">{student.name}</h3>
+                        <p className="text-neutral-600 mt-1">Turma: {student.class}</p>
+                        <p className="text-sm text-neutral-500">Matrícula: {student.registrationCode || 'N/A'}</p>
                     </Card>
                     <Card>
                         <h3 className="text-lg font-semibold text-neutral-800 mb-2">Responsável Financeiro</h3>
                         <p className="font-medium text-neutral-700">{guardian.name}</p>
-                        <p className="text-sm text-neutral-500">{guardian.email}</p>
+                        <p className="text-sm text-neutral-500 break-words">{guardian.email}</p>
                         <p className="text-sm text-neutral-500">{guardian.phone}</p>
+                        <p className="text-sm text-neutral-500 mt-2">{guardian.address}</p>
                     </Card>
-                </div>
+                </motion.div>
 
-                <div className="lg:col-span-2">
+                <motion.div
+                    className="lg:col-span-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                >
                     <Card noPadding>
-                        <div className="p-4 sm:p-6 flex justify-between items-center">
-                            <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Histórico de Débitos</h2>
+                        <div className="p-4 sm:p-6 flex justify-between items-center border-b">
+                            <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">Histórico de Cobranças</h2>
                             <Button onClick={() => setIsModalOpen(true)} icon={<PlusIcon />} size="sm">Nova Cobrança</Button>
                         </div>
                         {invoices.length > 0 ? (
-                            <>
-                                {/* Desktop Table */}
-                                <table className="min-w-full divide-y divide-neutral-200 hidden md:table">
+                             <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-neutral-200">
                                     <thead className="bg-neutral-50">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Descrição</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Vencimento</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Valor</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status da Cobrança</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Ações</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-neutral-200">
+                                    <motion.tbody className="bg-white divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
                                         {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map((invoice) => {
                                             const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
                                             return (
-                                                <tr key={invoice.id}>
+                                                <motion.tr key={invoice.id} variants={itemVariants} className="hover:bg-neutral-50 transition-colors">
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{invoice.notes || 'Mensalidade'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatDate(invoice.dueDate)}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{formatCurrency(displayValue)}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap">{getStatusChip(invoice.status)}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">
-                                                    {invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <button onClick={() => onSelectInvoice(invoice.id)} className="text-primary-600 hover:text-primary-800">Detalhes</button>
                                                     </td>
-                                                </tr>
+                                                </motion.tr>
                                             );
                                         })}
-                                    </tbody>
+                                    </motion.tbody>
                                 </table>
-                                {/* Mobile Cards */}
-                                <div className="md:hidden">
-                                    <motion.div className="divide-y divide-neutral-200" variants={listVariants} initial="hidden" animate="visible">
-                                        {invoices.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()).map(invoice => {
-                                            const { updatedValue: displayValue } = calculateUpdatedInvoiceValues(invoice);
-                                            return (
-                                                <motion.div key={invoice.id} variants={itemVariants} className="p-4">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <p className="font-semibold text-neutral-800">{invoice.notes || 'Mensalidade'}</p>
-                                                            <p className="text-sm text-neutral-500">Vence em: {formatDate(invoice.dueDate)}</p>
-                                                        </div>
-                                                        {getStatusChip(invoice.status)}
-                                                    </div>
-                                                    <div className="text-sm flex justify-between mt-2 pt-2 border-t border-neutral-100">
-                                                        <span className="text-neutral-500">Valor:</span>
-                                                        <span className="font-medium text-neutral-800">{formatCurrency(displayValue)}</span>
-                                                    </div>
-                                                    <div className="text-sm flex justify-between mt-1">
-                                                        <span className="text-neutral-500">Status da Cobrança:</span>
-                                                        <span className="font-medium text-neutral-800">{invoice.collectionStage ? collectionStageLabels[invoice.collectionStage] : 'N/A'}</span>
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </motion.div>
-                                </div>
-                            </>
+                            </div>
                         ) : (
                             <p className="text-center text-neutral-500 p-6">Nenhuma cobrança registrada para este aluno.</p>
                         )}
                     </Card>
-                </div>
+                </motion.div>
             </div>
         </div>
         <AddInvoiceModal

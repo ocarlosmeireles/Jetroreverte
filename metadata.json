@@ -1,6 +1,6 @@
 {
-  "name": "Jetro Reverte Cobrança Educacional",
-  "description": "Uma ferramenta interna para um escritório de advocacia gerenciar a cobrança de inadimplentes para escolas clientes.",
+  "name": "Jetro Reverte - Cobrança Educacional",
+  "description": "Plataforma SaaS completa com IA para gestão de cobrança educacional, conectando escritórios de advocacia, escolas e responsáveis.",
   "requestFramePermissions": [
     "microphone"
   ]

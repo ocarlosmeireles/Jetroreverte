@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Logo from '../common/Logo';
 
 interface HeaderProps {
     onLogin: () => void;
@@ -27,7 +28,7 @@ const Header = ({ onLogin, onRegister }: HeaderProps) => {
     <header className="sticky top-0 bg-white/70 backdrop-blur-xl z-40 border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
-                <span className="font-bold text-xl text-neutral-800">Jetro Reverte</span>
+                <Logo />
                 <div className="hidden md:flex items-center space-x-8">
                     <a href="#escolas" onClick={(e) => handleScroll(e, 'escolas')} className="text-neutral-600 hover:text-primary-600 transition-colors font-medium">Para Escolas</a>
                     <a href="#escritorios" onClick={(e) => handleScroll(e, 'escritorios')} className="text-neutral-600 hover:text-primary-600 transition-colors font-medium">Para Escritórios</a>

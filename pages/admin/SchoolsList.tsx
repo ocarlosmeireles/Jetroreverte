@@ -79,4 +79,23 @@ const SchoolsList = (): React.ReactElement => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
                                             {status.text}
-                                        
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-neutral-900">{school.financialContactName}</div>
+                                        <div className="text-sm text-neutral-500">{school.financialContactEmail}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="#" className="text-primary-600 hover:text-primary-900">Ver Detalhes</a>
+                                    </td>
+                                </motion.tr>
+                            );
+                        })}
+                    </motion.tbody>
+                </table>
+            </div>
+        </Card>
+    );
+};
+
+export default SchoolsList;
